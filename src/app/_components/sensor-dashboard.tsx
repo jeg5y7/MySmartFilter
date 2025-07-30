@@ -1,7 +1,7 @@
 import { api } from "~/trpc/server";
 
 export async function SensorDashboard() {
-  const latestReadings = await api.sensor.getLatest.query({ limit: 20 });
+  const latestReadings = await api.sensor.getLatest({ limit: 20 });
 
   return (
     <div className="w-full max-w-4xl rounded-xl bg-white/10 p-4">
