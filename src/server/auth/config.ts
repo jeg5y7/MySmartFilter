@@ -35,8 +35,8 @@ export const authConfig = {
     EmailProvider({
       // For development, we'll use a simple configuration
       // In production, you'll want to configure a real SMTP server
-      server: process.env.EMAIL_SERVER || "smtp://localhost:1025",
-      from: process.env.EMAIL_FROM || "noreply@sensor-monitoring.local",
+      server: process.env.EMAIL_SERVER ?? "smtp://localhost:1025",
+      from: process.env.EMAIL_FROM ?? "noreply@sensor-monitoring.local",
     }),
     /**
      * For development, you can use tools like MailHog or just console logging
