@@ -1,4 +1,4 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
+// import { PrismaAdapter } from "@auth/prisma-adapter"; // Unused with credentials provider
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -50,14 +50,12 @@ export const authConfig = {
           });
           
           // Create user if doesn't exist
-          if (!user) {
-            user = await db.user.create({
+          user ??= await db.user.create({
               data: {
                 email: credentials.email,
                 name: credentials.email.split('@')[0], // Use email prefix as name
               }
             });
-          }
           
           return {
             id: user.id,
