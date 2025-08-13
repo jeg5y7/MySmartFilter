@@ -43,7 +43,7 @@ export const authConfig = {
       },
       async authorize(credentials) {
         // For testing - accept any email
-        if (credentials?.email) {
+        if (credentials?.email && typeof credentials.email === 'string') {
           // Check if user exists
           let user = await db.user.findUnique({
             where: { email: credentials.email }
