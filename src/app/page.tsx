@@ -63,10 +63,15 @@ export default async function Home() {
           </div>
 
           {session?.user && (
-            <>
-              <SensorDashboard />
-              <LatestPost />
-            </>
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-xl text-white">Welcome back, {session.user.name || session.user.email}!</p>
+              <Link
+                href="/dashboard"
+                className="rounded-full bg-blue-600 hover:bg-blue-700 px-8 py-3 font-semibold no-underline transition"
+              >
+                📊 Go to Dashboard
+              </Link>
+            </div>
           )}
         </div>
       </main>
