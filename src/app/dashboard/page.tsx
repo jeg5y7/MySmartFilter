@@ -34,7 +34,7 @@ export default async function DashboardPage() {
           <div className="flex w-full justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold">My Smart Filter</h1>
-              <p className="text-white/70">Welcome, {session.user.name || session.user.email}</p>
+              <p className="text-white/70">Welcome, {session.user.name ?? session.user.email}</p>
             </div>
             <div className="flex items-center gap-4">
               <Link 

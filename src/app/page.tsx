@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { LatestPost } from "~/app/_components/post";
-import { SensorDashboard } from "~/app/_components/sensor-dashboard";
+// Removed unused imports
 import { api, HydrateClient } from "~/trpc/server";
 import { auth } from "~/server/auth";
 
@@ -64,7 +63,7 @@ export default async function Home() {
 
           {session?.user && (
             <div className="flex flex-col items-center gap-4">
-              <p className="text-xl text-white">Welcome back, {session.user.name || session.user.email}!</p>
+              <p className="text-xl text-white">Welcome back, {session.user.name ?? session.user.email}!</p>
               <Link
                 href="/dashboard"
                 className="rounded-full bg-blue-600 hover:bg-blue-700 px-8 py-3 font-semibold no-underline transition"

@@ -36,7 +36,7 @@ export function UserProfile() {
           <label className="block text-sm text-white/70 mb-2">User Information</label>
           <div className="rounded-lg bg-white/5 p-3">
             <p className="text-white"><strong>Email:</strong> {user.email}</p>
-            <p className="text-white"><strong>Name:</strong> {user.name || 'Not set'}</p>
+            <p className="text-white"><strong>Name:</strong> {user.name ?? 'Not set'}</p>
           </div>
         </div>
 
@@ -60,7 +60,7 @@ export function UserProfile() {
             </button>
           </div>
           <p className="text-xs text-white/50 mt-1">
-            Use this ID in your ESP32 Arduino code's userId variable
+            Use this ID in your ESP32 Arduino code&apos;s userId variable
           </p>
         </div>
 

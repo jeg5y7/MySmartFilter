@@ -108,7 +108,7 @@ function StatCard({
 }
 
 // Reading Card Component
-function ReadingCard({ reading }: { reading: any }) {
+function ReadingCard({ reading }: { reading: { id: string; deviceId: string; pressure: number; temperature: number; timestamp: Date } }) {
   const timeAgo = new Date(reading.timestamp).toLocaleTimeString();
   
   return (
@@ -145,7 +145,7 @@ function ReadingCard({ reading }: { reading: any }) {
 }
 
 // Chart Component (simplified for now, will enhance with Recharts)
-function SensorChart({ data }: { data: any[] }) {
+function SensorChart({ data }: { data: unknown[] }) {
   return (
     <div className="h-64 rounded-lg bg-white/5 p-4 flex items-center justify-center">
       <div className="text-center">
