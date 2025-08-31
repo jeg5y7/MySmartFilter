@@ -8,7 +8,7 @@ const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // API configuration
-const char* apiUrl = "https://mysmartfilter.com/api/sensor";
+const char* apiUrl = "https://my-smart-filter-97i34rzkv-jon-goeckers-projects.vercel.app/api/sensor";
 const char* userId = "YOUR_USER_ID"; // You'll need to get this from your app
 const char* deviceId = "ESP32_SDP810_001"; // Unique device identifier
 

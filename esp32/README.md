@@ -47,7 +47,7 @@ const char* password = "Your_WiFi_Password";
 ### 2. User ID Configuration
 To get your User ID:
 
-1. **Sign in to your app** at https://mysmartfilter.com
+1. **Sign in to your app** at https://my-smart-filter-97i34rzkv-jon-goeckers-projects.vercel.app
 2. **Open browser developer tools** (F12)
 3. **Go to Application/Storage → Local Storage**
 4. **Look for user session data** or...
