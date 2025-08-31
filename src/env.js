@@ -19,7 +19,7 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.NODE_ENV === "production" 
       ? z.string().min(1)
       : z.string().optional(),
-    EMAIL_FROM: z.string().email().optional(),
+    EMAIL_FROM: z.string().min(1).optional(),
   },
 
   /**
