@@ -1,5 +1,6 @@
-// import { PrismaAdapter } from "@auth/prisma-adapter"; // Unused with credentials provider
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import Resend from "next-auth/providers/resend";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "~/server/db";
@@ -32,8 +33,15 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
+    ...(process.env.RESEND_API_KEY ? [
+      Resend({
+        apiKey: process.env.RESEND_API_KEY,
+        from: process.env.EMAIL_FROM ?? "noreply@mysmartfilter.com",
+      })
+    ] : []),
+    // Temporary credentials provider for testing when Resend is not configured
     CredentialsProvider({
-      name: "Test Login",
+      name: "Email (Testing)",
       credentials: {
         email: { 
           label: "Email", 
@@ -42,7 +50,6 @@ export const authConfig = {
         },
       },
       async authorize(credentials) {
-        // For testing - accept any email
         if (credentials?.email && typeof credentials.email === 'string') {
           // Check if user exists
           let user = await db.user.findUnique({
@@ -53,7 +60,8 @@ export const authConfig = {
           user ??= await db.user.create({
               data: {
                 email: credentials.email,
-                name: credentials.email.split('@')[0], // Use email prefix as name
+                name: credentials.email.split('@')[0],
+                emailVerified: new Date(), // Mark as verified for testing
               }
             });
           
@@ -67,8 +75,8 @@ export const authConfig = {
       },
     }),
   ],
-  // Note: Credentials provider doesn't work well with database adapters
-  // adapter: PrismaAdapter(db),
+  // Only use database adapter when we have email provider configured
+  ...(process.env.RESEND_API_KEY ? { adapter: PrismaAdapter(db) } : {}),
   callbacks: {
     async session({ session, token }) {
       if (token?.sub) {
