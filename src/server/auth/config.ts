@@ -142,13 +142,17 @@ export const authConfig = {
       });
       return true;
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
       console.log('[NEXTAUTH CALLBACK] session:', {
         userEmail: session?.user?.email,
-        tokenSub: token?.sub
+        tokenSub: token?.sub,
+        userFromDB: user?.id
       });
       
-      if (token?.sub) {
+      // When using database adapter, user object is passed directly
+      if (user?.id) {
+        session.user.id = user.id;
+      } else if (token?.sub) {
         session.user.id = token.sub;
       }
       return session;
@@ -158,10 +162,15 @@ export const authConfig = {
         hasUser: !!user,
         hasAccount: !!account,
         tokenSub: token?.sub,
-        userEmail: user?.email
+        userEmail: user?.email,
+        userId: user?.id,
+        tokenEmail: token?.email,
+        fullToken: JSON.stringify(token),
+        fullUser: user ? JSON.stringify(user) : null
       });
       
-      if (user) {
+      if (user?.id) {
+        console.log('[NEXTAUTH CALLBACK] Setting token.sub to:', user.id);
         token.sub = user.id;
       }
       return token;
