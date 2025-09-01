@@ -136,12 +136,23 @@ export const authConfig = {
   callbacks: {
     async redirect({ url, baseUrl }) {
       console.log('[NEXTAUTH CALLBACK] redirect:', { url, baseUrl });
-      // After successful sign in, redirect to dashboard
-      if (url.includes('/signin') || url.includes('/auth')) {
+      
+      // Always redirect to dashboard after successful authentication
+      // This handles magic links, sign-in, and any other auth flow
+      if (url === baseUrl || url === `${baseUrl}/` || url.includes('/auth') || url.includes('/signin')) {
+        console.log('[NEXTAUTH CALLBACK] Redirecting to dashboard');
         return `${baseUrl}/dashboard`;
       }
-      // For other cases, redirect to provided URL or dashboard
-      return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`;
+      
+      // For callback URLs that are safe and within our domain, use them
+      if (url.startsWith(baseUrl)) {
+        console.log('[NEXTAUTH CALLBACK] Using provided URL:', url);
+        return url;
+      }
+      
+      // Default fallback to dashboard
+      console.log('[NEXTAUTH CALLBACK] Fallback to dashboard');
+      return `${baseUrl}/dashboard`;
     },
     async signIn({ user, account, profile: _profile }) {
       console.log('[NEXTAUTH CALLBACK] signIn:', {
