@@ -1,22 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
-import { db } from "~/server/db";
 import { SensorDashboard } from "~/app/_components/sensor-dashboard";
 import { UserProfile } from "~/app/_components/user-profile";
 import { HydrateClient } from "~/trpc/server";
 
-export default async function DashboardPage({ searchParams }: {
-  searchParams: Promise<{ skipPasswordSetup?: string }>;
-}) {
+export default async function DashboardPage() {
   const session = await auth();
-  
-  console.log('[DASHBOARD DEBUG] Session data:', {
-    hasSession: !!session,
-    userEmail: session?.user?.email,
-    userId: session?.user?.id,
-    fullSession: JSON.stringify(session)
-  });
   
   // Redirect to sign in if not authenticated
   if (!session?.user) {
@@ -36,44 +25,6 @@ export default async function DashboardPage({ searchParams }: {
         </div>
       </div>
     );
-  }
-
-  // Check if user needs to set up password (only for new users from magic link)
-  const params = await searchParams;
-  if (!params.skipPasswordSetup && session.user.id) {
-    console.log('[DASHBOARD DEBUG] Checking user password setup for ID:', session.user.id);
-    
-    try {
-      const user = await db.user.findUnique({
-        where: { id: session.user.id },
-        select: { hasPassword: true, createdAt: true }
-      });
-
-      console.log('[DASHBOARD DEBUG] User query result:', {
-        userFound: !!user,
-        hasPassword: user?.hasPassword,
-        createdAt: user?.createdAt
-      });
-
-      // If user is new (created in last 5 minutes) and doesn't have password, redirect to setup
-      if (user && !user.hasPassword) {
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-        console.log('[DASHBOARD DEBUG] Password setup check:', {
-          userCreatedAt: user.createdAt,
-          fiveMinutesAgo,
-          shouldRedirect: user.createdAt > fiveMinutesAgo
-        });
-        
-        if (user.createdAt > fiveMinutesAgo) {
-          console.log('[DASHBOARD DEBUG] Redirecting to password setup');
-          redirect('/setup-password');
-        }
-      }
-    } catch (error) {
-      console.error('[DASHBOARD DEBUG] Error checking user password setup:', error);
-    }
-  } else if (!session.user.id) {
-    console.error('[DASHBOARD DEBUG] No user ID found in session!');
   }
 
   return (
