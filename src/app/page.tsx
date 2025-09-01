@@ -29,7 +29,7 @@ export default async function Home() {
                     Smart <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Filter</span> Monitoring
                   </h1>
                   <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-                    Track your air or water filter's performance in real-time. Monitor pressure differential, predict filter life, and receive maintenance alerts to ensure optimal filtration.
+                    Track your air or water filter&apos;s performance in real-time. Monitor pressure differential, predict filter life, and receive maintenance alerts to ensure optimal filtration.
                   </p>
                 </div>
 
