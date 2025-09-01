@@ -111,8 +111,8 @@ export const authConfig = {
   // },
   debug: true,
   logger: {
-    error(code, metadata) {
-      console.error('[NEXTAUTH ERROR]', code, metadata);
+    error(error) {
+      console.error('[NEXTAUTH ERROR]', error);
     },
     warn(code) {
       console.warn('[NEXTAUTH WARN]', code);
