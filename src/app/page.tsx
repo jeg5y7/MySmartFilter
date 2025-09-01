@@ -23,13 +23,13 @@ export default async function Home() {
               <div className="lg:w-1/2 space-y-8">
                 <div>
                   <span className="inline-block px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-6">
-                    IoT Sensor Monitoring Platform
+                    Filter Monitoring Platform
                   </span>
                   <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
-                    Monitor Your <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Environment</span> in Real-Time
+                    Smart <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Filter</span> Monitoring
                   </h1>
                   <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-                    Track pressure, temperature, and other environmental data with your ESP32 devices. View real-time analytics and historical trends from anywhere.
+                    Track your air or water filter's performance in real-time. Monitor pressure differential, predict filter life, and receive maintenance alerts to ensure optimal filtration.
                   </p>
                 </div>
 
@@ -49,7 +49,7 @@ export default async function Home() {
                       href="/api/auth/signin"
                       className="px-8 py-4 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium text-center transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
                     >
-                      <span>Get Started Free</span>
+                      <span>Sign In</span>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                       </svg>
@@ -79,14 +79,14 @@ export default async function Home() {
                         <div className="w-3 h-3 rounded-full bg-red-500"></div>
                         <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                         <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <div className="text-xs text-gray-400 ml-2">ESP32 Sensor Dashboard</div>
+                        <div className="text-xs text-gray-400 ml-2">Smart Filter Dashboard</div>
                       </div>
                       
                       <div className="bg-gray-800 rounded-lg p-4 h-72 overflow-hidden relative">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-gray-700/50 rounded-lg p-4 border border-white/5">
-                            <div className="text-xs text-gray-400">Pressure</div>
-                            <div className="text-2xl font-bold text-white">1013.25 Pa</div>
+                            <div className="text-xs text-gray-400">Differential Pressure</div>
+                            <div className="text-2xl font-bold text-white">125.3 Pa</div>
                             <div className="mt-2 h-1 bg-gray-600 rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-blue-400 to-cyan-400 w-3/4" />
                             </div>
@@ -102,8 +102,8 @@ export default async function Home() {
                         
                         <div className="mt-4 bg-gray-700/50 rounded-lg p-4 border border-white/5">
                           <div className="flex justify-between items-center mb-2">
-                            <div className="text-xs text-gray-400">24 Hour History</div>
-                            <div className="text-xs text-blue-400">Live</div>
+                            <div className="text-xs text-gray-400">Filter Life Remaining</div>
+                            <div className="text-xs text-blue-400">75%</div>
                           </div>
                           <div className="h-24 flex items-end gap-1">
                             {[40, 25, 35, 30, 35, 55, 25, 30, 45, 65, 40, 30, 25, 35, 60, 75, 45, 35, 50, 40]?.map((h, i) => (
@@ -134,20 +134,20 @@ export default async function Home() {
             {/* Metrics/Stats */}
             <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-                <div className="text-4xl font-bold text-white mb-1">99.9%</div>
-                <div className="text-gray-400">Uptime</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-                <div className="text-4xl font-bold text-white mb-1">5ms</div>
-                <div className="text-gray-400">Response Time</div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
                 <div className="text-4xl font-bold text-white mb-1">24/7</div>
                 <div className="text-gray-400">Monitoring</div>
               </div>
               <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-                <div className="text-4xl font-bold text-white mb-1">Simple</div>
-                <div className="text-gray-400">Integration</div>
+                <div className="text-4xl font-bold text-white mb-1">30%</div>
+                <div className="text-gray-400">Cost Savings</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+                <div className="text-4xl font-bold text-white mb-1">Smart</div>
+                <div className="text-gray-400">Predictions</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+                <div className="text-4xl font-bold text-white mb-1">Easy</div>
+                <div className="text-gray-400">Installation</div>
               </div>
             </div>
           </div>
@@ -157,8 +157,8 @@ export default async function Home() {
         <section className="py-24 bg-gradient-to-b from-[#1e293b] to-[#0f172a]">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Everything you need to monitor your environment</h2>
-              <p className="text-xl text-gray-400">Our platform combines hardware integration, real-time data collection, and beautiful visualizations.</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">Everything you need for smart filter monitoring</h2>
+              <p className="text-xl text-gray-400">Save money, improve air quality, and never miss a filter change with intelligent monitoring.</p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -169,26 +169,26 @@ export default async function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 group-hover:text-blue-400 transition-colors">ESP32 Integration</h3>
-                <p className="text-gray-400 mb-4">Connect your ESP32 microcontrollers with SDP810 sensors for precise environmental monitoring.</p>
+                <h3 className="text-xl font-semibold mb-3 group-hover:text-blue-400 transition-colors">Smart Sensor Integration</h3>
+                <p className="text-gray-400 mb-4">Connect your SDP810 differential pressure sensor to monitor filter performance with precision.</p>
                 <ul className="space-y-2 text-sm text-gray-500">
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Simple Arduino code setup
+                    Plug-and-play installation
                   </li>
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Secure data transmission
+                    WiFi-enabled monitoring
                   </li>
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Low power consumption
+                    Battery-friendly operation
                   </li>
                 </ul>
               </div>
@@ -200,26 +200,26 @@ export default async function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 group-hover:text-purple-400 transition-colors">Real-time Analytics</h3>
-                <p className="text-gray-400 mb-4">Monitor pressure and temperature in real-time with detailed analytics and trend visualization.</p>
+                <h3 className="text-xl font-semibold mb-3 group-hover:text-purple-400 transition-colors">Filter Life Prediction</h3>
+                <p className="text-gray-400 mb-4">AI-powered predictions tell you exactly when to change your filter based on actual usage patterns.</p>
                 <ul className="space-y-2 text-sm text-gray-500">
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Interactive dashboards
+                    Predictive maintenance
                   </li>
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Historical data tracking
+                    Usage pattern analysis
                   </li>
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Statistical summaries
+                    Cost saving reports
                   </li>
                 </ul>
               </div>
@@ -231,26 +231,26 @@ export default async function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 group-hover:text-cyan-400 transition-colors">Alerts & Notifications</h3>
-                <p className="text-gray-400 mb-4">Get instant alerts when readings exceed thresholds or when devices go offline.</p>
+                <h3 className="text-xl font-semibold mb-3 group-hover:text-cyan-400 transition-colors">Smart Alerts</h3>
+                <p className="text-gray-400 mb-4">Never miss a filter change. Get timely alerts based on actual filter condition, not just calendar dates.</p>
                 <ul className="space-y-2 text-sm text-gray-500">
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Customizable thresholds
+                    Filter change reminders
                   </li>
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Email notifications
+                    Email & SMS alerts
                   </li>
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    Device status updates
+                    Performance warnings
                   </li>
                 </ul>
               </div>
@@ -484,9 +484,9 @@ export default async function Home() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Sensor Monitoring</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Smart Filter</h3>
                 <p className="text-gray-400 text-sm">
-                  Real-time environmental monitoring with ESP32 and SDP810 sensors.
+                  Intelligent filter monitoring for optimal air and water quality.
                 </p>
                 <div className="mt-4 flex items-center gap-4">
                   <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -540,7 +540,7 @@ export default async function Home() {
             </div>
             
             <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-500 text-sm">© 2025 Sensor Monitoring. All rights reserved.</p>
+              <p className="text-gray-500 text-sm">© 2025 Smart Filter. All rights reserved.</p>
               <div className="mt-4 md:mt-0">
                 <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</a>
                 <span className="text-gray-600 mx-2">·</span>

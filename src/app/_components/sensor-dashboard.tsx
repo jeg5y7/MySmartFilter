@@ -8,8 +8,8 @@ export async function SensorDashboard() {
     <div className="w-full max-w-6xl space-y-6">
       {/* Header */}
       <div className="rounded-xl bg-white/10 p-6">
-        <h2 className="text-3xl font-bold text-white">IoT Sensor Dashboard</h2>
-        <p className="text-white/70">Real-time pressure and temperature monitoring</p>
+        <h2 className="text-3xl font-bold text-white">Filter Performance Dashboard</h2>
+        <p className="text-white/70">Real-time filter pressure differential and system health monitoring</p>
       </div>
 
       {/* Statistics Cards */}
@@ -22,10 +22,10 @@ export async function SensorDashboard() {
             icon="📊"
           />
           <StatCard
-            title="Avg Pressure"
+            title="Avg Differential"
             value={`${stats.pressure.avg.toFixed(1)} Pa`}
             subtitle={`Range: ${stats.pressure.min.toFixed(1)} - ${stats.pressure.max.toFixed(1)}`}
-            icon="🌡️"
+            icon="🔄"
           />
           <StatCard
             title="Avg Temperature"
@@ -34,9 +34,9 @@ export async function SensorDashboard() {
             icon="🌡️"
           />
           <StatCard
-            title="Device Status"
-            value="Online"
-            subtitle="Last reading: now"
+            title="Filter Status"
+            value="Good"
+            subtitle="Est. 30 days remaining"
             icon="✅"
           />
         </div>
@@ -45,27 +45,27 @@ export async function SensorDashboard() {
       {/* Chart Section */}
       {latestReadings.length > 0 && (
         <div className="rounded-xl bg-white/10 p-6">
-          <h3 className="mb-4 text-xl font-semibold text-white">Recent Readings</h3>
+        <h3 className="mb-4 text-xl font-semibold text-white">Pressure Trend</h3>
           <SensorChart data={latestReadings} />
         </div>
       )}
 
       {/* Latest Readings Grid */}
       <div className="rounded-xl bg-white/10 p-6">
-        <h3 className="mb-4 text-xl font-semibold text-white">Latest Sensor Data</h3>
+        <h3 className="mb-4 text-xl font-semibold text-white">Latest Filter Readings</h3>
         
         {latestReadings.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">📡</div>
-            <p className="text-xl text-white/60 mb-2">No sensor data yet</p>
-            <p className="text-white/40">Configure your ESP32 device to start collecting data</p>
+            <div className="text-6xl mb-4">🔧</div>
+            <p className="text-xl text-white/60 mb-2">No filter data yet</p>
+            <p className="text-white/40">Connect your Smart Filter monitor to start tracking performance</p>
             <div className="mt-6 rounded-lg bg-white/5 p-4 text-left">
               <p className="text-sm text-white/70 mb-2">Quick Setup:</p>
               <ol className="text-sm text-white/60 space-y-1">
-                <li>1. Flash the ESP32 with provided Arduino code</li>
-                <li>2. Configure WiFi and User ID</li>
-                <li>3. Connect SDP810 sensor via I2C</li>
-                <li>4. Data will appear here automatically</li>
+                <li>1. Install Smart Filter monitor on your filter housing</li>
+                <li>2. Configure WiFi connection on ESP32</li>
+                <li>3. Connect SDP810 pressure sensor across filter</li>
+                <li>4. Monitor will automatically detect filter condition</li>
               </ol>
             </div>
           </div>
@@ -125,7 +125,7 @@ function ReadingCard({ reading }: { reading: { id: string; deviceId: string; pre
       
       <div className="space-y-2">
         <div className="flex justify-between">
-          <span className="text-white/70">Pressure:</span>
+          <span className="text-white/70">Differential:</span>
           <span className="font-semibold">{reading.pressure.toFixed(2)} Pa</span>
         </div>
         <div className="flex justify-between">
@@ -150,7 +150,7 @@ function SensorChart({ data }: { data: unknown[] }) {
     <div className="h-64 rounded-lg bg-white/5 p-4 flex items-center justify-center">
       <div className="text-center">
         <div className="text-4xl mb-2">📈</div>
-        <p className="text-white/60">Interactive charts coming soon</p>
+        <p className="text-white/60">Filter life prediction chart coming soon</p>
         <p className="text-sm text-white/40 mt-1">
           {data.length} data points ready for visualization
         </p>

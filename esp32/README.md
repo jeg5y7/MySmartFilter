@@ -1,6 +1,6 @@
-# ESP32 SDP810 Sensor Monitor
+# Smart Filter Monitor - ESP32 Firmware
 
-This Arduino code reads data from an SDP810 differential pressure sensor and sends it to your web application via API.
+This Arduino code monitors your filter's differential pressure using an SDP810 sensor and sends data to mysmartfilter.com for real-time tracking and predictive maintenance.
 
 ## Hardware Requirements
 
@@ -47,7 +47,7 @@ const char* password = "Your_WiFi_Password";
 ### 2. User ID Configuration
 To get your User ID:
 
-1. **Sign in to your app** at https://my-smart-filter-97i34rzkv-jon-goeckers-projects.vercel.app
+1. **Sign in to your app** at https://mysmartfilter.com
 2. **Open browser developer tools** (F12)
 3. **Go to Application/Storage → Local Storage**
 4. **Look for user session data** or...
@@ -68,7 +68,7 @@ const char* userId = "your_actual_user_id_here";
 ### 3. Device ID (Optional)
 You can customize the device identifier:
 ```cpp
-const char* deviceId = "ESP32_SDP810_YourName";
+const char* deviceId = "SmartFilter_YourLocation";
 ```
 
 ## Upload Instructions
@@ -108,15 +108,15 @@ const char* deviceId = "ESP32_SDP810_YourName";
 
 ```
 ESP32 Sensor Monitor Started
-Device ID: ESP32_SDP810_001
+Device ID: SmartFilter_001
 WiFi connected!
 IP address: 192.168.1.100
 SDP810 sensor initialized successfully
 
 === Sensor Reading ===
-Pressure: 1013.25 Pa
+Pressure: 125.3 Pa
 Temperature: 23.5 °C
-Sending: {"pressure":1013.25,"temperature":23.5,"deviceId":"ESP32_SDP810_001","userId":"user123"}
+Sending: {"pressure":125.3,"temperature":23.5,"deviceId":"SmartFilter_001","userId":"user123"}
 HTTP Response: 200
 Response: {"success":true,"data":{"id":"abc123","timestamp":"2025-08-13T04:00:00.000Z"}}
 ✓ Data sent successfully
