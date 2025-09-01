@@ -154,16 +154,41 @@ export const authConfig = {
     async session({ session, token, user }) {
       console.log('[NEXTAUTH CALLBACK] session:', {
         userEmail: session?.user?.email,
+        sessionUserId: session?.user?.id,
         tokenSub: token?.sub,
-        userFromDB: user?.id
+        userFromDB: user?.id,
+        fullUser: user ? JSON.stringify(user) : null,
+        fullToken: JSON.stringify(token),
+        fullSession: JSON.stringify(session)
       });
       
       // When using database adapter, user object is passed directly
-      if (user?.id) {
-        session.user.id = user.id;
-      } else if (token?.sub) {
-        session.user.id = token.sub;
+      // But sometimes the ID might be in different places
+      const userId = user?.id || token?.sub || session?.user?.id;
+      
+      if (userId) {
+        console.log('[NEXTAUTH CALLBACK] Setting session.user.id to:', userId);
+        session.user.id = userId;
+      } else {
+        console.error('[NEXTAUTH CALLBACK] No user ID found anywhere!');
+        // If no user ID, try to get it from the database using email
+        if (session?.user?.email) {
+          console.log('[NEXTAUTH CALLBACK] Attempting to find user by email:', session.user.email);
+          try {
+            const dbUser = await db.user.findUnique({
+              where: { email: session.user.email },
+              select: { id: true }
+            });
+            if (dbUser?.id) {
+              console.log('[NEXTAUTH CALLBACK] Found user ID from database:', dbUser.id);
+              session.user.id = dbUser.id;
+            }
+          } catch (error) {
+            console.error('[NEXTAUTH CALLBACK] Error finding user by email:', error);
+          }
+        }
       }
+      
       return session;
     },
     async jwt({ token, user, account }) {
