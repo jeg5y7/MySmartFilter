@@ -122,7 +122,7 @@ export const authConfig = {
     },
   },
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({ user, account, profile: _profile, isNewUser }) {
       console.log('[NEXTAUTH EVENT] signIn:', {
         user: user?.email,
         provider: account?.provider,
@@ -143,7 +143,7 @@ export const authConfig = {
       // For other cases, redirect to provided URL or dashboard
       return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile: _profile }) {
       console.log('[NEXTAUTH CALLBACK] signIn:', {
         user: user?.email,
         provider: account?.provider,
@@ -164,7 +164,7 @@ export const authConfig = {
       
       // When using database adapter, user object is passed directly
       // But sometimes the ID might be in different places
-      const userId = user?.id || token?.sub || session?.user?.id;
+      const userId = user?.id ?? token?.sub ?? session?.user?.id;
       
       if (userId) {
         console.log('[NEXTAUTH CALLBACK] Setting session.user.id to:', userId);
