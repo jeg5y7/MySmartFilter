@@ -134,6 +134,15 @@ export const authConfig = {
     },
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      console.log('[NEXTAUTH CALLBACK] redirect:', { url, baseUrl });
+      // After successful sign in, redirect to dashboard
+      if (url.includes('/signin') || url.includes('/auth')) {
+        return `${baseUrl}/dashboard`;
+      }
+      // For other cases, redirect to provided URL or dashboard
+      return url.startsWith(baseUrl) ? url : `${baseUrl}/dashboard`;
+    },
     async signIn({ user, account, profile }) {
       console.log('[NEXTAUTH CALLBACK] signIn:', {
         user: user?.email,
