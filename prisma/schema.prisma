@@ -74,6 +74,10 @@ model User {
     email         String?         @unique
     emailVerified DateTime?
     image         String?
+    password      String?         // Hashed password for email/password auth
+    hasPassword   Boolean         @default(false) // Track if user has set a password
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @default(now()) @updatedAt
     accounts      Account[]
     sessions      Session[]
     posts         Post[]

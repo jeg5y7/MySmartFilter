@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
+import { db } from "~/server/db";
 import { SensorDashboard } from "~/app/_components/sensor-dashboard";
 import { UserProfile } from "~/app/_components/user-profile";
 import { HydrateClient } from "~/trpc/server";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: {
+  searchParams: Promise<{ skipPasswordSetup?: string }>;
+}) {
   const session = await auth();
   
   // Redirect to sign in if not authenticated
@@ -25,6 +29,23 @@ export default async function DashboardPage() {
         </div>
       </div>
     );
+  }
+
+  // Check if user needs to set up password (only for new users from magic link)
+  const params = await searchParams;
+  if (!params.skipPasswordSetup) {
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { hasPassword: true, createdAt: true }
+    });
+
+    // If user is new (created in last 5 minutes) and doesn't have password, redirect to setup
+    if (user && !user.hasPassword) {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      if (user.createdAt > fiveMinutesAgo) {
+        redirect('/setup-password');
+      }
+    }
   }
 
   return (
