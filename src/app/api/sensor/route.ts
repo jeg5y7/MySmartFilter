@@ -6,13 +6,49 @@ import { db } from "~/server/db";
 const SensorDataSchema = z.object({
   pressure: z.number(),
   temperature: z.number(),
-  deviceId: z.string(),
-  userId: z.string(), // For now, ESP32 will need to include user ID
-  apiKey: z.string().optional(), // Optional API key for security
+  deviceId: z.string().optional(), // Optional, will be inferred from token
 });
 
 export async function POST(request: NextRequest) {
   try {
+    // Get API token from Authorization header
+    const authHeader = request.headers.get("authorization");
+    console.log("[SENSOR API] Authorization header:", authHeader);
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("[SENSOR API] Missing or invalid auth header");
+      return NextResponse.json(
+        { error: "Authorization required" },
+        { status: 401 }
+      );
+    }
+
+    const apiToken = authHeader.substring(7);
+    console.log("[SENSOR API] Extracted token:", apiToken.substring(0, 20) + "...");
+
+    // Find device by API token
+    const device = await db.device.findUnique({
+      where: { apiToken },
+    });
+
+    console.log("[SENSOR API] Device lookup result:", device ? `Found device ${device.deviceId}` : "No device found");
+
+    if (!device) {
+      console.log("[SENSOR API] Token not found in database");
+      return NextResponse.json(
+        { error: "Invalid API token" },
+        { status: 401 }
+      );
+    }
+
+    // Check if device is linked to a user
+    if (!device.userId) {
+      return NextResponse.json(
+        { error: "Device not linked to a user account" },
+        { status: 403 }
+      );
+    }
+
     const body: unknown = await request.json();
     
     // Validate the incoming data
@@ -25,20 +61,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { pressure, temperature, deviceId, userId } = result.data;
+    const { pressure, temperature } = result.data;
 
-    // TODO: Add API key validation here if needed
-    // if (apiKey !== process.env.ESP32_API_KEY) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    // Update device last seen time
+    await db.device.update({
+      where: { id: device.id },
+      data: {
+        lastSeen: new Date(),
+        status: "active",
+      },
+    });
 
     // Create the sensor reading in the database
     const sensorReading = await db.sensorReading.create({
       data: {
         pressure,
         temperature,
-        deviceId,
-        userId,
+        deviceId: device.deviceId, // Use deviceId from authenticated device
+        userId: device.userId, // Use userId from authenticated device
       },
     });
 

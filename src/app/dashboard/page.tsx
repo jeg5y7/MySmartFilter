@@ -38,6 +38,16 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <Link 
+                href="/devices"
+                className="rounded-full bg-blue-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-blue-600/30 text-blue-300 hover:text-blue-200 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13 7H7v6h6V7z" />
+                  <path fillRule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2z" clipRule="evenodd" />
+                </svg>
+                Manage Devices
+              </Link>
+              <Link 
                 href="/api/auth/signout"
                 className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-white/20"
               >

@@ -1,8 +1,8 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import Resend from "next-auth/providers/resend";
 
 import { db } from "~/server/db";
+import { CustomPrismaAdapter } from "./prisma-adapter";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -40,7 +40,7 @@ export const authConfig = {
     ] : []),
   ],
   // Only use database adapter when we have email provider configured
-  ...(process.env.RESEND_API_KEY ? { adapter: PrismaAdapter(db) } : {}),
+  ...(process.env.RESEND_API_KEY ? { adapter: CustomPrismaAdapter() } : {}),
   pages: {
     signIn: '/signin',
   },
