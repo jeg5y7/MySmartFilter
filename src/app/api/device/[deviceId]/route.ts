@@ -5,7 +5,7 @@ import { db } from "~/server/db";
 // GET: Get device details
 export async function GET(
   request: Request,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
     // Check authentication
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const { deviceId } = params;
+    const { deviceId } = await params;
 
     // Get device details
     const device = await db.device.findUnique({
@@ -69,7 +69,7 @@ export async function GET(
 // PUT: Update device details
 export async function PUT(
   request: Request,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
     // Check authentication
@@ -81,7 +81,7 @@ export async function PUT(
       );
     }
 
-    const { deviceId } = params;
+    const { deviceId } = await params;
     const body = await request.json();
     const { name, location } = body;
 
@@ -130,7 +130,7 @@ export async function PUT(
 // DELETE: Delete device
 export async function DELETE(
   request: Request,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
     // Check authentication
@@ -142,7 +142,7 @@ export async function DELETE(
       );
     }
 
-    const { deviceId } = params;
+    const { deviceId } = await params;
 
     // Check if device exists and user owns it
     const device = await db.device.findUnique({
