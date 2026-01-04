@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -33,20 +33,23 @@ model SensorReading {
 }
 
 model Device {
-  id             String          @id @default(cuid())
-  deviceId       String          @unique
-  name           String?
-  location       String?
-  type           String          @default("SmartFilter")
-  firmware       String?
-  apiToken       String          @unique
-  status         String          @default("pending")
-  lastSeen       DateTime        @default(now())
-  userId         String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  user           User?           @relation(fields: [userId], references: [id])
-  sensorReadings SensorReading[]
+  id                String                 @id @default(cuid())
+  deviceId          String                 @unique
+  name              String?
+  location          String?
+  type              String                 @default("SmartFilter")
+  firmware          String?
+  apiToken          String                 @unique
+  status            String                 @default("pending")
+  lastSeen          DateTime               @default(now())
+  userId            String?
+  pressureThreshold Float                  @default(50.0) // Pa - trigger filter alert when exceeded
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  user              User?                  @relation(fields: [userId], references: [id])
+  sensorReadings    SensorReading[]
+  filterPreferences UserFilterPreference[]
+  filterAlerts      FilterAlert[]
 
   @@index([userId])
   @@index([status])
@@ -95,21 +98,25 @@ model Session {
 }
 
 model User {
-  id                   String                @id @default(cuid())
-  name                 String?
-  email                String?               @unique
-  emailVerified        DateTime?
-  image                String?
-  createdAt            DateTime              @default(now())
-  hasPassword          Boolean               @default(false)
-  password             String?
-  updatedAt            DateTime              @default(now()) @updatedAt
-  accounts             Account[]
-  devices              Device[]
-  posts                Post[]
-  provisioningSessions ProvisioningSession[]
-  sensorReadings       SensorReading[]
-  sessions             Session[]
+  id                    String                 @id @default(cuid())
+  name                  String?
+  email                 String?                @unique
+  emailVerified         DateTime?
+  image                 String?
+  createdAt             DateTime               @default(now())
+  hasPassword           Boolean                @default(false)
+  password              String?
+  stripeCustomerId      String?                @unique
+  updatedAt             DateTime               @default(now()) @updatedAt
+  accounts              Account[]
+  devices               Device[]
+  posts                 Post[]
+  provisioningSessions  ProvisioningSession[]
+  sensorReadings        SensorReading[]
+  sessions              Session[]
+  orders                Order[]
+  filterPreferences     UserFilterPreference[]
+  filterAlerts          FilterAlert[]
 }
 
 model VerificationToken {
@@ -118,4 +125,111 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// Store Models
+
+model FilterProduct {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  description String?
+  size        String   // e.g., "20x20x1", "16x25x1"
+  width       Float    // inches
+  height      Float    // inches
+  depth       Float    // inches
+  merv        Int?     // MERV rating (1-16)
+  price       Int      // Price in cents
+  imageUrl    String?
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems         OrderItem[]
+  userPreferences    UserFilterPreference[]
+
+  @@index([size])
+  @@index([inStock])
+}
+
+model UserFilterPreference {
+  id              String   @id @default(cuid())
+  userId          String
+  deviceId        String?  // Optional: specific device, or null for default
+  filterProductId String
+  autoOrderEnabled Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device        Device?       @relation(fields: [deviceId], references: [id])
+  filterProduct FilterProduct @relation(fields: [filterProductId], references: [id])
+
+  @@unique([userId, deviceId])
+  @@index([userId])
+}
+
+model Order {
+  id                  String   @id @default(cuid())
+  userId              String
+  status              String   @default("pending") // pending, paid, shipped, delivered, cancelled
+  stripePaymentIntent String?  @unique
+  stripeSessionId     String?  @unique
+  subtotal            Int      // cents
+  tax                 Int      @default(0) // cents
+  shipping            Int      @default(0) // cents
+  total               Int      // cents
+  // Shipping address
+  shippingName        String?
+  shippingAddress1    String?
+  shippingAddress2    String?
+  shippingCity        String?
+  shippingState       String?
+  shippingZip         String?
+  shippingCountry     String   @default("US")
+  // Auto-order fields
+  isAutoOrder         Boolean  @default(false)
+  triggeredByAlertId  String?  // Link to the FilterAlert that triggered this
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripePaymentIntent])
+}
+
+model OrderItem {
+  id              String @id @default(cuid())
+  orderId         String
+  filterProductId String
+  quantity        Int    @default(1)
+  priceAtPurchase Int    // cents - snapshot of price when ordered
+
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  filterProduct FilterProduct @relation(fields: [filterProductId], references: [id])
+
+  @@index([orderId])
+}
+
+model FilterAlert {
+  id             String    @id @default(cuid())
+  deviceId       String
+  userId         String
+  pressure       Float     // Differential pressure reading that triggered alert
+  threshold      Float     // The threshold that was exceeded
+  status         String    @default("pending") // pending, notified, auto_ordered, dismissed, manual_ordered
+  autoOrderAt    DateTime? // When auto-order will execute (if enabled)
+  notifiedAt     DateTime? // When user was notified
+  resolvedAt     DateTime? // When alert was resolved (order placed or dismissed)
+  createdAt      DateTime  @default(now())
+
+  device Device @relation(fields: [deviceId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([deviceId])
+  @@index([status])
 }

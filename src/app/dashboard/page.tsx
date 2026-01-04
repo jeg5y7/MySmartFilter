@@ -38,6 +38,13 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-4">
               <Link 
+                href="/store"
+                className="rounded-full bg-green-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-green-600/30 text-green-300 hover:text-green-200 flex items-center gap-2"
+              >
+                <span>🛒</span>
+                Filter Store
+              </Link>
+              <Link 
                 href="/devices"
                 className="rounded-full bg-blue-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-blue-600/30 text-blue-300 hover:text-blue-200 flex items-center gap-2"
               >
