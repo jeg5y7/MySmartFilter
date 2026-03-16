@@ -4,6 +4,70 @@ import { useState } from "react";
 import Link from "next/link";
 import { api } from "~/trpc/react";
 
+// ─── Connectivity helpers ────────────────────────────────────────────────────
+
+type ConnectivityStatus = "online" | "degraded" | "offline" | "error";
+
+function getConnectivityStatus(
+  deviceStatus: string,
+  lastSeen: Date | string | null | undefined,
+): ConnectivityStatus {
+  if (deviceStatus === "error") return "error";
+  if (!lastSeen) return "offline";
+
+  const diffMin = (Date.now() - new Date(lastSeen).getTime()) / 60_000;
+  if (diffMin < 5) return "online";
+  if (diffMin < 60) return "degraded";
+  return "offline";
+}
+
+function ConnectivityDot({ status }: { status: ConnectivityStatus }) {
+  const base = "w-2.5 h-2.5 rounded-full flex-shrink-0";
+  if (status === "online") {
+    return (
+      <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60" />
+        <span className={`${base} bg-green-400`} />
+      </span>
+    );
+  }
+  if (status === "degraded") return <span className={`${base} bg-yellow-400`} />;
+  if (status === "error")    return <span className={`${base} bg-red-400`} />;
+  return <span className={`${base} bg-gray-500`} />;
+}
+
+function connectivityLabel(status: ConnectivityStatus): string {
+  switch (status) {
+    case "online":   return "Online";
+    case "degraded": return "Degraded";
+    case "error":    return "Error";
+    default:         return "Offline";
+  }
+}
+
+function connectivityColor(status: ConnectivityStatus): string {
+  switch (status) {
+    case "online":   return "text-green-400";
+    case "degraded": return "text-yellow-400";
+    case "error":    return "text-red-400";
+    default:         return "text-gray-400";
+  }
+}
+
+function lastSeenText(lastSeen: Date | string | null | undefined): string {
+  if (!lastSeen) return "Never seen";
+  const diffMs  = Date.now() - new Date(lastSeen).getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  const diffHr  = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffMin < 1)  return "Just now";
+  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffHr < 24)  return `${diffHr} hr ago`;
+  return `${diffDay} day${diffDay !== 1 ? "s" : ""} ago`;
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 export function DeviceList() {
   const [deletingDevice, setDeletingDevice] = useState<string | null>(null);
 
@@ -36,37 +100,6 @@ export function DeviceList() {
     } finally {
       setDeletingDevice(null);
     }
-  };
-
-  const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-green-400 bg-green-400/10 border-green-400/30";
-      case "offline":
-        return "text-gray-400 bg-gray-400/10 border-gray-400/30";
-      case "error":
-        return "text-red-400 bg-red-400/10 border-red-400/30";
-      case "pending":
-        return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
-      default:
-        return "text-gray-400 bg-gray-400/10 border-gray-400/30";
-    }
-  };
-
-  const formatLastSeen = (lastSeen: Date | string | null | undefined) => {
-    if (!lastSeen) return "Never";
-
-    const date = new Date(lastSeen);
-    const diff = Date.now() - date.getTime();
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-    return "Just now";
   };
 
   if (isLoading) {
@@ -148,6 +181,7 @@ export function DeviceList() {
             latestPressure !== undefined
               ? latestPressure / device.pressureThreshold
               : null;
+          const connectivity = getConnectivityStatus(device.status, device.lastSeen);
 
           return (
             <div
@@ -164,11 +198,19 @@ export function DeviceList() {
                     <p className="text-sm text-gray-400 truncate">{device.location}</p>
                   )}
                 </div>
-                <span
-                  className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-medium border ${getStatusStyle(device.status)}`}
-                >
-                  {device.status}
-                </span>
+
+                {/* Connectivity Status Badge */}
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <ConnectivityDot status={connectivity} />
+                    <span className={`text-xs font-medium ${connectivityColor(connectivity)}`}>
+                      {connectivityLabel(connectivity)}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-gray-500 leading-none">
+                    {lastSeenText(device.lastSeen)}
+                  </span>
+                </div>
               </div>
 
               {/* Latest pressure mini-bar */}
@@ -224,10 +266,6 @@ export function DeviceList() {
                     <span className="text-gray-300">v{device.firmware}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Last Seen</span>
-                  <span className="text-gray-300">{formatLastSeen(device.lastSeen)}</span>
-                </div>
               </div>
 
               {/* Actions */}
