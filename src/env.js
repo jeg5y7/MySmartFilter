@@ -20,6 +20,8 @@ export const env = createEnv({
       ? z.string().min(1)
       : z.string().optional(),
     EMAIL_FROM: z.string().min(1).optional(),
+    // Cron security
+    CRON_SECRET: z.string().optional(),
   },
 
   /**
@@ -41,6 +43,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    CRON_SECRET: process.env.CRON_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
