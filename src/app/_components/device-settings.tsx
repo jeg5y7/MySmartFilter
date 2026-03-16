@@ -158,7 +158,7 @@ export function DeviceSettings({
       const data = (await res.json()) as { error?: string };
 
       if (res.ok) {
-        router.push("/devices");
+        window.location.href = "/devices";
       } else {
         setDeleteError(data.error ?? "Failed to delete device");
         setDeleting(false);
@@ -275,9 +275,9 @@ export function DeviceSettings({
         </div>
       </div>
 
-      {/* ── Rename Device ───────────────────────────────────────────────── */}
+      {/* ── Device Info (Rename) ────────────────────────────────────────── */}
       <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-1">Rename Device</h2>
+        <h2 className="text-lg font-semibold text-white mb-1">Device Info</h2>
         <p className="text-sm text-gray-400 mb-5">
           Update the name or location shown in your dashboard.
         </p>
@@ -336,7 +336,7 @@ export function DeviceSettings({
       </div>
 
       {/* ── Danger Zone ─────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-red-500/20">
+      <div className="bg-red-500/10 backdrop-blur-lg rounded-xl p-6 border border-red-500/30">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-red-400 text-lg">⚠️</span>
           <h2 className="text-lg font-semibold text-red-400">Danger Zone</h2>
@@ -348,7 +348,7 @@ export function DeviceSettings({
         <div className="border border-red-500/20 rounded-lg p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-white">Delete this device</p>
+              <p className="text-sm font-medium text-white">Remove this device</p>
               <p className="text-xs text-gray-400 mt-0.5">
                 Removes the device and all associated readings permanently.
               </p>
@@ -356,9 +356,9 @@ export function DeviceSettings({
             {!showDeleteConfirm && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="shrink-0 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 hover:text-red-300 text-sm font-medium rounded-lg transition-all"
+                className="shrink-0 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all"
               >
-                Delete Device
+                Remove Device
               </button>
             )}
           </div>
@@ -367,9 +367,7 @@ export function DeviceSettings({
           {showDeleteConfirm && (
             <div className="mt-4 pt-4 border-t border-red-500/20">
               <p className="text-sm text-gray-300 mb-3">
-                This will remove{" "}
-                <strong className="text-white">{deviceDisplayName}</strong> and all its
-                data. This action <strong className="text-red-400">cannot be undone</strong>.
+                Type the device name to confirm deletion:
               </p>
               <p className="text-sm text-gray-400 mb-2">
                 Type{" "}
@@ -416,7 +414,7 @@ export function DeviceSettings({
                       Deleting…
                     </span>
                   ) : (
-                    "Yes, Delete Device"
+                    "Confirm Delete"
                   )}
                 </button>
               </div>
