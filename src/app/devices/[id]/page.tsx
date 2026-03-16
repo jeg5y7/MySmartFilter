@@ -5,6 +5,8 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { DeviceSettings } from "~/app/_components/device-settings";
 import { DeviceReadings } from "~/app/_components/device-readings";
+import { AlertActionButtons } from "~/app/_components/alert-action-buttons";
+import { AlertHistory } from "~/app/_components/alert-history";
 
 interface DevicePageProps {
   params: Promise<{ id: string }>;
@@ -159,17 +161,23 @@ export default async function DevicePage({ params }: DevicePageProps) {
                           {new Date(alert.autoOrderAt).toLocaleString()}
                         </p>
                       )}
-                      <Link
-                        href="/store"
-                        className="inline-block mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-all"
-                      >
-                        Order Replacement Filter
-                      </Link>
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <Link
+                          href="/store"
+                          className="inline-block px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-all"
+                        >
+                          Order Replacement Filter
+                        </Link>
+                        <AlertActionButtons alertId={alert.id} />
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Alert History */}
+            <AlertHistory deviceId={device.id} />
 
             {/* Recent Readings — live sensor data */}
             <Suspense

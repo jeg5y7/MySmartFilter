@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import type { FilterAlert } from "@prisma/client";
 
 export const deviceRouter = createTRPCRouter({
   /**
@@ -31,6 +32,29 @@ export const deviceRouter = createTRPCRouter({
       latestReading: device.sensorReadings[0] ?? null,
     }));
   }),
+
+  /**
+   * Returns the last N alerts for a device, scoped to the current user.
+   */
+  getAlerts: protectedProcedure
+    .input(z.object({ deviceId: z.string(), limit: z.number().default(10) }))
+    .query(async ({ ctx, input }): Promise<FilterAlert[]> => {
+      // Verify device ownership (deviceId here is the cuid Device.id)
+      const device = await ctx.db.device.findFirst({
+        where: {
+          id: input.deviceId,
+          userId: ctx.session.user.id,
+        },
+      });
+
+      if (!device) return [];
+
+      return ctx.db.filterAlert.findMany({
+        where: { deviceId: device.id },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+      });
+    }),
 
   /**
    * Returns a single device by its cuid id, scoped to the current user.

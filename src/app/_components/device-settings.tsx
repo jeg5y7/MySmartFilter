@@ -44,6 +44,7 @@ export function DeviceSettings({
   // ── Rename state ─────────────────────────────────────────────────────────
   const [renameName, setRenameName] = useState(device.name ?? "");
   const [renameLocation, setRenameLocation] = useState(device.location ?? "");
+  const [pressureThreshold, setPressureThreshold] = useState(device.pressureThreshold);
   const [renameSaving, setRenameSaving] = useState(false);
   const [renameMessage, setRenameMessage] = useState<{
     type: "success" | "error";
@@ -121,6 +122,7 @@ export function DeviceSettings({
         body: JSON.stringify({
           name: renameName.trim(),
           location: renameLocation.trim() || null,
+          pressureThreshold,
         }),
       });
 
@@ -313,6 +315,29 @@ export function DeviceSettings({
               maxLength={50}
               className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Alert Threshold
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                value={pressureThreshold}
+                onChange={(e) => setPressureThreshold(Number(e.target.value))}
+                min={50}
+                max={500}
+                step={10}
+                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                Pa
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Alert triggers when pressure exceeds this value
+            </p>
           </div>
         </div>
 

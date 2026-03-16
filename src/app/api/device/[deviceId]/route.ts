@@ -19,9 +19,9 @@ export async function GET(
 
     const { deviceId } = await params;
 
-    // Get device details
-    const device = await db.device.findUnique({
-      where: { deviceId },
+    // Get device details (deviceId param is the cuid Device.id)
+    const device = await db.device.findFirst({
+      where: { id: deviceId, userId: session.user.id },
       include: {
         sensorReadings: {
           take: 10,
@@ -34,14 +34,6 @@ export async function GET(
       return NextResponse.json(
         { error: "Device not found" },
         { status: 404 }
-      );
-    }
-
-    // Check if user owns the device
-    if (device.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403 }
       );
     }
 
@@ -82,12 +74,16 @@ export async function PUT(
     }
 
     const { deviceId } = await params;
-    const body = await request.json();
-    const { name, location } = body;
+    const body = await request.json() as {
+      name?: string;
+      location?: string | null;
+      pressureThreshold?: number;
+    };
+    const { name, location, pressureThreshold } = body;
 
-    // Check if device exists and user owns it
-    const device = await db.device.findUnique({
-      where: { deviceId },
+    // Check if device exists and user owns it (deviceId param is the cuid Device.id)
+    const device = await db.device.findFirst({
+      where: { id: deviceId, userId: session.user.id },
     });
 
     if (!device) {
@@ -97,19 +93,27 @@ export async function PUT(
       );
     }
 
-    if (device.userId !== session.user.id) {
+    // Validate pressureThreshold if provided
+    if (
+      pressureThreshold !== undefined &&
+      (typeof pressureThreshold !== "number" ||
+        pressureThreshold < 50 ||
+        pressureThreshold > 500)
+    ) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403 }
+        { error: "Pressure threshold must be between 50 and 500 Pa" },
+        { status: 400 }
       );
     }
 
     // Update device
     const updatedDevice = await db.device.update({
-      where: { deviceId },
+      where: { id: deviceId },
       data: {
         name: name !== undefined ? name : device.name,
         location: location !== undefined ? location : device.location,
+        pressureThreshold:
+          pressureThreshold !== undefined ? pressureThreshold : device.pressureThreshold,
       },
     });
 
@@ -144,9 +148,9 @@ export async function DELETE(
 
     const { deviceId } = await params;
 
-    // Check if device exists and user owns it
-    const device = await db.device.findUnique({
-      where: { deviceId },
+    // Check if device exists and user owns it (deviceId param is the cuid Device.id)
+    const device = await db.device.findFirst({
+      where: { id: deviceId, userId: session.user.id },
     });
 
     if (!device) {
@@ -156,16 +160,9 @@ export async function DELETE(
       );
     }
 
-    if (device.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403 }
-      );
-    }
-
     // Delete device (sensor readings will be kept but orphaned)
     await db.device.delete({
-      where: { deviceId },
+      where: { id: deviceId },
     });
 
     return NextResponse.json({
