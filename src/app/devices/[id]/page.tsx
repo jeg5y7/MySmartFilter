@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { DeviceSettings } from "~/app/_components/device-settings";
+import { DeviceReadings } from "~/app/_components/device-readings";
 
 interface DevicePageProps {
   params: Promise<{ id: string }>;
@@ -94,10 +96,15 @@ export default async function DevicePage({ params }: DevicePageProps) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <p className="text-gray-400 text-sm">Status</p>
-                  <p className={`font-semibold ${
-                    device.status === "active" ? "text-green-400" :
-                    device.status === "error" ? "text-red-400" : "text-yellow-400"
-                  }`}>
+                  <p
+                    className={`font-semibold ${
+                      device.status === "active"
+                        ? "text-green-400"
+                        : device.status === "error"
+                        ? "text-red-400"
+                        : "text-yellow-400"
+                    }`}
+                  >
                     {device.status.charAt(0).toUpperCase() + device.status.slice(1)}
                   </p>
                 </div>
@@ -138,7 +145,8 @@ export default async function DevicePage({ params }: DevicePageProps) {
                             Filter replacement needed
                           </p>
                           <p className="text-red-300/70 text-sm">
-                            Pressure: {alert.pressure.toFixed(1)} Pa (threshold: {alert.threshold} Pa)
+                            Pressure: {alert.pressure.toFixed(1)} Pa (threshold:{" "}
+                            {alert.threshold} Pa)
                           </p>
                         </div>
                         <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-full">
@@ -147,7 +155,8 @@ export default async function DevicePage({ params }: DevicePageProps) {
                       </div>
                       {alert.autoOrderAt && (
                         <p className="text-yellow-300 text-sm">
-                          Auto-order scheduled for: {new Date(alert.autoOrderAt).toLocaleString()}
+                          Auto-order scheduled for:{" "}
+                          {new Date(alert.autoOrderAt).toLocaleString()}
                         </p>
                       )}
                       <Link
@@ -162,19 +171,22 @@ export default async function DevicePage({ params }: DevicePageProps) {
               </div>
             )}
 
-            {/* Recent Readings (placeholder) */}
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-              <h2 className="text-lg font-semibold text-white mb-4">Recent Readings</h2>
-              <p className="text-gray-400 text-sm">
-                Pressure and temperature data from this device will appear here.
-              </p>
-              <Link
-                href="/dashboard"
-                className="inline-block mt-4 text-blue-400 hover:text-blue-300 text-sm"
-              >
-                View full dashboard →
-              </Link>
-            </div>
+            {/* Recent Readings — live sensor data */}
+            <Suspense
+              fallback={
+                <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+                  <h2 className="text-lg font-semibold text-white mb-4">Recent Readings</h2>
+                  <div className="flex items-center justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
+                  </div>
+                </div>
+              }
+            >
+              <DeviceReadings
+                deviceId={device.deviceId}
+                pressureThreshold={device.pressureThreshold}
+              />
+            </Suspense>
           </div>
 
           {/* Settings Sidebar */}
@@ -188,12 +200,16 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 pressureThreshold: device.pressureThreshold,
               }}
               filterProducts={filterProducts}
-              currentPreference={preference ? {
-                id: preference.id,
-                filterProductId: preference.filterProductId,
-                autoOrderEnabled: preference.autoOrderEnabled,
-                filterProduct: preference.filterProduct,
-              } : null}
+              currentPreference={
+                preference
+                  ? {
+                      id: preference.id,
+                      filterProductId: preference.filterProductId,
+                      autoOrderEnabled: preference.autoOrderEnabled,
+                      filterProduct: preference.filterProduct,
+                    }
+                  : null
+              }
             />
           </div>
         </div>
