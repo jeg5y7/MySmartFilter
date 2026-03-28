@@ -214,6 +214,17 @@ model OrderItem {
   @@index([orderId])
 }
 
+model FirmwareRelease {
+  id           String   @id @default(cuid())
+  version      String   @unique // semver e.g. "1.0.1"
+  binaryUrl    String   // URL to firmware binary (e.g. GitHub Releases)
+  releaseNotes String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@index([isActive])
+}
+
 model FilterAlert {
   id             String    @id @default(cuid())
   deviceId       String

@@ -2,6 +2,7 @@ import { postRouter } from "~/server/api/routers/post";
 import { sensorRouter } from "~/server/api/routers/sensor";
 import { userRouter } from "~/server/api/routers/user";
 import { deviceRouter } from "~/server/api/routers/device";
+import { firmwareRouter } from "~/server/api/routers/firmware";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   sensor: sensorRouter,
   user: userRouter,
   device: deviceRouter,
+  firmware: firmwareRouter,
 });
 
 // export type definition of API

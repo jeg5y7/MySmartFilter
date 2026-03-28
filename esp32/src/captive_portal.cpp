@@ -2,9 +2,16 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 #include <HTTPClient.h>
+#include <HTTPUpdate.h>
+#include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <Wire.h>
+
+// Firmware version — overridden by FIRMWARE_VERSION build flag in platformio.ini
+#ifndef FIRMWARE_VERSION
+  #define FIRMWARE_VERSION "1.0.0"
+#endif
 
 // EEPROM storage structure
 struct Config {
@@ -496,10 +503,97 @@ void handleConfigure() {
   }
 }
 
+/**
+ * checkOTAUpdate()
+ *
+ * Calls /api/ota/check with the current firmware version.
+ * If the server reports a newer version, downloads and flashes the binary
+ * using the ESP32 HTTPUpdate library, then reboots.
+ *
+ * This runs once on boot, after WiFi connects.
+ */
+void checkOTAUpdate() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  if (strlen(config.apiToken) == 0) {
+    Serial.println("[OTA] No API token — skipping OTA check");
+    return;
+  }
+
+  Serial.printf("[OTA] Checking for update (current: %s)...\n", FIRMWARE_VERSION);
+
+  HTTPClient http;
+  String url = String(API_BASE_URL_STR) + "/ota/check?version=" + FIRMWARE_VERSION;
+
+  http.begin(url);
+  http.addHeader("Authorization", "Bearer " + String(config.apiToken));
+
+  int httpCode = http.GET();
+
+  if (httpCode != 200) {
+    Serial.printf("[OTA] Check failed — HTTP %d\n", httpCode);
+    http.end();
+    return;
+  }
+
+  String payload = http.getString();
+  http.end();
+
+  DynamicJsonDocument doc(512);
+  DeserializationError err = deserializeJson(doc, payload);
+  if (err) {
+    Serial.println("[OTA] Failed to parse OTA check response");
+    return;
+  }
+
+  bool hasUpdate = doc["hasUpdate"] | false;
+  if (!hasUpdate) {
+    Serial.println("[OTA] Firmware is up to date");
+    return;
+  }
+
+  String newVersion = doc["version"].as<String>();
+  String binaryUrl  = doc["binaryUrl"].as<String>();
+  Serial.printf("[OTA] Update available: %s -> %s\n", FIRMWARE_VERSION, newVersion.c_str());
+  Serial.printf("[OTA] Downloading from: %s\n", binaryUrl.c_str());
+
+  // Use WiFiClientSecure for HTTPS binaries; setInsecure() skips cert check
+  // (acceptable for firmware delivered over a trusted, known URL)
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  // Progress callback
+  httpUpdate.onProgress([](int cur, int total) {
+    Serial.printf("[OTA] Progress: %d / %d bytes (%.0f%%)\r",
+                  cur, total, total > 0 ? (100.0f * cur / total) : 0.0f);
+  });
+
+  t_httpUpdate_return ret = httpUpdate.update(client, binaryUrl);
+
+  switch (ret) {
+    case HTTP_UPDATE_FAILED:
+      Serial.printf("[OTA] Update FAILED — error %d: %s\n",
+                    httpUpdate.getLastError(),
+                    httpUpdate.getLastErrorString().c_str());
+      break;
+    case HTTP_UPDATE_NO_UPDATES:
+      Serial.println("[OTA] Server says no update needed (unexpected)");
+      break;
+    case HTTP_UPDATE_OK:
+      // HTTPUpdate calls ESP.restart() automatically after flashing,
+      // but be explicit just in case.
+      Serial.println("[OTA] Update OK — restarting...");
+      delay(500);
+      ESP.restart();
+      break;
+  }
+}
+
 void startNormalOperation() {
   wifiConnected = true;
-  // Register device with backend
+  // Register device with backend (obtains/refreshes API token)
   registerDevice();
+  // Check for OTA firmware update on every boot
+  checkOTAUpdate();
 }
 
 bool connectToWiFi() {
@@ -542,7 +636,7 @@ void registerDevice() {
   DynamicJsonDocument doc(256);
   doc["deviceId"] = config.deviceId;
   doc["type"] = "SmartFilter";
-  doc["firmware"] = "1.0.0";
+  doc["firmware"] = FIRMWARE_VERSION;
   
   String jsonString;
   serializeJson(doc, jsonString);
@@ -592,7 +686,7 @@ void updateDeviceStatus() {
   
   DynamicJsonDocument doc(256);
   doc["status"] = "active";
-  doc["firmware"] = "1.0.0";
+  doc["firmware"] = FIRMWARE_VERSION;
   
   String jsonString;
   serializeJson(doc, jsonString);
