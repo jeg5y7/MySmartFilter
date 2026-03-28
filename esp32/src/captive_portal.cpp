@@ -19,7 +19,10 @@ struct Config {
 // Configuration constants
 const char* AP_SSID = "SmartFilter_Setup";
 const char* AP_PASSWORD = "";  // Open network for easy access
-const char* API_BASE_URL = "https://mysmartfilter.com/api";
+#ifndef API_BASE_URL
+  #define API_BASE_URL "https://mysmartfilter.com/api"
+#endif
+const char* API_BASE_URL_STR = API_BASE_URL;
 const byte DNS_PORT = 53;
 const int CONFIG_VERSION = 1;
 
@@ -531,7 +534,7 @@ void registerDevice() {
   Serial.println("Registering device with backend...");
   
   HTTPClient http;
-  String url = String(API_BASE_URL) + "/device/register";
+  String url = String(API_BASE_URL_STR) + "/device/register";
   
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
@@ -581,7 +584,7 @@ void updateDeviceStatus() {
   if (WiFi.status() != WL_CONNECTED || strlen(config.apiToken) == 0) return;
   
   HTTPClient http;
-  String url = String(API_BASE_URL) + "/device/status";
+  String url = String(API_BASE_URL_STR) + "/device/status";
   
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
@@ -619,7 +622,7 @@ bool sendSensorData(SensorData data) {
   }
   
   HTTPClient http;
-  String url = String(API_BASE_URL) + "/sensor";
+  String url = String(API_BASE_URL_STR) + "/sensor";
   
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
