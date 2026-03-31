@@ -54,6 +54,13 @@ export default async function DashboardPage() {
                 </svg>
                 Manage Devices
               </Link>
+              <Link
+                href="/settings/integrations"
+                className="rounded-full bg-purple-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-purple-600/30 text-purple-300 hover:text-purple-200 flex items-center gap-2"
+              >
+                <span>🔌</span>
+                Integrations
+              </Link>
               <Link 
                 href="/api/auth/signout"
                 className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-white/20"

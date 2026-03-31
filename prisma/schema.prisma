@@ -117,6 +117,8 @@ model User {
   orders                Order[]
   filterPreferences     UserFilterPreference[]
   filterAlerts          FilterAlert[]
+  apiKeys               ApiKey[]
+  webhooks              Webhook[]
 }
 
 model VerificationToken {
@@ -223,6 +225,54 @@ model FirmwareRelease {
   createdAt    DateTime @default(now())
 
   @@index([isActive])
+}
+
+// Public API & Webhooks
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String    // e.g. "Home Assistant"
+  key       String    @unique // sk_live_[64-char-hex]
+  lastUsed  DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([key])
+}
+
+model Webhook {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  url       String
+  events    String[]  // e.g. ["filter.alert","device.offline","reading.threshold"]
+  secret    String    // HMAC-SHA256 signing secret
+  enabled   Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  deliveries WebhookDelivery[]
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String
+  event      String
+  payload    Json
+  status     String   @default("pending") // pending, success, failed
+  statusCode Int?
+  response   String?
+  createdAt  DateTime @default(now())
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId])
+  @@index([status])
 }
 
 model FilterAlert {

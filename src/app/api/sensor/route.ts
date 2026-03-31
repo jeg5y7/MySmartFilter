@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
+import { dispatchWebhook } from "~/lib/webhooks";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -81,6 +82,19 @@ export async function POST(request: NextRequest) {
         userId: device.userId, // Use userId from authenticated device
       },
     });
+
+    // Fire webhook for reading.threshold if pressure exceeds device threshold
+    if (pressure >= device.pressureThreshold && device.userId) {
+      void dispatchWebhook(device.userId, "reading.threshold", {
+        deviceId: device.deviceId,
+        deviceName: device.name ?? device.deviceId,
+        pressure,
+        temperature,
+        threshold: device.pressureThreshold,
+        readingId: sensorReading.id,
+        timestamp: sensorReading.timestamp,
+      });
+    }
 
     return NextResponse.json({
       success: true,

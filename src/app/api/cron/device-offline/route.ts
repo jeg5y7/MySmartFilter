@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { resend, EMAIL_FROM } from "~/lib/resend";
+import { dispatchWebhook } from "~/lib/webhooks";
 
 /**
  * Vercel Cron — runs every 15 minutes.
@@ -48,6 +49,15 @@ export async function GET(request: Request) {
 
       const deviceName = device.name ?? device.deviceId;
       const userEmail = device.user?.email;
+
+      // Dispatch device.offline webhook regardless of email
+      if (device.userId) {
+        void dispatchWebhook(device.userId, "device.offline", {
+          deviceId: device.deviceId,
+          deviceName: device.name ?? device.deviceId,
+          lastSeen: device.lastSeen,
+        });
+      }
 
       if (!userEmail) {
         results.push({ deviceId: device.id, emailSent: false, error: "No user email" });
