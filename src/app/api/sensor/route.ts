@@ -8,6 +8,11 @@ const SensorDataSchema = z.object({
   pressure: z.number(),
   temperature: z.number(),
   deviceId: z.string().optional(), // Optional, will be inferred from token
+  // Multi-sensor support (all optional, backward-compatible)
+  sensorType: z.string().optional().default("pressure_differential"),
+  humidity: z.number().optional(),
+  co2: z.number().optional(),
+  voc: z.number().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -62,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { pressure, temperature } = result.data;
+    const { pressure, temperature, sensorType, humidity, co2, voc } = result.data;
 
     // Update device last seen time
     await db.device.update({
@@ -78,8 +83,12 @@ export async function POST(request: NextRequest) {
       data: {
         pressure,
         temperature,
-        deviceId: device.deviceId, // Use deviceId from authenticated device
-        userId: device.userId, // Use userId from authenticated device
+        deviceId: device.deviceId,
+        userId: device.userId,
+        sensorType: sensorType ?? "pressure_differential",
+        ...(humidity !== undefined && { humidity }),
+        ...(co2 !== undefined && { co2 }),
+        ...(voc !== undefined && { voc }),
       },
     });
 

@@ -25,11 +25,29 @@ model SensorReading {
   timestamp   DateTime @default(now())
   deviceId    String
   userId      String
+  // Multi-sensor support
+  sensorType  String   @default("pressure_differential")
+  humidity    Float?   // %RH
+  co2         Float?   // ppm
+  voc         Float?   // ppb
   device      Device   @relation(fields: [deviceId], references: [deviceId])
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, timestamp])
   @@index([deviceId])
+  @@index([deviceId, sensorType])
+}
+
+// Registry of supported sensor types
+model SensorTypeConfig {
+  id          String  @id @default(cuid())
+  key         String  @unique // e.g. "pressure_differential", "humidity", "co2"
+  name        String  // Display name: "Differential Pressure"
+  unit        String  // e.g. "Pa", "%RH", "ppm"
+  description String?
+  isBuiltIn   Boolean @default(false)
+
+  @@index([key])
 }
 
 model Device {

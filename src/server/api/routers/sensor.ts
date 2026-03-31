@@ -39,12 +39,14 @@ export const sensorRouter = createTRPCRouter({
     .input(z.object({
       deviceId: z.string(),
       limit: z.number().min(1).max(100).default(50),
+      sensorType: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
       return ctx.db.sensorReading.findMany({
         where: { 
           userId: ctx.session.user.id,
           deviceId: input.deviceId,
+          ...(input.sensorType && { sensorType: input.sensorType }),
         },
         orderBy: { timestamp: "desc" },
         take: input.limit,
@@ -57,6 +59,7 @@ export const sensorRouter = createTRPCRouter({
       startDate: z.date(),
       endDate: z.date(),
       deviceId: z.string().optional(),
+      sensorType: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
       return ctx.db.sensorReading.findMany({
@@ -67,9 +70,22 @@ export const sensorRouter = createTRPCRouter({
             lte: input.endDate,
           },
           ...(input.deviceId && { deviceId: input.deviceId }),
+          ...(input.sensorType && { sensorType: input.sensorType }),
         },
         orderBy: { timestamp: "asc" },
       });
+    }),
+
+  // List distinct sensor types for a device
+  getSensorTypes: protectedProcedure
+    .input(z.object({ deviceId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db.sensorReading.findMany({
+        where: { userId: ctx.session.user.id, deviceId: input.deviceId },
+        select: { sensorType: true },
+        distinct: ["sensorType"],
+      });
+      return rows.map((r) => r.sensorType);
     }),
 
   // Export readings as CSV data

@@ -385,16 +385,32 @@ function ChartPanel({
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
+// ─── Sensor type labels ───────────────────────────────────────────────────────
+
+const SENSOR_TYPE_LABELS: Record<string, { name: string; unit: string }> = {
+  pressure_differential: { name: "Pressure", unit: "Pa" },
+  humidity: { name: "Humidity", unit: "%RH" },
+  co2: { name: "CO₂", unit: "ppm" },
+  voc: { name: "VOC", unit: "ppb" },
+};
+
 export function DeviceReadings({
   deviceId,
   pressureThreshold,
 }: DeviceReadingsProps) {
   const [activeRange, setActiveRange] = useState<RangeKey>("24h");
+  const [activeSensorType, setActiveSensorType] = useState<string>("pressure_differential");
 
   const rangeCfg = RANGES[activeRange];
   const now = useMemo(() => Date.now(), [activeRange]); // refresh anchor on range change
   const startDate = useMemo(() => new Date(now - rangeCfg.ms), [now, rangeCfg.ms]);
   const endDate = useMemo(() => new Date(now), [now]);
+
+  // Available sensor types for this device
+  const { data: sensorTypes = ["pressure_differential"] } = api.sensor.getSensorTypes.useQuery(
+    { deviceId },
+    { refetchInterval: 60_000 },
+  );
 
   // Recent readings (for stats bar + table + sparkline)
   const {
@@ -402,7 +418,7 @@ export function DeviceReadings({
     isLoading: recentLoading,
     isError: recentError,
   } = api.sensor.getByDevice.useQuery(
-    { deviceId, limit: 50 },
+    { deviceId, limit: 50, sensorType: activeSensorType },
     { refetchInterval: 30_000 },
   );
 
@@ -411,7 +427,7 @@ export function DeviceReadings({
     data: rangeReadings,
     isLoading: rangeLoading,
   } = api.sensor.getByTimeRange.useQuery(
-    { deviceId, startDate, endDate },
+    { deviceId, startDate, endDate, sensorType: activeSensorType },
     { refetchInterval: 30_000 },
   );
 
@@ -466,6 +482,29 @@ export function DeviceReadings({
         <h2 className="text-lg font-semibold text-white">Sensor Data</h2>
         <span className="text-xs text-gray-500">Auto-refreshes every 30s</span>
       </div>
+
+      {/* Sensor Type Tabs — only shown when multiple types are present */}
+      {sensorTypes.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-gray-500">Sensor:</span>
+          {sensorTypes.map((type) => {
+            const label = SENSOR_TYPE_LABELS[type] ?? { name: type, unit: "" };
+            return (
+              <button
+                key={type}
+                onClick={() => setActiveSensorType(type)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+                  activeSensorType === type
+                    ? "bg-purple-500/30 border-purple-400/60 text-purple-300"
+                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+                }`}
+              >
+                {label.name} {label.unit ? `(${label.unit})` : ""}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── Charts Section ──────────────────────────────────────────────── */}
       <div className="space-y-4">
@@ -569,8 +608,17 @@ export function DeviceReadings({
             <thead>
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="text-left px-4 py-2 text-gray-400 font-medium">Time</th>
-                <th className="text-right px-4 py-2 text-gray-400 font-medium">Pressure</th>
-                <th className="text-right px-4 py-2 text-gray-400 font-medium">Temp</th>
+                <th className="text-right px-4 py-2 text-gray-400 font-medium">Pressure (Pa)</th>
+                <th className="text-right px-4 py-2 text-gray-400 font-medium">Temp (°C)</th>
+                {(recentReadings.some((r) => r.humidity != null)) && (
+                  <th className="text-right px-4 py-2 text-gray-400 font-medium">Humidity (%)</th>
+                )}
+                {(recentReadings.some((r) => r.co2 != null)) && (
+                  <th className="text-right px-4 py-2 text-gray-400 font-medium">CO₂ (ppm)</th>
+                )}
+                {(recentReadings.some((r) => r.voc != null)) && (
+                  <th className="text-right px-4 py-2 text-gray-400 font-medium">VOC (ppb)</th>
+                )}
                 <th className="text-center px-4 py-2 text-gray-400 font-medium">Status</th>
               </tr>
             </thead>
@@ -603,6 +651,21 @@ export function DeviceReadings({
                     <td className="px-4 py-2.5 text-right font-mono text-gray-300">
                       {reading.temperature.toFixed(1)} °C
                     </td>
+                    {recentReadings.some((r) => r.humidity != null) && (
+                      <td className="px-4 py-2.5 text-right font-mono text-cyan-300">
+                        {reading.humidity != null ? `${reading.humidity.toFixed(1)}%` : "—"}
+                      </td>
+                    )}
+                    {recentReadings.some((r) => r.co2 != null) && (
+                      <td className="px-4 py-2.5 text-right font-mono text-orange-300">
+                        {reading.co2 != null ? `${reading.co2.toFixed(0)} ppm` : "—"}
+                      </td>
+                    )}
+                    {recentReadings.some((r) => r.voc != null) && (
+                      <td className="px-4 py-2.5 text-right font-mono text-pink-300">
+                        {reading.voc != null ? `${reading.voc.toFixed(0)} ppb` : "—"}
+                      </td>
+                    )}
                     <td className="px-4 py-2.5 text-center">
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium border ${getPressureBg(reading.pressure, pressureThreshold)} ${getPressureColor(reading.pressure, pressureThreshold)}`}
