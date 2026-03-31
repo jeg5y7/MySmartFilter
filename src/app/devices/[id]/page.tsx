@@ -7,6 +7,7 @@ import { DeviceSettings } from "~/app/_components/device-settings";
 import { DeviceReadings } from "~/app/_components/device-readings";
 import { AlertActionButtons } from "~/app/_components/alert-action-buttons";
 import { AlertHistory } from "~/app/_components/alert-history";
+import { ExportButton } from "~/app/_components/export-button";
 
 interface DevicePageProps {
   params: Promise<{ id: string }>;
@@ -80,12 +81,18 @@ export default async function DevicePage({ params }: DevicePageProps) {
               </p>
             </div>
 
-            <Link
-              href="/devices"
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
-            >
-              Back to Devices
-            </Link>
+            <div className="flex items-center gap-3">
+              <ExportButton
+                deviceId={device.deviceId}
+                deviceName={device.name ?? device.deviceId}
+              />
+              <Link
+                href="/devices"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+              >
+                Back to Devices
+              </Link>
+            </div>
           </div>
         </div>
 

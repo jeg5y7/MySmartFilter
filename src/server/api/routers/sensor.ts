@@ -72,6 +72,47 @@ export const sensorRouter = createTRPCRouter({
       });
     }),
 
+  // Export readings as CSV data
+  exportCsv: protectedProcedure
+    .input(z.object({
+      deviceId: z.string().optional(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const MAX_ROWS = 10000;
+      const readings = await ctx.db.sensorReading.findMany({
+        where: {
+          userId: ctx.session.user.id,
+          ...(input.deviceId && { deviceId: input.deviceId }),
+          ...(input.startDate || input.endDate ? {
+            timestamp: {
+              ...(input.startDate && { gte: input.startDate }),
+              ...(input.endDate && { lte: input.endDate }),
+            },
+          } : {}),
+        },
+        orderBy: { timestamp: "asc" },
+        take: MAX_ROWS + 1,
+        include: { device: { select: { name: true, deviceId: true } } },
+      });
+
+      const truncated = readings.length > MAX_ROWS;
+      const rows = truncated ? readings.slice(0, MAX_ROWS) : readings;
+
+      return {
+        truncated,
+        totalRows: rows.length,
+        rows: rows.map(r => ({
+          timestamp: r.timestamp.toISOString(),
+          deviceId: r.device.deviceId,
+          deviceName: r.device.name ?? r.device.deviceId,
+          pressure: r.pressure,
+          temperature: r.temperature,
+        })),
+      };
+    }),
+
   // Get summary statistics
   getStats: protectedProcedure
     .input(z.object({
