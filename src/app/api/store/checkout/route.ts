@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { stripe } from "~/lib/stripe";
+import { env } from "~/env";
 
 interface CheckoutItem {
   productId: string;
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     });
 
     // Create Stripe checkout session
-    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+    const baseUrl = env.NEXTAUTH_URL ?? "http://localhost:3000";
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "payment",

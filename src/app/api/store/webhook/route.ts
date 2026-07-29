@@ -3,8 +3,9 @@ import { headers } from "next/headers";
 import type Stripe from "stripe";
 import { stripe } from "~/lib/stripe";
 import { db } from "~/server/db";
+import { env } from "~/env";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(request: Request) {
   const body = await request.text();
