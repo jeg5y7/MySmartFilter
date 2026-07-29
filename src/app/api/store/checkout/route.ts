@@ -108,6 +108,8 @@ export async function POST(request: Request) {
       customer: stripeCustomerId,
       mode: "payment",
       payment_method_types: ["card"],
+      // Save the card so auto-orders can charge off-session later
+      payment_intent_data: { setup_future_usage: "off_session" },
       line_items: lineItems,
       shipping_address_collection: {
         allowed_countries: ["US"],

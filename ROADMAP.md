@@ -36,14 +36,24 @@ burns exceeds the price of a new one.
 `baselineDeltaP`, `filterInstalledAt`, `runtimeHours`,
 `extraEnergyCostCents`, `lastAccrualAt`.
 
-## Phase 2 — Money movement (next)
+## Phase 2 — Money movement ✅
 
-- [ ] Saved payment methods: Stripe SetupIntent at first checkout, off-session
-  PaymentIntent in the auto-order cron so auto-orders actually charge
-- [ ] Shipping address on file (capture from first checkout, editable in settings)
-- [ ] Admin role + `/admin/orders` queue: list paid/auto orders, mark shipped
-  with tracking number, trigger shipped email
-- [ ] Auto-order cancellation link in the alert email (one-click, tokenized)
+- [x] Saved payment methods: checkout saves the card
+  (`setup_future_usage: off_session`), `/settings/billing` adds one without a
+  purchase (setup-mode Checkout), webhook stores the payment method
+- [x] Off-session PaymentIntent in the auto-order cron — auto-orders charge
+  the card on file; declined cards → `payment_failed` + fix-it email
+- [x] Shipping address on file (auto-captured from checkout, editable at
+  `/settings/billing`)
+- [x] Admin role + `/admin/orders` queue: ready-to-ship list with items/SKU +
+  address, mark-shipped with tracking → customer email
+  (`npx tsx scripts/make-admin.ts <email>` grants access)
+- [x] One-click tokenized cancel link in alert emails (`/api/alert/cancel`)
+
+**Deploy note:** `npm run db:push` again — `User` gained billing/shipping
+columns, `Order` gained tracking fields, `FilterAlert` gained `cancelToken`.
+Also removed the committed `.env.production` — **rotate the Neon database
+password and Stripe webhook secret**, both were in git history.
 
 ## Phase 3 — Launch surface
 

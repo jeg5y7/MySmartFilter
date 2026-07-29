@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { resend, EMAIL_FROM } from "~/lib/resend";
 import { getEffectiveFilterPreference } from "~/lib/filter-preference";
+import crypto from "crypto";
 
 interface AlertRequest {
   deviceId: string;
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
       : null;
 
     // Create filter alert
+    const cancelToken = crypto.randomBytes(24).toString("hex");
     const alert = await db.filterAlert.create({
       data: {
         deviceId: device.id,
@@ -86,6 +88,7 @@ export async function POST(request: Request) {
         threshold: device.pressureThreshold,
         status: "pending",
         autoOrderAt,
+        cancelToken,
       },
     });
 
@@ -98,7 +101,7 @@ export async function POST(request: Request) {
         ? `<div style="background:#1e3a2f;border-left:3px solid #22c55e;padding:16px 20px;border-radius:6px;margin:20px 0;">
             <p style="margin:0;color:#86efac;font-size:14px;">
               🔄 A replacement filter will be automatically ordered in <strong>24 hours</strong>.
-              Reply to this email or <a href="https://mysmartfilter.com/dashboard" style="color:#4ade80;">visit your dashboard</a> to cancel.
+              <a href="https://mysmartfilter.com/api/alert/cancel?token=${cancelToken}" style="color:#4ade80;">Cancel this auto-order</a> with one click.
             </p>
           </div>`
         : `<div style="text-align:center;margin:28px 0;">
