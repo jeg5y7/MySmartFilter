@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { dispatchWebhook } from "~/lib/webhooks";
+import { accrueReading } from "~/lib/energy";
+import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -69,12 +71,30 @@ export async function POST(request: NextRequest) {
 
     const { pressure, temperature, sensorType, humidity, co2, voc } = result.data;
 
-    // Update device last seen time
-    await db.device.update({
+    const now = new Date();
+
+    // Energy model: only pressure-differential readings drive the accumulators
+    const isPressureReading =
+      (sensorType ?? "pressure_differential") === "pressure_differential";
+    const accrual = isPressureReading
+      ? accrueReading(device, pressure, now)
+      : { runtimeHoursDelta: 0, extraCostCentsDelta: 0, newBaselineDeltaP: null };
+
+    // Update device last seen time + energy accumulators
+    const updatedDevice = await db.device.update({
       where: { id: device.id },
       data: {
-        lastSeen: new Date(),
+        lastSeen: now,
         status: "active",
+        ...(isPressureReading && {
+          lastAccrualAt: now,
+          runtimeHours: { increment: accrual.runtimeHoursDelta },
+          extraEnergyCostCents: { increment: accrual.extraCostCentsDelta },
+          ...(accrual.newBaselineDeltaP !== null && {
+            baselineDeltaP: accrual.newBaselineDeltaP,
+            filterInstalledAt: device.filterInstalledAt ?? now,
+          }),
+        }),
       },
     });
 
@@ -103,6 +123,16 @@ export async function POST(request: NextRequest) {
         readingId: sensorReading.id,
         timestamp: sensorReading.timestamp,
       });
+    }
+
+    // Energy-cost trigger: alert + (optional) auto-order once the extra
+    // electricity spent exceeds the price of the preferred replacement filter
+    if (isPressureReading) {
+      try {
+        await maybeTriggerEnergyAlert(updatedDevice, pressure);
+      } catch (err) {
+        console.error("[sensor] energy alert check failed:", err);
+      }
     }
 
     return NextResponse.json({

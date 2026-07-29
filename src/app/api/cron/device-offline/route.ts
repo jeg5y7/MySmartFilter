@@ -5,9 +5,11 @@ import { dispatchWebhook } from "~/lib/webhooks";
 import { env } from "~/env";
 
 /**
- * Vercel Cron — runs every 15 minutes.
- * Finds devices that have gone silent (lastSeen 15–60 min ago, not yet "offline"),
- * marks them offline, and emails the owner once.
+ * Vercel Cron — schedule-agnostic offline sweep.
+ * Finds devices silent for >15 min that aren't already "offline", marks them
+ * offline, and emails the owner once. The `status != offline` filter is what
+ * prevents duplicate emails, so this works on any cron cadence (daily on the
+ * Hobby plan; run it every 15 min on Pro for timely alerts).
  */
 export async function GET(request: Request) {
   // Verify cron secret (Vercel standard: Authorization: Bearer <CRON_SECRET>)
@@ -20,17 +22,14 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-  const sixtyMinutesAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
   try {
-    // Find devices that went silent in the 15–60 min window and aren't already offline
+    // Any device silent for >15 min that hasn't been marked offline yet
     const devicesGoingOffline = await db.device.findMany({
       where: {
-        lastSeen: {
-          gte: sixtyMinutesAgo,
-          lte: fifteenMinutesAgo,
-        },
-        status: { not: "offline" },
+        lastSeen: { lte: fifteenMinutesAgo },
+        // "pending" devices were never linked — leave them out of the sweep
+        status: { notIn: ["offline", "pending"] },
       },
       include: { user: true },
     });

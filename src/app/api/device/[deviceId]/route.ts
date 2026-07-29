@@ -78,8 +78,11 @@ export async function PUT(
       name?: string;
       location?: string | null;
       pressureThreshold?: number;
+      blowerType?: string;
+      airflowCfm?: number;
+      electricityRateCents?: number;
     };
-    const { name, location, pressureThreshold } = body;
+    const { name, location, pressureThreshold, blowerType, airflowCfm, electricityRateCents } = body;
 
     // Check if device exists and user owns it (deviceId param is the cuid Device.id)
     const device = await db.device.findFirst({
@@ -106,6 +109,34 @@ export async function PUT(
       );
     }
 
+    // Validate HVAC/energy settings if provided
+    if (blowerType !== undefined && !["ecm", "psc"].includes(blowerType)) {
+      return NextResponse.json(
+        { error: "blowerType must be 'ecm' or 'psc'" },
+        { status: 400 }
+      );
+    }
+    if (
+      airflowCfm !== undefined &&
+      (typeof airflowCfm !== "number" || airflowCfm < 100 || airflowCfm > 5000)
+    ) {
+      return NextResponse.json(
+        { error: "airflowCfm must be between 100 and 5000" },
+        { status: 400 }
+      );
+    }
+    if (
+      electricityRateCents !== undefined &&
+      (typeof electricityRateCents !== "number" ||
+        electricityRateCents < 1 ||
+        electricityRateCents > 100)
+    ) {
+      return NextResponse.json(
+        { error: "electricityRateCents must be between 1 and 100 ¢/kWh" },
+        { status: 400 }
+      );
+    }
+
     // Update device
     const updatedDevice = await db.device.update({
       where: { id: deviceId },
@@ -114,6 +145,9 @@ export async function PUT(
         location: location !== undefined ? location : device.location,
         pressureThreshold:
           pressureThreshold !== undefined ? pressureThreshold : device.pressureThreshold,
+        ...(blowerType !== undefined && { blowerType }),
+        ...(airflowCfm !== undefined && { airflowCfm }),
+        ...(electricityRateCents !== undefined && { electricityRateCents }),
       },
     });
 

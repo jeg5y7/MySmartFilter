@@ -6,8 +6,16 @@ owners when a filter is loaded, and can auto-order replacements through Stripe.
 
 Hosted at <https://mysmartfilter.com>.
 
+See [ROADMAP.md](./ROADMAP.md) for the path to public launch.
+
 ## Features
 
+- **Energy-cost filter model** — blower runtime is detected from ΔP (pressure
+  across the filter is ~0 when the blower is off), extra electricity vs. a
+  clean-filter baseline is accrued on every reading, and a replacement is
+  alerted/auto-ordered once that cost meets the price of the customer's
+  preferred filter. ECM (variable-speed) systems only; PSC systems use the
+  pressure threshold.
 - **Device fleet management** — pair / rename / relocate / delete ESP32 devices
   through a 4-step setup wizard with QR scanning and captive-portal WiFi
   onboarding.
@@ -70,7 +78,8 @@ src/
     api/routers/       post, sensor, user, device, firmware, integrations
     auth/              NextAuth config + custom Prisma adapter
     db.ts              Prisma client singleton
-  lib/                 api-key, resend, stripe, stripe-client, webhooks
+  lib/                 energy, filter-alerts, filter-preference, api-key,
+                       resend, stripe, stripe-client, webhooks
   trpc/                Client / server tRPC plumbing
 prisma/
   schema.prisma        Device, SensorReading, FilterAlert, Order, …
@@ -186,17 +195,13 @@ X-SmartFilter-Signature: sha256=<HMAC of body using webhook.secret>
 
 ## Known issues / TODO
 
-- `vercel.json` schedules crons daily (Hobby-plan limit), but the cron handlers
-  are written for "every 15 minutes" (offline sweep) / "every hour" (auto-order)
-  and use 15–60 min lookback windows that won't fire under a daily schedule.
-- `/api/device/register` is unauthenticated — any caller can register a
-  `deviceId` and obtain an API token until that device is linked.
-- `src/app/api/cron/auto-order/route.ts` selects a filter preference with
-  `orderBy: { deviceId: "desc" }` but the comment claims it picks the
-  device-specific preference — the sort key doesn't actually distinguish
-  device-scoped from global preferences.
-- ESLint warns about unused `cfg` (`device-readings.tsx`) and `request`
-  (`api/device/list/route.ts`).
+- Crons run daily (Vercel Hobby limit). Handlers are schedule-agnostic, but
+  offline alerts and auto-orders can lag up to 24 h — upgrade to Pro and set
+  `*/15` / hourly schedules before launch (see ROADMAP Phase 3).
+- Auto-orders create `pending` orders but don't charge a card yet — off-session
+  Stripe payment is ROADMAP Phase 2.
+- Firmware doesn't yet send the `deviceSecret` on register; legacy devices are
+  claimable by the first secret presenter (ratchet upgrade path).
 
 ## License
 

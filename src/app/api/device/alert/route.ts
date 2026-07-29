@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { resend, EMAIL_FROM } from "~/lib/resend";
+import { getEffectiveFilterPreference } from "~/lib/filter-preference";
 
 interface AlertRequest {
   deviceId: string;
@@ -66,16 +67,8 @@ export async function POST(request: Request) {
     }
 
     // Check user's auto-order preference for this device
-    const preference = await db.userFilterPreference.findFirst({
-      where: {
-        userId: device.userId,
-        OR: [
-          { deviceId: device.id }, // Device-specific preference
-          { deviceId: null }, // Default preference
-        ],
-      },
-      orderBy: { deviceId: "desc" }, // Prefer device-specific over default
-    });
+    // (device-specific row wins, else the user's default row)
+    const preference = await getEffectiveFilterPreference(device.userId, device.id);
 
     const autoOrderEnabled = preference?.autoOrderEnabled ?? false;
 

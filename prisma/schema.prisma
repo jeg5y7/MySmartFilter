@@ -62,6 +62,16 @@ model Device {
   lastSeen          DateTime               @default(now())
   userId            String?
   pressureThreshold Float                  @default(50.0) // Pa - trigger filter alert when exceeded
+  deviceSecretHash  String?                // sha256 of the secret the device presents to re-fetch its token
+  // Energy model — filter cost tracking
+  blowerType           String    @default("ecm") // "ecm" (variable-speed) or "psc" (fixed-speed)
+  airflowCfm           Float     @default(1000)  // rated system airflow
+  electricityRateCents Float     @default(15)    // ¢ per kWh
+  baselineDeltaP       Float?    // Pa across a clean filter, captured after install/replacement
+  filterInstalledAt    DateTime?
+  runtimeHours         Float     @default(0)     // blower runtime since filter install
+  extraEnergyCostCents Float     @default(0)     // cumulative extra energy cost vs clean filter
+  lastAccrualAt        DateTime? // previous reading time used for accrual integration
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   user              User?                  @relation(fields: [userId], references: [id])

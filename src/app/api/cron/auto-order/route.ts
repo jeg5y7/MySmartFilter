@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { resend, EMAIL_FROM } from "~/lib/resend";
 import { env } from "~/env";
+import { getEffectiveFilterPreference } from "~/lib/filter-preference";
 
 /**
  * Vercel Cron — runs every hour.
@@ -27,16 +28,7 @@ export async function GET(request: Request) {
         autoOrderAt: { lte: now },
       },
       include: {
-        device: {
-          include: {
-            filterPreferences: {
-              where: { autoOrderEnabled: true },
-              include: { filterProduct: true },
-              orderBy: { deviceId: "desc" }, // device-specific preference first
-              take: 1,
-            },
-          },
-        },
+        device: true,
         user: true,
       },
     });
@@ -48,7 +40,10 @@ export async function GET(request: Request) {
     const results: { alertId: string; orderId?: string; emailSent: boolean; error?: string }[] = [];
 
     for (const alert of pendingAlerts) {
-      const preference = alert.device.filterPreferences[0];
+      // Device-specific preference wins, else the user's default; only
+      // preferences with auto-order enabled qualify.
+      const resolved = await getEffectiveFilterPreference(alert.userId, alert.deviceId);
+      const preference = resolved?.autoOrderEnabled ? resolved : undefined;
       const userEmail = alert.user.email;
       const deviceName = alert.device.name ?? alert.device.deviceId;
 

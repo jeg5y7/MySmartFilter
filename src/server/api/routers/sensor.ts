@@ -1,25 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const sensorRouter = createTRPCRouter({
-  // Create a new sensor reading (for ESP32)
-  create: publicProcedure
-    .input(z.object({
-      pressure: z.number(),
-      temperature: z.number(),
-      deviceId: z.string(),
-      userId: z.string(), // ESP32 will need to provide user ID
-    }))
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.sensorReading.create({
-        data: {
-          pressure: input.pressure,
-          temperature: input.temperature,
-          deviceId: input.deviceId,
-          userId: input.userId,
-        },
-      });
-    }),
+  // Ingest happens via POST /api/sensor with device-token auth — no public
+  // create mutation here.
 
   // Get latest readings for a user
   getLatest: protectedProcedure

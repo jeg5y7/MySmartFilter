@@ -12,6 +12,9 @@ interface DeviceSettingsProps {
     name: string | null;
     location: string | null;
     pressureThreshold: number;
+    blowerType: string;
+    airflowCfm: number;
+    electricityRateCents: number;
   };
   filterProducts: FilterProduct[];
   currentPreference: {
@@ -47,6 +50,16 @@ export function DeviceSettings({
   const [pressureThreshold, setPressureThreshold] = useState(device.pressureThreshold);
   const [renameSaving, setRenameSaving] = useState(false);
   const [renameMessage, setRenameMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  // ── HVAC system state ────────────────────────────────────────────────────
+  const [blowerType, setBlowerType] = useState(device.blowerType);
+  const [airflowCfm, setAirflowCfm] = useState(device.airflowCfm);
+  const [electricityRate, setElectricityRate] = useState(device.electricityRateCents);
+  const [hvacSaving, setHvacSaving] = useState(false);
+  const [hvacMessage, setHvacMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
@@ -141,6 +154,41 @@ export function DeviceSettings({
       setRenameMessage({ type: "error", text: "Failed to update device" });
     } finally {
       setRenameSaving(false);
+    }
+  };
+
+  // ── HVAC system save ──────────────────────────────────────────────────────
+
+  const handleHvacSave = async () => {
+    setHvacSaving(true);
+    setHvacMessage(null);
+
+    try {
+      const res = await fetch(`/api/device/${device.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blowerType,
+          airflowCfm,
+          electricityRateCents: electricityRate,
+        }),
+      });
+
+      const data = (await res.json()) as { error?: string };
+
+      if (res.ok) {
+        setHvacMessage({ type: "success", text: "✓ HVAC settings saved!" });
+        router.refresh();
+      } else {
+        setHvacMessage({
+          type: "error",
+          text: data.error ?? "Failed to save HVAC settings",
+        });
+      }
+    } catch {
+      setHvacMessage({ type: "error", text: "Failed to save HVAC settings" });
+    } finally {
+      setHvacSaving(false);
     }
   };
 
@@ -275,6 +323,104 @@ export function DeviceSettings({
             Browse Filter Store
           </Link>
         </div>
+      </div>
+
+      {/* ── HVAC System (energy model inputs) ───────────────────────────── */}
+      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+        <h2 className="text-lg font-semibold text-white mb-1">HVAC System</h2>
+        <p className="text-sm text-gray-400 mb-5">
+          These power the energy-cost model that decides when a new filter pays
+          for itself.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Blower Motor Type
+            </label>
+            <select
+              value={blowerType}
+              onChange={(e) => setBlowerType(e.target.value)}
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="ecm" className="bg-slate-800">
+                Variable-speed (ECM) — most systems after ~2019
+              </option>
+              <option value="psc" className="bg-slate-800">
+                Fixed-speed (PSC) — most older systems
+              </option>
+            </select>
+            <p className="mt-1.5 text-xs text-gray-500">
+              {blowerType === "ecm"
+                ? "ECM blowers work harder as the filter clogs, so we track the extra electricity cost."
+                : "PSC blowers lose airflow instead of drawing more power — alerts use the pressure threshold."}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              System Airflow
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                value={airflowCfm}
+                onChange={(e) => setAirflowCfm(Number(e.target.value))}
+                min={100}
+                max={5000}
+                step={100}
+                className="w-full px-4 py-3 pr-14 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                CFM
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Rule of thumb: ~400 CFM per ton of cooling (3-ton system ≈ 1200 CFM).
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Electricity Rate
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                value={electricityRate}
+                onChange={(e) => setElectricityRate(Number(e.target.value))}
+                min={1}
+                max={100}
+                step={1}
+                className="w-full px-4 py-3 pr-16 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                ¢/kWh
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              Find it on your utility bill — US average is about 15¢/kWh.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleHvacSave}
+          disabled={hvacSaving}
+          className="mt-5 w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+        >
+          {hvacSaving ? "Saving…" : "Save HVAC Settings"}
+        </button>
+
+        {hvacMessage && (
+          <p
+            className={`mt-3 text-sm text-center ${
+              hvacMessage.type === "success" ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {hvacMessage.text}
+          </p>
+        )}
       </div>
 
       {/* ── Device Info (Rename) ────────────────────────────────────────── */}
