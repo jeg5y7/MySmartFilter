@@ -174,8 +174,8 @@ export default async function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 group-hover:text-blue-400 transition-colors">Smart Sensor Integration</h3>
-                <p className="text-gray-400 mb-4">Connect your SDP810 differential pressure sensor to monitor filter performance with precision.</p>
+                <h3 className="text-xl font-semibold mb-3 group-hover:text-blue-400 transition-colors">Lab-Grade Pressure Sensing</h3>
+                <p className="text-gray-400 mb-4">The smart filter monitor measures the pressure drop across your filter with laboratory precision, all day, every day.</p>
                 <ul className="space-y-2 text-sm text-gray-500">
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
@@ -371,26 +371,26 @@ export default async function Home() {
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xl">
                     1
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 pt-2">Connect Your ESP32</h3>
-                  <p className="text-gray-400 mb-4">Flash the Arduino code to your ESP32 device and connect the SDP810 sensor via I2C.</p>
+                  <h3 className="text-xl font-semibold mb-4 pt-2">Install the Monitor</h3>
+                  <p className="text-gray-400 mb-4">Mount the smart filter monitor next to your furnace and connect the two flexible tubes from your kit — one on each side of the filter.</p>
                   <div className="text-sm text-gray-500 space-y-2">
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Follow the wiring diagram in the documentation</span>
+                      <span>Drill one small hole on each side of your filter</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Configure your WiFi settings</span>
+                      <span>Insert a tube into each hole and connect them to the monitor</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Upload the code and verify serial output</span>
+                      <span>Plug in the power adapter — that&apos;s the whole install</span>
                     </div>
                   </div>
                 </div>
@@ -407,26 +407,26 @@ export default async function Home() {
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold text-xl">
                     2
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 pt-2">Create Your Account</h3>
-                  <p className="text-gray-400 mb-4">Sign up for an account and register your device with your unique user ID.</p>
+                  <h3 className="text-xl font-semibold mb-4 pt-2">Connect It to Your WiFi</h3>
+                  <p className="text-gray-400 mb-4">No apps to install and no technical setup — the monitor walks you through it from your phone.</p>
                   <div className="text-sm text-gray-500 space-y-2">
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Complete the signup form</span>
+                      <span>The monitor creates its own temporary WiFi network</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Get your unique user ID</span>
+                      <span>Join it from your phone and pick your home WiFi</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Update your ESP32 code with your user ID</span>
+                      <span>Scan the QR code on the monitor to register it to your account</span>
                     </div>
                   </div>
                 </div>
@@ -443,26 +443,26 @@ export default async function Home() {
                   <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold text-xl">
                     3
                   </div>
-                  <h3 className="text-xl font-semibold mb-4 pt-2">Monitor Your Data</h3>
-                  <p className="text-gray-400 mb-4">View your real-time and historical sensor data through our intuitive dashboard.</p>
+                  <h3 className="text-xl font-semibold mb-4 pt-2">Let It Do the Math</h3>
+                  <p className="text-gray-400 mb-4">The monitor tracks your filter around the clock, and a new one ships automatically when replacing saves you money.</p>
                   <div className="text-sm text-gray-500 space-y-2">
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-cyan-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Log in to your dashboard</span>
+                      <span>Watch live pressure readings and wasted-energy cost</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-cyan-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>View real-time data and analytics</span>
+                      <span>Get an email before any order — cancel with one click</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-cyan-400 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span>Set up alerts and notifications</span>
+                      <span>The right filter arrives before the old one costs you money</span>
                     </div>
                   </div>
                 </div>
