@@ -44,6 +44,18 @@ export const authConfig = {
   pages: {
     signIn: '/signin',
   },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        try {
+          const { sendWelcomeEmail } = await import("~/lib/welcome-email");
+          await sendWelcomeEmail(user.email);
+        } catch (error) {
+          console.error("Welcome email failed:", error);
+        }
+      }
+    },
+  },
   callbacks: {
     async redirect({ url, baseUrl }) {
       // Always redirect to dashboard after successful authentication

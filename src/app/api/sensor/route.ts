@@ -4,6 +4,7 @@ import { db } from "~/server/db";
 import { dispatchWebhook } from "~/lib/webhooks";
 import { accrueReading } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
+import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -19,12 +20,10 @@ const SensorDataSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Get API token from Authorization header
+    // Get API token from Authorization header (never log tokens)
     const authHeader = request.headers.get("authorization");
-    console.log("[SENSOR API] Authorization header:", authHeader);
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("[SENSOR API] Missing or invalid auth header");
       return NextResponse.json(
         { error: "Authorization required" },
         { status: 401 }
@@ -32,17 +31,17 @@ export async function POST(request: NextRequest) {
     }
 
     const apiToken = authHeader.substring(7);
-    console.log("[SENSOR API] Extracted token:", apiToken.substring(0, 20) + "...");
+
+    // A healthy device posts every ~30s; 120/5min leaves generous headroom
+    const rl = rateLimit(`sensor:${apiToken}`, 120, 5 * 60 * 1000);
+    if (!rl.ok) return tooManyRequests(rl);
 
     // Find device by API token
     const device = await db.device.findUnique({
       where: { apiToken },
     });
 
-    console.log("[SENSOR API] Device lookup result:", device ? `Found device ${device.deviceId}` : "No device found");
-
     if (!device) {
-      console.log("[SENSOR API] Token not found in database");
       return NextResponse.json(
         { error: "Invalid API token" },
         { status: 401 }
