@@ -5,6 +5,24 @@ Business: razor-and-blades — device at cost, revenue from filter auto-orders.
 Target: public launch ~Oct 2026. **Read ROADMAP.md for the phased plan and
 current status.** Progress dashboard artifact: "MySmartFilter · Launch Control".
 
+## The product (customer's view — keep all copy consistent with this)
+
+- The device is called the **"smart filter monitor"** in ALL customer-facing
+  copy. Never ESP32 / Arduino / SDP810 / firmware / I2C — customers don't know
+  or care what's inside. Technical names are fine in code, docs/, and esp32/.
+- Customers NEVER flash code, wire anything, or install an app. The unit
+  arrives assembled with firmware installed.
+- **Install:** drill one small hole on each side of the furnace filter, insert
+  the kit's two flexible tubes into the HVAC enclosure, connect the other ends
+  to the monitor's ports, plug in the power adapter.
+- **Onboarding:** the monitor broadcasts a temporary WiFi network → customer
+  joins it from their phone → captive portal asks for home WiFi → customer
+  scans the QR label to register the device to their account
+  (/setup/device?device=SF… prefills the ID).
+- **Then it's hands-off:** the monitor measures the pressure drop across the
+  filter, the app computes wasted-energy cost vs a new filter's price, emails
+  before any auto-order (one-click cancel, 24 h grace), and ships the filter.
+
 ## State (2026-07-30)
 
 - Phases 0–2 shipped and merged to main via PR #2 (energy-cost model,
