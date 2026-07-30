@@ -8,6 +8,7 @@ import { DeviceReadings } from "~/app/_components/device-readings";
 import { AlertActionButtons } from "~/app/_components/alert-action-buttons";
 import { AlertHistory } from "~/app/_components/alert-history";
 import { ExportButton } from "~/app/_components/export-button";
+import { FilterHealthCard } from "~/app/_components/filter-health-card";
 
 interface DevicePageProps {
   params: Promise<{ id: string }>;
@@ -136,6 +137,24 @@ export default async function DevicePage({ params }: DevicePageProps) {
               </div>
             </div>
 
+            {/* Filter Health — energy-cost meter */}
+            <FilterHealthCard
+              deviceId={device.id}
+              blowerType={device.blowerType}
+              extraEnergyCostCents={device.extraEnergyCostCents}
+              runtimeHours={device.runtimeHours}
+              baselineDeltaP={device.baselineDeltaP}
+              filterInstalledAt={
+                device.filterInstalledAt?.toISOString() ?? null
+              }
+              filterPriceCents={preference?.filterProduct.price ?? null}
+              filterName={
+                preference
+                  ? `${preference.filterProduct.size} ${preference.filterProduct.name}`
+                  : null
+              }
+            />
+
             {/* Active Alerts */}
             {device.filterAlerts.length > 0 && (
               <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
@@ -213,6 +232,9 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 name: device.name,
                 location: device.location,
                 pressureThreshold: device.pressureThreshold,
+                blowerType: device.blowerType,
+                airflowCfm: device.airflowCfm,
+                electricityRateCents: device.electricityRateCents,
               }}
               filterProducts={filterProducts}
               currentPreference={

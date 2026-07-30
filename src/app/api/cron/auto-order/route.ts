@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { resend, EMAIL_FROM } from "~/lib/resend";
+import { env } from "~/env";
+import { getEffectiveFilterPreference } from "~/lib/filter-preference";
+import { stripe } from "~/lib/stripe";
+
+// Flat standard shipping, matches the store checkout option
+const AUTO_ORDER_SHIPPING_CENTS = 599;
 
 /**
  * Vercel Cron — runs every hour.
@@ -10,7 +16,7 @@ import { resend, EMAIL_FROM } from "~/lib/resend";
 export async function GET(request: Request) {
   // Verify cron secret (Vercel standard: Authorization: Bearer <CRON_SECRET>)
   const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = env.CRON_SECRET;
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,16 +32,7 @@ export async function GET(request: Request) {
         autoOrderAt: { lte: now },
       },
       include: {
-        device: {
-          include: {
-            filterPreferences: {
-              where: { autoOrderEnabled: true },
-              include: { filterProduct: true },
-              orderBy: { deviceId: "desc" }, // device-specific preference first
-              take: 1,
-            },
-          },
-        },
+        device: true,
         user: true,
       },
     });
@@ -47,26 +44,50 @@ export async function GET(request: Request) {
     const results: { alertId: string; orderId?: string; emailSent: boolean; error?: string }[] = [];
 
     for (const alert of pendingAlerts) {
-      const preference = alert.device.filterPreferences[0];
+      // Device-specific preference wins, else the user's default; only
+      // preferences with auto-order enabled qualify.
+      const resolved = await getEffectiveFilterPreference(alert.userId, alert.deviceId);
+      const preference = resolved?.autoOrderEnabled ? resolved : undefined;
       const userEmail = alert.user.email;
       const deviceName = alert.device.name ?? alert.device.deviceId;
 
       try {
         let order;
+        let charged = false;
+        // Every outcome must move the alert out of "notified", or the next
+        // cron run would re-process it and create a duplicate order.
+        let alertOutcome: "auto_ordered" | "payment_failed" = "auto_ordered";
 
         if (preference?.filterProduct) {
           const product = preference.filterProduct;
-          // Create order with the preferred filter product
+          const user = alert.user;
+          const subtotal = product.price;
+          const shipping = AUTO_ORDER_SHIPPING_CENTS;
+          const total = subtotal + shipping;
+
+          const canCharge =
+            !!user.stripeCustomerId &&
+            !!user.stripeDefaultPaymentMethodId &&
+            !!user.shippingAddress1;
+
+          // Create the order first so the charge has something to reference
           order = await db.order.create({
             data: {
               userId: alert.userId,
               isAutoOrder: true,
               triggeredByAlertId: alert.id,
               status: "pending",
-              subtotal: product.price,
+              subtotal,
               tax: 0,
-              shipping: 0,
-              total: product.price,
+              shipping,
+              total,
+              shippingName: user.shippingName,
+              shippingAddress1: user.shippingAddress1,
+              shippingAddress2: user.shippingAddress2,
+              shippingCity: user.shippingCity,
+              shippingState: user.shippingState,
+              shippingZip: user.shippingZip,
+              shippingCountry: user.shippingCountry,
               orderItems: {
                 create: {
                   filterProductId: product.id,
@@ -76,6 +97,30 @@ export async function GET(request: Request) {
               },
             },
           });
+
+          if (canCharge) {
+            try {
+              const paymentIntent = await stripe.paymentIntents.create({
+                amount: total,
+                currency: "usd",
+                customer: user.stripeCustomerId!,
+                payment_method: user.stripeDefaultPaymentMethodId!,
+                off_session: true,
+                confirm: true,
+                metadata: { orderId: order.id, userId: alert.userId, autoOrder: "true" },
+              });
+
+              order = await db.order.update({
+                where: { id: order.id },
+                data: { status: "paid", stripePaymentIntent: paymentIntent.id },
+              });
+              charged = true;
+            } catch (chargeError) {
+              // Card declined / requires action — order stays pending, user is emailed
+              console.error(`[cron/auto-order] Charge failed for order ${order.id}:`, chargeError);
+              alertOutcome = "payment_failed";
+            }
+          }
         } else {
           // No product preference found — create a placeholder order for manual fulfillment
           order = await db.order.create({
@@ -92,11 +137,11 @@ export async function GET(request: Request) {
           });
         }
 
-        // Mark alert as auto_ordered
+        // Always resolve the alert so it isn't re-processed next run
         await db.filterAlert.update({
           where: { id: alert.id },
           data: {
-            status: "auto_ordered",
+            status: alertOutcome,
             resolvedAt: new Date(),
           },
         });
@@ -113,7 +158,10 @@ export async function GET(request: Request) {
           await resend.emails.send({
             from: EMAIL_FROM,
             to: userEmail,
-            subject: `✅ Your replacement filter has been ordered — ${deviceName}`,
+            subject:
+              alertOutcome === "payment_failed"
+                ? `⚠️ Payment failed for your filter auto-order — ${deviceName}`
+                : `✅ Your replacement filter has been ordered — ${deviceName}`,
             html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -122,14 +170,23 @@ export async function GET(request: Request) {
     <!-- Header -->
     <div style="background:#0f172a;padding:24px 32px;border-bottom:1px solid #334155;">
       <p style="margin:0;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
-      <h1 style="margin:8px 0 0;color:#f1f5f9;font-size:22px;font-weight:700;">✅ Filter order confirmed</h1>
+      <h1 style="margin:8px 0 0;color:#f1f5f9;font-size:22px;font-weight:700;">${
+        alertOutcome === "payment_failed"
+          ? "⚠️ Payment needs attention"
+          : "✅ Filter order confirmed"
+      }</h1>
     </div>
 
     <!-- Body -->
     <div style="padding:28px 32px;">
       <p style="color:#94a3b8;font-size:15px;margin-top:0;">
-        Your replacement filter for <strong style="color:#e2e8f0;">${deviceName}</strong> has been
-        automatically ordered as scheduled.
+        ${
+          alertOutcome === "payment_failed"
+            ? `We tried to charge your card on file for the replacement filter for <strong style="color:#e2e8f0;">${deviceName}</strong>, but the payment didn't go through. Update your card at <a href="https://mysmartfilter.com/settings/billing" style="color:#60a5fa;">mysmartfilter.com/settings/billing</a> or order manually from the store.`
+            : charged
+              ? `Your replacement filter for <strong style="color:#e2e8f0;">${deviceName}</strong> has been ordered and your card on file was charged.`
+              : `Your replacement filter order for <strong style="color:#e2e8f0;">${deviceName}</strong> has been created. Add a card at <a href="https://mysmartfilter.com/settings/billing" style="color:#60a5fa;">mysmartfilter.com/settings/billing</a> to make future orders fully automatic.`
+        }
       </p>
 
       <!-- Order info -->

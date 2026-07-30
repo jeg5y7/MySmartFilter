@@ -3,8 +3,9 @@ import { headers } from "next/headers";
 import type Stripe from "stripe";
 import { stripe } from "~/lib/stripe";
 import { db } from "~/server/db";
+import { env } from "~/env";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -53,12 +54,34 @@ export async function POST(request: Request) {
 async function handleCheckoutComplete(eventObject: Stripe.Event.Data.Object) {
   // Cast to checkout session type
   const session = eventObject as unknown as {
-    metadata?: { orderId?: string };
+    mode?: string;
+    metadata?: { orderId?: string; userId?: string };
     shipping_details?: { name?: string; address?: { line1?: string; line2?: string; city?: string; state?: string; postal_code?: string; country?: string } };
     shipping_cost?: { amount_total?: number };
     amount_total?: number;
     payment_intent?: string;
+    setup_intent?: string;
   };
+
+  // Setup-mode sessions (add/update card, no purchase) just save the payment method
+  if (session.mode === "setup") {
+    const userId = session.metadata?.userId;
+    if (userId && session.setup_intent) {
+      const setupIntent = await stripe.setupIntents.retrieve(session.setup_intent);
+      const pm =
+        typeof setupIntent.payment_method === "string"
+          ? setupIntent.payment_method
+          : setupIntent.payment_method?.id;
+      if (pm) {
+        await db.user.update({
+          where: { id: userId },
+          data: { stripeDefaultPaymentMethodId: pm },
+        });
+        console.log(`Saved payment method for user ${userId}`);
+      }
+    }
+    return;
+  }
 
   const orderId = session.metadata?.orderId;
   if (!orderId) {
@@ -88,6 +111,39 @@ async function handleCheckoutComplete(eventObject: Stripe.Event.Data.Object) {
   });
 
   console.log(`Order ${orderId} marked as paid`);
+
+  // Persist the card + freshest shipping address to the user for auto-orders
+  const buyerId = session.metadata?.userId;
+  if (buyerId) {
+    let pm: string | undefined;
+    if (session.payment_intent) {
+      try {
+        const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
+        pm =
+          typeof paymentIntent.payment_method === "string"
+            ? paymentIntent.payment_method
+            : paymentIntent.payment_method?.id;
+      } catch (err) {
+        console.error("Could not retrieve payment intent for card save:", err);
+      }
+    }
+
+    await db.user.update({
+      where: { id: buyerId },
+      data: {
+        ...(pm && { stripeDefaultPaymentMethodId: pm }),
+        ...(shippingDetails?.address?.line1 && {
+          shippingName: shippingDetails.name ?? null,
+          shippingAddress1: shippingDetails.address.line1,
+          shippingAddress2: shippingDetails.address.line2 ?? null,
+          shippingCity: shippingDetails.address.city ?? null,
+          shippingState: shippingDetails.address.state ?? null,
+          shippingZip: shippingDetails.address.postal_code ?? null,
+          shippingCountry: shippingDetails.address.country ?? "US",
+        }),
+      },
+    });
+  }
 
   // Check if this order was triggered by a filter alert
   const order = await db.order.findUnique({

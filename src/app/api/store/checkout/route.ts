@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { stripe } from "~/lib/stripe";
+import { env } from "~/env";
 
 interface CheckoutItem {
   productId: string;
@@ -102,11 +103,13 @@ export async function POST(request: Request) {
     });
 
     // Create Stripe checkout session
-    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+    const baseUrl = env.NEXTAUTH_URL ?? "http://localhost:3000";
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "payment",
       payment_method_types: ["card"],
+      // Save the card so auto-orders can charge off-session later
+      payment_intent_data: { setup_future_usage: "off_session" },
       line_items: lineItems,
       shipping_address_collection: {
         allowed_countries: ["US"],

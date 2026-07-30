@@ -62,6 +62,16 @@ model Device {
   lastSeen          DateTime               @default(now())
   userId            String?
   pressureThreshold Float                  @default(50.0) // Pa - trigger filter alert when exceeded
+  deviceSecretHash  String?                // sha256 of the secret the device presents to re-fetch its token
+  // Energy model — filter cost tracking
+  blowerType           String    @default("ecm") // "ecm" (variable-speed) or "psc" (fixed-speed)
+  airflowCfm           Float     @default(1000)  // rated system airflow
+  electricityRateCents Float     @default(15)    // ¢ per kWh
+  baselineDeltaP       Float?    // Pa across a clean filter, captured after install/replacement
+  filterInstalledAt    DateTime?
+  runtimeHours         Float     @default(0)     // blower runtime since filter install
+  extraEnergyCostCents Float     @default(0)     // cumulative extra energy cost vs clean filter
+  lastAccrualAt        DateTime? // previous reading time used for accrual integration
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   user              User?                  @relation(fields: [userId], references: [id])
@@ -124,7 +134,17 @@ model User {
   createdAt             DateTime               @default(now())
   hasPassword           Boolean                @default(false)
   password              String?
+  isAdmin               Boolean                @default(false)
   stripeCustomerId      String?                @unique
+  stripeDefaultPaymentMethodId String?
+  // Shipping address on file (used for auto-orders)
+  shippingName          String?
+  shippingAddress1      String?
+  shippingAddress2      String?
+  shippingCity          String?
+  shippingState         String?
+  shippingZip           String?
+  shippingCountry       String                 @default("US")
   updatedAt             DateTime               @default(now()) @updatedAt
   accounts              Account[]
   devices               Device[]
@@ -210,6 +230,9 @@ model Order {
   // Auto-order fields
   isAutoOrder         Boolean  @default(false)
   triggeredByAlertId  String?  // Link to the FilterAlert that triggered this
+  // Fulfillment
+  trackingNumber      String?
+  shippedAt           DateTime?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -299,8 +322,9 @@ model FilterAlert {
   userId         String
   pressure       Float     // Differential pressure reading that triggered alert
   threshold      Float     // The threshold that was exceeded
-  status         String    @default("pending") // pending, notified, auto_ordered, dismissed, manual_ordered
+  status         String    @default("pending") // pending, notified, auto_ordered, dismissed, manual_ordered, payment_failed
   autoOrderAt    DateTime? // When auto-order will execute (if enabled)
+  cancelToken    String?   @unique // one-click cancel link token for alert emails
   notifiedAt     DateTime? // When user was notified
   resolvedAt     DateTime? // When alert was resolved (order placed or dismissed)
   createdAt      DateTime  @default(now())

@@ -3,7 +3,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 
 // GET: List all devices for authenticated user
-export async function GET(request: Request) {
+export async function GET() {
   try {
     // Check authentication
     const session = await auth();

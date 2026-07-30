@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { dispatchWebhook } from "~/lib/webhooks";
+import { accrueReading } from "~/lib/energy";
+import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -69,12 +71,30 @@ export async function POST(request: NextRequest) {
 
     const { pressure, temperature, sensorType, humidity, co2, voc } = result.data;
 
-    // Update device last seen time
-    await db.device.update({
+    const now = new Date();
+
+    // Energy model: only pressure-differential readings drive the accumulators
+    const isPressureReading =
+      (sensorType ?? "pressure_differential") === "pressure_differential";
+    const accrual = isPressureReading
+      ? accrueReading(device, pressure, now)
+      : { runtimeHoursDelta: 0, extraCostCentsDelta: 0, newBaselineDeltaP: null };
+
+    // Update device last seen time + energy accumulators
+    const updatedDevice = await db.device.update({
       where: { id: device.id },
       data: {
-        lastSeen: new Date(),
+        lastSeen: now,
         status: "active",
+        ...(isPressureReading && {
+          lastAccrualAt: now,
+          runtimeHours: { increment: accrual.runtimeHoursDelta },
+          extraEnergyCostCents: { increment: accrual.extraCostCentsDelta },
+          ...(accrual.newBaselineDeltaP !== null && {
+            baselineDeltaP: accrual.newBaselineDeltaP,
+            filterInstalledAt: device.filterInstalledAt ?? now,
+          }),
+        }),
       },
     });
 
@@ -105,6 +125,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Energy-cost trigger: alert + (optional) auto-order once the extra
+    // electricity spent exceeds the price of the preferred replacement filter
+    if (isPressureReading) {
+      try {
+        await maybeTriggerEnergyAlert(updatedDevice, pressure);
+      } catch (err) {
+        console.error("[sensor] energy alert check failed:", err);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -115,45 +145,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Error saving sensor data:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-
-// GET endpoint to retrieve recent sensor data (for testing)
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-    const deviceId = searchParams.get("deviceId");
-    const limit = parseInt(searchParams.get("limit") ?? "10");
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId parameter is required" },
-        { status: 400 }
-      );
-    }
-
-    const readings = await db.sensorReading.findMany({
-      where: {
-        userId,
-        ...(deviceId && { deviceId }),
-      },
-      orderBy: { timestamp: "desc" },
-      take: Math.min(limit, 100), // Limit to max 100 records
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: readings,
-      count: readings.length,
-    });
-
-  } catch (error) {
-    console.error("Error fetching sensor data:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

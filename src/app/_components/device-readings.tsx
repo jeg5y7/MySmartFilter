@@ -253,7 +253,6 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps) {
   if (!active || !payload?.length || label === undefined) return null;
 
-  const cfg = RANGES[rangeKey];
   const dateStr =
     rangeKey === "7d" || rangeKey === "30d"
       ? new Date(label).toLocaleString(undefined, {
