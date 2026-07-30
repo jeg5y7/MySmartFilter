@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import crypto from "crypto";
+import { rateLimit, clientIp, tooManyRequests } from "~/lib/rate-limit";
 
 const sha256 = (value: string) =>
   crypto.createHash("sha256").update(value).digest("hex");
@@ -18,6 +19,10 @@ const sha256 = (value: string) =>
  */
 export async function POST(request: Request) {
   try {
+    // Registration is unauthenticated by design — rate limit per IP
+    const rl = rateLimit(`register:${clientIp(request)}`, 10, 10 * 60 * 1000);
+    if (!rl.ok) return tooManyRequests(rl);
+
     const body = (await request.json()) as {
       deviceId?: string;
       deviceSecret?: string;

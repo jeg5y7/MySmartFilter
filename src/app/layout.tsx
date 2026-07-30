@@ -7,9 +7,19 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { Providers } from "./_components/providers";
 
 export const metadata: Metadata = {
-  title: "Smart Filter - Intelligent Filter Monitoring",
-  description: "Monitor your air and water filters in real-time. Track pressure differential, predict filter life, and receive maintenance alerts for optimal filtration.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: "MySmartFilter — Your HVAC filter, on autopilot",
+  description:
+    "A clogged HVAC filter burns extra electricity every hour the blower runs. MySmartFilter measures exactly how much and auto-orders a replacement the moment a new filter costs less than the energy you're wasting.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MySmartFilter",
+  },
 };
 
 const geist = Geist({

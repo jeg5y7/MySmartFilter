@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "~/lib/api-key";
 import { db } from "~/server/db";
+import { rateLimit, clientIp, tooManyRequests } from "~/lib/rate-limit";
 
 /**
  * GET /api/v1/devices
@@ -8,7 +9,11 @@ import { db } from "~/server/db";
  * Auth: Bearer sk_live_...
  */
 export async function GET(req: NextRequest) {
-  const userId = await validateApiKey(req.headers.get("authorization"));
+  const authHeader = req.headers.get("authorization");
+  const rl = rateLimit(`v1:${authHeader ?? clientIp(req)}`, 60, 60 * 1000);
+  if (!rl.ok) return tooManyRequests(rl);
+
+  const userId = await validateApiKey(authHeader);
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

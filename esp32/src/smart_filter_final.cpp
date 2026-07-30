@@ -23,10 +23,15 @@ const char* SERVER_URL = "http://10.0.0.21:3000/api";
 // Configuration structure
 struct Config {
   char magic[5];      // "WIFI" + null
-  char ssid[33];      
+  char ssid[33];
   char password[64];
   char deviceId[17];  // Device unique ID
   char apiToken[68];  // API authentication token (sf_ + 64 hex chars + null)
+  // Proof-of-possession secret: generated once on this device, sent with every
+  // /device/register call so only THIS device can re-fetch its API token.
+  // New field at the end of the struct — old EEPROM images leave garbage here,
+  // which fails validation and triggers regeneration.
+  char deviceSecret[65]; // 64 hex chars + null
 };
 
 Config config;
@@ -50,6 +55,7 @@ void saveConfig();
 bool isConfigured();
 void factoryReset();
 void generateDeviceId();
+void ensureDeviceSecret();
 bool registerDevice();
 bool sendSensorData();
 bool updateDeviceStatus();
@@ -113,7 +119,10 @@ void setup() {
     generateDeviceId();
     saveConfig();
   }
-  
+
+  // Generate/repair the proof-of-possession secret if missing or invalid
+  ensureDeviceSecret();
+
   Serial.printf("Device ID: %s\n", config.deviceId);
   
   // Check for factory reset (hold BOOT button for 5 seconds)
@@ -319,20 +328,47 @@ void generateDeviceId() {
   Serial.printf("Generated Device ID: %s\n", config.deviceId);
 }
 
+void ensureDeviceSecret() {
+  // Valid = exactly 64 lowercase hex chars
+  bool valid = strlen(config.deviceSecret) == 64;
+  if (valid) {
+    for (int i = 0; i < 64; i++) {
+      char c = config.deviceSecret[i];
+      if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
+        valid = false;
+        break;
+      }
+    }
+  }
+  if (valid) return;
+
+  // Generate 32 random bytes from the hardware RNG, hex-encode
+  const char hex[] = "0123456789abcdef";
+  for (int i = 0; i < 32; i++) {
+    uint32_t r = esp_random();
+    config.deviceSecret[i * 2] = hex[r & 0x0F];
+    config.deviceSecret[i * 2 + 1] = hex[(r >> 4) & 0x0F];
+  }
+  config.deviceSecret[64] = '\0';
+  saveConfig();
+  Serial.println("✓ Generated new device secret");
+}
+
 bool registerDevice() {
   if (WiFi.status() != WL_CONNECTED) return false;
-  
+
   HTTPClient http;
   String url = String(SERVER_URL) + "/device/register";
-  
+
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
-  
+
   // Create JSON payload
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<384> doc;
   doc["deviceId"] = config.deviceId;
   doc["type"] = "SmartFilter";
   doc["firmware"] = "1.0.0";
+  doc["deviceSecret"] = config.deviceSecret;
   
   String jsonString;
   serializeJson(doc, jsonString);

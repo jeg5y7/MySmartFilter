@@ -55,15 +55,18 @@ columns, `Order` gained tracking fields, `FilterAlert` gained `cancelToken`.
 Also removed the committed `.env.production` — **rotate the Neon database
 password and Stripe webhook secret**, both were in git history.
 
-## Phase 3 — Launch surface
+## Phase 3 — Launch surface ✅ (one founder decision open)
 
-- [ ] Landing page with product story + buy flow (device purchase SKU in store)
-- [ ] Terms of Service + Privacy Policy pages
-- [ ] Rate limiting on public endpoints (`/api/sensor`, `/api/device/register`,
-  `/api/v1/*`) — Upstash or in-DB token bucket
-- [ ] Vercel Pro + crons back to `*/15` (offline sweep) and hourly (auto-order)
-- [ ] PWA manifest + icons so the dashboard installs on phones (native app later)
-- [ ] Onboarding email sequence (welcome, install guide, first-alert explainer)
+- [x] Landing page: hero rewritten around the energy-cost pitch, footer with
+  real links (was dead `#` links + a fake subscribe form)
+- [x] Terms of Service (`/terms`) + Privacy Policy (`/privacy`) — drafts,
+  founder should read before launch
+- [x] Rate limiting on `/api/sensor`, `/api/device/register`, `/api/v1/*`,
+  `/api/alert/cancel` (in-memory per-instance — swap for Upstash at scale)
+- [ ] **Founder decision:** Vercel Pro + crons back to `*/15` and hourly
+- [x] PWA manifest + generated icons — dashboard installs on phones
+- [x] Welcome email on signup (NextAuth createUser event)
+- [x] Stopped logging device tokens in the sensor route
 
 ## Phase 4 — Hardware launch checklist
 
@@ -71,8 +74,9 @@ Software side can spec; physical work is on the founder:
 
 - [ ] Lock BOM: ESP32 module (pre-certified, e.g. ESP32-WROOM-32E) + Sensirion
   SDP810-500 + enclosure + tubing/ports
-- [ ] Firmware: ship the device-secret handshake (generate on first boot,
-  store in NVS, send on `/api/device/register`)
+- [x] Firmware: device-secret handshake written (generated from hardware RNG
+  on first boot, stored in EEPROM config, sent on `/api/device/register`) —
+  **needs a hardware flash + test before the pilot batch**
 - [ ] QR label workflow: deviceId printed at flash time, QR resolves to
   `mysmartfilter.com/setup?device=<id>`
 - [ ] FCC: unintentional-radiator route using the module's modular cert

@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { db } from "~/server/db";
+import { rateLimit, clientIp, tooManyRequests } from "~/lib/rate-limit";
 
 /**
  * GET /api/alert/cancel?token=...
@@ -7,6 +8,9 @@ import { db } from "~/server/db";
  * no session needed, so it works from any mail client.
  */
 export async function GET(request: NextRequest) {
+  const rl = rateLimit(`cancel:${clientIp(request)}`, 10, 5 * 60 * 1000);
+  if (!rl.ok) return tooManyRequests(rl);
+
   const token = request.nextUrl.searchParams.get("token");
 
   const page = (title: string, body: string, ok: boolean) =>

@@ -1,6 +1,13 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+/**
+ * Secrets are hard-required only on PRODUCTION Vercel deploys. Preview
+ * deploys (branch/PR builds) set NODE_ENV=production too, but often don't
+ * have live secrets in their env scope — they should still build.
+ */
+const isProductionDeploy = process.env.VERCEL_ENV === "production";
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -16,24 +23,21 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     // Resend email configuration
-    RESEND_API_KEY: process.env.NODE_ENV === "production" 
+    RESEND_API_KEY: isProductionDeploy
       ? z.string().min(1)
       : z.string().optional(),
     EMAIL_FROM: z.string().min(1).optional(),
     // Cron security
-    CRON_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string().min(1)
-        : z.string().optional(),
+    CRON_SECRET: isProductionDeploy
+      ? z.string().min(1)
+      : z.string().optional(),
     // Stripe (server)
-    STRIPE_SECRET_KEY:
-      process.env.NODE_ENV === "production"
-        ? z.string().min(1)
-        : z.string().optional(),
-    STRIPE_WEBHOOK_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string().min(1)
-        : z.string().optional(),
+    STRIPE_SECRET_KEY: isProductionDeploy
+      ? z.string().min(1)
+      : z.string().optional(),
+    STRIPE_WEBHOOK_SECRET: isProductionDeploy
+      ? z.string().min(1)
+      : z.string().optional(),
     // Base URL used for Stripe redirect URLs
     NEXTAUTH_URL: z.string().url().optional(),
   },
