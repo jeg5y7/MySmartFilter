@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { SensorDashboard } from "~/app/_components/sensor-dashboard";
-import { UserProfile } from "~/app/_components/user-profile";
+import { ProfileCard } from "~/app/_components/profile-card";
 import { HydrateClient } from "~/trpc/server";
 
 export default async function DashboardPage() {
@@ -37,7 +37,14 @@ export default async function DashboardPage() {
               <p className="text-white/70">Welcome, {session.user.name ?? session.user.email}</p>
             </div>
             <div className="flex items-center gap-4">
-              <Link 
+              <Link
+                href="/profile"
+                className="rounded-full bg-cyan-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-cyan-600/30 text-cyan-300 hover:text-cyan-200 flex items-center gap-2"
+              >
+                <span>👤</span>
+                My Profile
+              </Link>
+              <Link
                 href="/store"
                 className="rounded-full bg-green-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-green-600/30 text-green-300 hover:text-green-200 flex items-center gap-2"
               >
@@ -75,7 +82,7 @@ export default async function DashboardPage() {
               <SensorDashboard />
             </div>
             <div className="lg:col-span-1">
-              <UserProfile />
+              <ProfileCard />
             </div>
           </div>
         </div>
