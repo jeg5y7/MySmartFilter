@@ -40,6 +40,12 @@ export async function SiteHeader() {
               >
                 Store
               </Link>
+              <Link
+                href="/profile"
+                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+              >
+                Profile
+              </Link>
               <SignOutButton />
             </>
           ) : (

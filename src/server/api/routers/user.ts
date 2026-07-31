@@ -40,6 +40,93 @@ export const userRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  // Full profile for /profile page
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const [user, devices, defaultPref] = await Promise.all([
+      ctx.db.user.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true, createdAt: true, hasPassword: true },
+      }),
+      ctx.db.device.findMany({
+        where: { userId },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          name: true,
+          deviceId: true,
+          location: true,
+          blowerType: true,
+          airflowCfm: true,
+          electricityRateCents: true,
+          status: true,
+        },
+      }),
+      ctx.db.userFilterPreference.findFirst({
+        where: { userId, deviceId: null },
+        include: { filterProduct: true },
+      }),
+    ]);
+
+    const autoOrderCount = await ctx.db.userFilterPreference.count({
+      where: { userId, autoOrderEnabled: true },
+    });
+
+    return { user, devices, defaultPref, autoOrderCount };
+  }),
+
+  // Update display name
+  updateProfile: protectedProcedure
+    .input(z.object({ name: z.string().min(1).max(100) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.user.update({
+        where: { id: ctx.session.user.id },
+        data: { name: input.name.trim() },
+      });
+      return { success: true };
+    }),
+
+  // Account-wide default filter preference (deviceId = null row).
+  // Device-specific preferences override this per device.
+  setDefaultFilterPreference: protectedProcedure
+    .input(
+      z.object({
+        filterProductId: z.string().cuid(),
+        autoOrderEnabled: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const product = await ctx.db.filterProduct.findUnique({
+        where: { id: input.filterProductId },
+      });
+      if (!product) throw new Error("Filter product not found");
+
+      // Composite unique (userId, deviceId) can't match NULL — find/update manually
+      const existing = await ctx.db.userFilterPreference.findFirst({
+        where: { userId, deviceId: null },
+      });
+      if (existing) {
+        await ctx.db.userFilterPreference.update({
+          where: { id: existing.id },
+          data: {
+            filterProductId: input.filterProductId,
+            autoOrderEnabled: input.autoOrderEnabled,
+          },
+        });
+      } else {
+        await ctx.db.userFilterPreference.create({
+          data: {
+            userId,
+            deviceId: null,
+            filterProductId: input.filterProductId,
+            autoOrderEnabled: input.autoOrderEnabled,
+          },
+        });
+      }
+      return { success: true };
+    }),
+
   // Billing summary: card on file + shipping address (for /settings/billing)
   getBilling: protectedProcedure.query(async ({ ctx }) => {
     const user = await ctx.db.user.findUnique({
