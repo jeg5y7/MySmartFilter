@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { Providers } from "./_components/providers";
+import { SiteHeader } from "./_components/site-header";
 
 export const metadata: Metadata = {
   title: "MySmartFilter — Your HVAC filter, on autopilot",
@@ -34,7 +35,10 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body>
         <Providers>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            <SiteHeader />
+            {children}
+          </TRPCReactProvider>
         </Providers>
       </body>
     </html>
