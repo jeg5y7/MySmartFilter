@@ -131,8 +131,24 @@ export default async function DevicePage({ params }: DevicePageProps) {
                   <p className="text-white font-medium">{device.firmware ?? "Unknown"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Pressure Threshold</p>
-                  <p className="text-white font-medium">{device.pressureThreshold} Pa</p>
+                  <p className="text-gray-400 text-sm">
+                    {device.batteryPct !== null ? "Battery" : "Pressure Threshold"}
+                  </p>
+                  {device.batteryPct !== null ? (
+                    <p
+                      className={`font-medium ${
+                        device.batteryPct <= 20
+                          ? "text-red-400"
+                          : device.batteryPct <= 40
+                            ? "text-amber-300"
+                            : "text-green-400"
+                      }`}
+                    >
+                      🔋 {Math.round(device.batteryPct)}%
+                    </p>
+                  ) : (
+                    <p className="text-white font-medium">{device.pressureThreshold} Pa</p>
+                  )}
                 </div>
               </div>
             </div>
