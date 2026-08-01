@@ -77,6 +77,13 @@ Software side can spec; physical work is on the founder:
 - [x] Firmware: device-secret handshake written (generated from hardware RNG
   on first boot, stored in EEPROM config, sent on `/api/device/register`) —
   **needs a hardware flash + test before the pilot batch**
+- [x] Hardware Rev A design doc: 3×AA + TPS63031 buck-boost wiring, enclosure
+  concept, magnet-primary mounting, ~$47 pilot BOM (artifact "Hardware Rev A")
+- [x] Battery architecture backend: `POST /api/sensor/batch` (sample locally,
+  upload hourly with age-offset timestamps, exception-push on alerts),
+  `Device.batteryPct` + low-battery email, cadence-aware offline detection
+  (3 missed check-ins) — **prod needs 2-column ALTER before deploy**
+- [ ] Deep-sleep batch firmware (Rev B) — the critical path to battery pilot
 - [ ] QR label workflow: deviceId printed at flash time, QR resolves to
   `mysmartfilter.com/setup?device=<id>`
 - [ ] FCC: unintentional-radiator route using the module's modular cert

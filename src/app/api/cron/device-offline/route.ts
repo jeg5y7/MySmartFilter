@@ -24,14 +24,21 @@ export async function GET(request: Request) {
   const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
 
   try {
-    // Any device silent for >15 min that hasn't been marked offline yet
-    const devicesGoingOffline = await db.device.findMany({
+    // Candidates: silent past the minimum window. The real threshold is
+    // per-device — battery firmware checks in on reportingIntervalMin, so
+    // "offline" means 3 missed check-ins (never less than 15 min).
+    const candidates = await db.device.findMany({
       where: {
         lastSeen: { lte: fifteenMinutesAgo },
         // "pending" devices were never linked — leave them out of the sweep
         status: { notIn: ["offline", "pending"] },
       },
       include: { user: true },
+    });
+
+    const devicesGoingOffline = candidates.filter((d) => {
+      const thresholdMs = Math.max(15, d.reportingIntervalMin * 3) * 60 * 1000;
+      return now.getTime() - d.lastSeen.getTime() >= thresholdMs;
     });
 
     if (devicesGoingOffline.length === 0) {
