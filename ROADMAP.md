@@ -83,7 +83,8 @@ Software side can spec; physical work is on the founder:
   upload hourly with age-offset timestamps, exception-push on alerts),
   `Device.batteryPct` + low-battery email, cadence-aware offline detection
   (3 missed check-ins) — **prod needs 2-column ALTER before deploy**
-- [ ] Deep-sleep batch firmware (Rev B) — the critical path to battery pilot
+- [x] Deep-sleep batch firmware (Rev B) — compile-verified with the real ESP32
+  toolchain (RAM 14.8%, flash 77%); needs a hardware flash test before pilot
 - [ ] QR label workflow: deviceId printed at flash time, QR resolves to
   `mysmartfilter.com/setup?device=<id>`
 - [ ] FCC: unintentional-radiator route using the module's modular cert
