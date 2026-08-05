@@ -1,9 +1,21 @@
 # MySmartFilter — Launch Roadmap
 
 **Goal:** public launch in ~3 months.
-**Business model:** razor-and-blades — device at/near cost, recurring revenue
-from filter sales driven by energy-cost-based auto-ordering.
+**Business model:** razor-and-blades with a freemium split — buy the monitor
+and get live data free (dashboard + smart home); enroll in **Filter AutoShip**
+(automatic filter shipping) to unlock the energy-savings calculation,
+historical trending, and advanced HVAC diagnostics (future). No separate
+subscription fee — filters are the revenue.
 **Fulfillment (launch):** manual dropship from an admin order queue.
+
+## Tier enforcement (next software block)
+
+- [ ] Gate historical charts + Filter Health energy meter behind AutoShip
+  enrollment (defined as ≥1 auto-order-enabled preference with card on file);
+  free tier keeps live readings + smart-home live data
+- [ ] Upsell states on locked cards ("Enroll in AutoShip to unlock")
+- [ ] v1 API: include `plan` field; HA integration surfaces live data for all,
+  energy/history sensors only for AutoShip accounts
 
 ## Phase 0 — Production blockers ✅
 
