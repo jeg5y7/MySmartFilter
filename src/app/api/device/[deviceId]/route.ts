@@ -81,8 +81,19 @@ export async function PUT(
       blowerType?: string;
       airflowCfm?: number;
       electricityRateCents?: number;
+      furnaceMake?: string | null;
+      furnaceModel?: string | null;
     };
-    const { name, location, pressureThreshold, blowerType, airflowCfm, electricityRateCents } = body;
+    const {
+      name,
+      location,
+      pressureThreshold,
+      blowerType,
+      airflowCfm,
+      electricityRateCents,
+      furnaceMake,
+      furnaceModel,
+    } = body;
 
     // Check if device exists and user owns it (deviceId param is the cuid Device.id)
     const device = await db.device.findFirst({
@@ -136,6 +147,21 @@ export async function PUT(
         { status: 400 }
       );
     }
+    for (const [field, value] of [
+      ["furnaceMake", furnaceMake],
+      ["furnaceModel", furnaceModel],
+    ] as const) {
+      if (
+        value !== undefined &&
+        value !== null &&
+        (typeof value !== "string" || value.length > 80)
+      ) {
+        return NextResponse.json(
+          { error: `${field} must be a string of at most 80 characters` },
+          { status: 400 }
+        );
+      }
+    }
 
     // Update device
     const updatedDevice = await db.device.update({
@@ -148,6 +174,12 @@ export async function PUT(
         ...(blowerType !== undefined && { blowerType }),
         ...(airflowCfm !== undefined && { airflowCfm }),
         ...(electricityRateCents !== undefined && { electricityRateCents }),
+        ...(furnaceMake !== undefined && {
+          furnaceMake: furnaceMake?.trim() ? furnaceMake.trim() : null,
+        }),
+        ...(furnaceModel !== undefined && {
+          furnaceModel: furnaceModel?.trim() ? furnaceModel.trim() : null,
+        }),
       },
     });
 

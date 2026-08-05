@@ -41,6 +41,12 @@ export async function SiteHeader() {
                 Store
               </Link>
               <Link
+                href="/install"
+                className="hidden md:block px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+              >
+                Installation
+              </Link>
+              <Link
                 href="/profile"
                 className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
@@ -55,6 +61,12 @@ export async function SiteHeader() {
                 className="hidden sm:block px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Store
+              </Link>
+              <Link
+                href="/install"
+                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+              >
+                Installation
               </Link>
               <Link
                 href="/signin"

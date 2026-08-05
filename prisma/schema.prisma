@@ -72,6 +72,9 @@ model Device {
   runtimeHours         Float     @default(0)     // blower runtime since filter install
   extraEnergyCostCents Float     @default(0)     // cumulative extra energy cost vs clean filter
   lastAccrualAt        DateTime? // previous reading time used for accrual integration
+  // Furnace / air-handler identity (user-entered or photo-identified)
+  furnaceMake          String?   // e.g. "Carrier"
+  furnaceModel         String?   // e.g. "59TP6B080V17"
   // Battery / reporting cadence (battery firmware batches uploads)
   batteryPct           Float?    // last reported battery %, null = wall-powered
   reportingIntervalMin Int       @default(1)     // expected minutes between check-ins

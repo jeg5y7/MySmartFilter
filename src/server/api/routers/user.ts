@@ -59,6 +59,8 @@ export const userRouter = createTRPCRouter({
           blowerType: true,
           airflowCfm: true,
           electricityRateCents: true,
+          furnaceMake: true,
+          furnaceModel: true,
           status: true,
         },
       }),
