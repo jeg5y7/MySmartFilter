@@ -79,6 +79,11 @@ password and Stripe webhook secret**, both were in git history.
 - [x] Rate limiting on `/api/sensor`, `/api/device/register`, `/api/v1/*`,
   `/api/alert/cancel` (in-memory per-instance — swap for Upstash at scale)
 - [ ] **Founder decision:** Vercel Pro + crons back to `*/15` and hourly
+- [x] `/install` customer installation guide — diagrams of the four common
+  HVAC layouts, universal tap rules, safety cautions; "Installation" nav tab
+- [x] Furnace make/model per device + 📷 photo identification (Claude vision
+  reads the rating plate and pre-fills make/model/blower/airflow) —
+  **needs `ANTHROPIC_API_KEY` in Vercel to activate; degrades gracefully**
 - [x] PWA manifest + generated icons — dashboard installs on phones
 - [x] Welcome email on signup (NextAuth createUser event)
 - [x] Stopped logging device tokens in the sensor route
