@@ -1,0 +1,12 @@
+{
+  "domain": "mysmartfilter",
+  "name": "MySmartFilter",
+  "codeowners": ["@jeg5y7"],
+  "config_flow": true,
+  "documentation": "https://github.com/jeg5y7/MySmartFilter/tree/main/integrations/home-assistant",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jeg5y7/MySmartFilter/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}
