@@ -83,6 +83,8 @@ RTC_DATA_ATTR uint16_t bootCount = 0;
 RTC_DATA_ATTR bool wifiCacheValid = false;
 RTC_DATA_ATTR uint8_t wifiChannel = 0;
 RTC_DATA_ATTR uint8_t wifiBssid[6];
+// Filter status cached from the last upload response (0=ok, 1=soon, 2=now)
+RTC_DATA_ATTR uint8_t lastFilterStatus = 0;
 
 WebServer server(80);
 DNSServer dnsServer;
@@ -145,6 +147,28 @@ void setup() {
     Serial.println("No WiFi config — starting setup portal");
     startAPMode();
     return;  // loop() services the portal
+  }
+
+  // Button wake (short press): show filter health on the LED, then sleep.
+  // OK = solid 2 s · replace soon = 3 slow blinks · replace now = 6 fast blinks
+  if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0) {
+    if (lastFilterStatus == 0) {
+      digitalWrite(LED_PIN, HIGH);
+      delay(2000);
+    } else if (lastFilterStatus == 1) {
+      for (int i = 0; i < 3; i++) {
+        digitalWrite(LED_PIN, HIGH); delay(400);
+        digitalWrite(LED_PIN, LOW);  delay(400);
+      }
+    } else {
+      for (int i = 0; i < 6; i++) {
+        digitalWrite(LED_PIN, HIGH); delay(120);
+        digitalWrite(LED_PIN, LOW);  delay(120);
+      }
+    }
+    digitalWrite(LED_PIN, LOW);
+    goToSleep();
+    return;
   }
 
   // ── 1. Sample ──────────────────────────────────────────────────────────────
@@ -348,6 +372,17 @@ bool uploadBatch(float batteryPct) {
       http.addHeader("Authorization", String("Bearer ") + config.apiToken);
       http.setTimeout(15000);
       code = http.POST(body);
+    }
+  }
+
+  if (code == 200) {
+    // Cache the server's filter verdict for the button-press LED display
+    JsonDocument resp;
+    if (deserializeJson(resp, http.getString()) == DeserializationError::Ok &&
+        resp["filterStatus"].is<const char *>()) {
+      const char *s = resp["filterStatus"];
+      lastFilterStatus =
+          strcmp(s, "replace_now") == 0 ? 2 : strcmp(s, "replace_soon") == 0 ? 1 : 0;
     }
   }
 

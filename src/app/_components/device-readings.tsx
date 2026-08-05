@@ -16,6 +16,8 @@ import { api } from "~/trpc/react";
 interface DeviceReadingsProps {
   deviceId: string;
   pressureThreshold: number;
+  /** Filter AutoShip members get full history; free tier is live-only (1h). */
+  isAutoShipMember: boolean;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -396,8 +398,11 @@ const SENSOR_TYPE_LABELS: Record<string, { name: string; unit: string }> = {
 export function DeviceReadings({
   deviceId,
   pressureThreshold,
+  isAutoShipMember,
 }: DeviceReadingsProps) {
-  const [activeRange, setActiveRange] = useState<RangeKey>("24h");
+  const [activeRange, setActiveRange] = useState<RangeKey>(
+    isAutoShipMember ? "24h" : "1h"
+  );
   const [activeSensorType, setActiveSensorType] = useState<string>("pressure_differential");
 
   const rangeCfg = RANGES[activeRange];
@@ -507,23 +512,38 @@ export function DeviceReadings({
 
       {/* ── Charts Section ──────────────────────────────────────────────── */}
       <div className="space-y-4">
-        {/* Time Range Selector */}
+        {/* Time Range Selector — history beyond 1h is a Filter AutoShip feature */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-xs text-gray-500 mr-1">Range:</span>
-          {RANGE_ORDER.map((key) => (
-            <button
-              key={key}
-              onClick={() => setActiveRange(key)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
-                activeRange === key
-                  ? "bg-blue-500/30 border-blue-400/60 text-blue-300"
-                  : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200"
-              }`}
-            >
-              {RANGES[key].label}
-            </button>
-          ))}
+          {RANGE_ORDER.map((key) => {
+            const locked = !isAutoShipMember && key !== "1h";
+            return (
+              <button
+                key={key}
+                onClick={() => !locked && setActiveRange(key)}
+                disabled={locked}
+                title={locked ? "Historical trending is included with Filter AutoShip" : undefined}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+                  activeRange === key
+                    ? "bg-blue-500/30 border-blue-400/60 text-blue-300"
+                    : locked
+                      ? "bg-white/5 border-white/10 text-gray-600 cursor-not-allowed"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+                }`}
+              >
+                {locked ? "🔒 " : ""}
+                {RANGES[key].label}
+              </button>
+            );
+          })}
         </div>
+        {!isAutoShipMember && (
+          <p className="text-xs text-amber-300/80">
+            You&apos;re seeing live data. Historical trending is included with
+            Filter AutoShip — enable Auto-Order in this device&apos;s Filter
+            Settings to unlock it.
+          </p>
+        )}
 
         {/* Pressure Chart */}
         <ChartPanel

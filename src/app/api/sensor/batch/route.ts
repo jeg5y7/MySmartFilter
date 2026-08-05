@@ -6,6 +6,7 @@ import { accrueReading, type EnergyDeviceState } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { resend, EMAIL_FROM } from "~/lib/resend";
+import { computeFilterHealth } from "~/lib/filter-health";
 
 /**
  * POST /api/sensor/batch — battery-firmware ingest.
@@ -161,10 +162,14 @@ export async function POST(request: NextRequest) {
       void sendLowBatteryEmail(device.userId, device.name ?? device.deviceId, batteryPct);
     }
 
+    // Tell the device its filter status so the button-press LED can show it
+    const health = await computeFilterHealth(updatedDevice, newest.pressure);
+
     return NextResponse.json({
       success: true,
       stored: stamped.length,
       runtimeHoursAdded: Number(runtimeDelta.toFixed(4)),
+      filterStatus: health.status,
     });
   } catch (error) {
     console.error("Error in batch ingest:", error);

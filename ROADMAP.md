@@ -8,14 +8,17 @@ historical trending, and advanced HVAC diagnostics (future). No separate
 subscription fee — filters are the revenue.
 **Fulfillment (launch):** manual dropship from an admin order queue.
 
-## Tier enforcement (next software block)
+## Tier enforcement ✅
 
-- [ ] Gate historical charts + Filter Health energy meter behind AutoShip
-  enrollment (defined as ≥1 auto-order-enabled preference with card on file);
-  free tier keeps live readings + smart-home live data
-- [ ] Upsell states on locked cards ("Enroll in AutoShip to unlock")
-- [ ] v1 API: include `plan` field; HA integration surfaces live data for all,
-  energy/history sensors only for AutoShip accounts
+- [x] Server-side gates: history queries clamp to a 1-hour live window for
+  free accounts (`sensor.getByTimeRange`), CSV export is member-only (403)
+- [x] UI: Filter Health card shows a locked/upsell state for free tier;
+  chart ranges beyond 1h are locked with an AutoShip hint; Export hidden
+- [x] v1 API: `plan` field; energy-model outputs (filterLifePct,
+  filterStatus, runtimeHours, extraEnergyCostCents) are null on free —
+  HA integration degrades gracefully (live sensors work, premium unknown)
+- [x] Device LED: button press replays server's filter verdict (solid =
+  OK, 3 slow blinks = soon, 6 fast = replace) cached from batch responses
 
 ## Phase 0 — Production blockers ✅
 
