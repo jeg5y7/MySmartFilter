@@ -14,9 +14,15 @@ export function ProfileCard() {
     <div className="rounded-xl bg-white/10 p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-white">My Profile</h3>
-        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-xs">
-          Pay-per-filter
-        </span>
+        {data && data.autoOrderCount > 0 ? (
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-xs">
+            Filter AutoShip
+          </span>
+        ) : (
+          <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-gray-300 text-xs">
+            Free monitoring
+          </span>
+        )}
       </div>
 
       <div className="space-y-3 mb-5">

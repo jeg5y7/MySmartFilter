@@ -1,9 +1,25 @@
 # MySmartFilter — Claude Code context
 
 IoT platform: ESP32 pressure sensors on HVAC filters + Next.js app (T3 stack).
-Business: razor-and-blades — device at cost, revenue from filter auto-orders.
+Business: razor-and-blades with a freemium software split (see Tiers below).
 Target: public launch ~Oct 2026. **Read ROADMAP.md for the phased plan and
 current status.** Progress dashboard artifact: "MySmartFilter · Launch Control".
+
+## Tiers (business model — keep site copy consistent with this)
+
+- **Buy the monitor → free "live" tier:** live readings on the dashboard,
+  device status, and smart-home access (Home Assistant, Google/Alexa/
+  SmartThings when live) to current data. Customers own their live data.
+- **Filter AutoShip (enrolled in auto filter shipping) → full software:**
+  the energy-savings calculation (Filter Health meter), historical trending
+  /charts, and advanced HVAC diagnostics (future feature). There is NO
+  separate subscription fee — enrollment means they get their filters
+  through us automatically; the premium software rides along.
+- Working definition of "enrolled": ≥1 filter preference with
+  autoOrderEnabled (+ card on file for it to actually work).
+- Enforcement (gating history/energy UI for non-enrolled users) is a
+  planned software task — as of now the copy states the tiers but the app
+  does not yet enforce them.
 
 ## The product (customer's view — keep all copy consistent with this)
 

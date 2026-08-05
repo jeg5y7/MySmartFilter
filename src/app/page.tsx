@@ -484,6 +484,73 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* What's Included Section */}
+        <section className="py-24 bg-gradient-to-b from-[#1e293b] to-[#0f172a]">
+          <div className="container mx-auto px-4">
+            <div className="text-center max-w-3xl mx-auto mb-14">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Your data is free. The magic is in the filters.</h2>
+              <p className="text-lg text-gray-400">
+                Every monitor comes with live data, no strings attached. Enroll in Filter
+                AutoShip — your replacement filters, delivered automatically — and the full
+                intelligence turns on. No monthly fee, ever.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Free tier */}
+              <div className="bg-white/5 rounded-xl p-8 border border-white/10">
+                <h3 className="text-xl font-semibold mb-1">With every monitor</h3>
+                <p className="text-sm text-gray-500 mb-6">Included free, forever</p>
+                <ul className="space-y-3 text-gray-300 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    Live pressure &amp; temperature on your dashboard
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    Works with your smart home — Home Assistant today; Google Home, Alexa &amp; SmartThings coming
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-0.5">✓</span>
+                    Device status &amp; battery at a glance
+                  </li>
+                </ul>
+              </div>
+
+              {/* AutoShip tier */}
+              <div className="bg-blue-500/10 rounded-xl p-8 border border-blue-500/40 relative">
+                <span className="absolute -top-3 left-6 px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded-full">
+                  Filter AutoShip
+                </span>
+                <h3 className="text-xl font-semibold mb-1">With automatic filter delivery</h3>
+                <p className="text-sm text-blue-200/60 mb-6">Just buy your filters through us — no subscription fee</p>
+                <ul className="space-y-3 text-gray-200 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">✓</span>
+                    Everything in the free tier
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">✓</span>
+                    <span><strong>Energy-savings calculation</strong> — see exactly what your filter is costing you in real dollars</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">✓</span>
+                    <span><strong>Historical trending</strong> — pressure, runtime, and cost over weeks and seasons</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">✓</span>
+                    <span><strong>Filters ship themselves</strong> — exactly when replacing saves you money, with an email and one-click cancel first</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-400 mt-0.5">✓</span>
+                    <span><strong>Advanced HVAC diagnostics</strong> <span className="text-blue-300/60">(coming soon)</span> — early warnings for airflow and system problems</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="bg-[#0f172a] border-t border-white/10 py-12">
           <div className="container mx-auto px-4">

@@ -20,11 +20,15 @@ export default function TermsPage() {
         <div className="space-y-8 text-gray-300 leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-white [&_h2]:mb-3">
           <section>
             <h2>1. What we provide</h2>
+
             <p>
               MySmartFilter ("we", "us") provides a hardware pressure sensor, a monitoring
               dashboard, alerting, and an optional automatic filter-replacement ordering service
-              (together, the "Service"). By creating an account or installing a device you agree
-              to these terms.
+              ("Filter AutoShip"; together, the "Service"). By creating an account or installing
+              a device you agree to these terms. Live sensor readings and smart-home access are
+              included with every monitor; certain software features — including energy-savings
+              calculations, historical trending, and advanced diagnostics — are included with
+              active Filter AutoShip enrollment and may be unavailable otherwise.
             </p>
           </section>
 

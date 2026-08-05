@@ -129,24 +129,36 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
       <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-white">Plan</h2>
-          <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-medium">
-            Pay-per-filter
-          </span>
-        </div>
-        <p className="text-sm text-gray-400">
-          Monitoring is free — you only pay for filters when they ship. No
-          monthly fees.{" "}
           {autoOrderCount > 0 ? (
-            <span className="text-emerald-300/90">
-              Auto-order is active on {autoOrderCount}{" "}
-              {autoOrderCount === 1 ? "preference" : "preferences"}.
+            <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-medium">
+              Filter AutoShip
             </span>
           ) : (
-            <span className="text-amber-300/80">
-              Auto-order is off — enable it below to never think about filters again.
+            <span className="px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs font-medium">
+              Free monitoring
             </span>
           )}
-        </p>
+        </div>
+        {autoOrderCount > 0 ? (
+          <p className="text-sm text-gray-400">
+            You&apos;re an AutoShip member — filters ship automatically when
+            replacing saves you money, and your plan includes the
+            energy-savings calculation, historical trending, and upcoming
+            HVAC diagnostics. No monthly fee — you simply get your filters
+            through us.
+          </p>
+        ) : (
+          <p className="text-sm text-gray-400">
+            You have live readings on your dashboard and smart home.{" "}
+            <span className="text-amber-300/80">
+              Choose a filter below and turn on Auto-Order to join Filter
+              AutoShip
+            </span>{" "}
+            — it unlocks the energy-savings calculation, historical trending,
+            and upcoming HVAC diagnostics. No monthly fee; your filters just
+            arrive when replacing saves you money.
+          </p>
+        )}
       </div>
 
       {/* ── Default filter preference ────────────────────────────────────── */}
