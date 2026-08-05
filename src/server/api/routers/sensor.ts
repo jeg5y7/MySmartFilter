@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { isAutoShipMember, FREE_HISTORY_WINDOW_MS } from "~/lib/membership";
 
 export const sensorRouter = createTRPCRouter({
   // Ingest happens via POST /api/sensor with device-token auth — no public
@@ -37,7 +38,9 @@ export const sensorRouter = createTRPCRouter({
       });
     }),
 
-  // Get readings within a time range
+  // Get readings within a time range.
+  // Tier gate (server-side): historical trending is a Filter AutoShip
+  // feature — free accounts get the live window only, whatever the client asks.
   getByTimeRange: protectedProcedure
     .input(z.object({
       startDate: z.date(),
@@ -46,11 +49,17 @@ export const sensorRouter = createTRPCRouter({
       sensorType: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
+      let startDate = input.startDate;
+      const member = await isAutoShipMember(ctx.session.user.id);
+      if (!member) {
+        const floor = new Date(Date.now() - FREE_HISTORY_WINDOW_MS);
+        if (startDate < floor) startDate = floor;
+      }
       return ctx.db.sensorReading.findMany({
         where: {
           userId: ctx.session.user.id,
           timestamp: {
-            gte: input.startDate,
+            gte: startDate,
             lte: input.endDate,
           },
           ...(input.deviceId && { deviceId: input.deviceId }),
@@ -59,6 +68,11 @@ export const sensorRouter = createTRPCRouter({
         orderBy: { timestamp: "asc" },
       });
     }),
+
+  // Membership flag for tier-aware UI
+  getMembership: protectedProcedure.query(async ({ ctx }) => {
+    return { autoShip: await isAutoShipMember(ctx.session.user.id) };
+  }),
 
   // List distinct sensor types for a device
   getSensorTypes: protectedProcedure

@@ -3,6 +3,7 @@ import { validateApiKey } from "~/lib/api-key";
 import { db } from "~/server/db";
 import { rateLimit, clientIp, tooManyRequests } from "~/lib/rate-limit";
 import { computeFilterHealth } from "~/lib/filter-health";
+import { isAutoShipMember } from "~/lib/membership";
 
 /**
  * GET /api/v1/devices
@@ -31,10 +32,16 @@ export async function GET(req: NextRequest) {
     },
   });
 
+  // Tier gate: live data for everyone; the energy-model outputs are a
+  // Filter AutoShip feature and are null for free accounts.
+  const autoShip = await isAutoShipMember(userId);
+
   const data = await Promise.all(
     devices.map(async (d) => {
       const latest = d.sensorReadings[0] ?? null;
-      const health = await computeFilterHealth(d, latest?.pressure ?? null);
+      const health = autoShip
+        ? await computeFilterHealth(d, latest?.pressure ?? null)
+        : null;
       return {
         id: d.deviceId,
         name: d.name,
@@ -45,12 +52,13 @@ export async function GET(req: NextRequest) {
         lastSeen: d.lastSeen,
         pressureThreshold: d.pressureThreshold,
         createdAt: d.createdAt,
-        // Filter health (smart-home friendly)
-        filterLifePct: health.lifePct,
-        filterStatus: health.status,
+        plan: autoShip ? "autoship" : "free",
+        // Filter health (Filter AutoShip)
+        filterLifePct: health?.lifePct ?? null,
+        filterStatus: health?.status ?? null,
         blowerType: d.blowerType,
-        runtimeHours: Math.round(d.runtimeHours * 10) / 10,
-        extraEnergyCostCents: Math.round(d.extraEnergyCostCents),
+        runtimeHours: autoShip ? Math.round(d.runtimeHours * 10) / 10 : null,
+        extraEnergyCostCents: autoShip ? Math.round(d.extraEnergyCostCents) : null,
         filterInstalledAt: d.filterInstalledAt,
         batteryPct: d.batteryPct,
         latestReading: latest

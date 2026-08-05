@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { isAutoShipMember } from "~/lib/membership";
 
 const MAX_ROWS = 10000;
 
@@ -8,6 +9,17 @@ export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Historical export is a Filter AutoShip feature
+  if (!(await isAutoShipMember(session.user.id))) {
+    return NextResponse.json(
+      {
+        error:
+          "CSV export of history is included with Filter AutoShip. Enable Auto-Order on a filter preference to unlock it.",
+      },
+      { status: 403 }
+    );
   }
 
   const { searchParams } = req.nextUrl;
