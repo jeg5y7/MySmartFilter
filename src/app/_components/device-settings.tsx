@@ -68,13 +68,6 @@ export function DeviceSettings({
     text: string;
   } | null>(null);
 
-  // ── Photo identification state ───────────────────────────────────────────
-  const [identifying, setIdentifying] = useState(false);
-  const [identifyNote, setIdentifyNote] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-
   // ── Delete state ─────────────────────────────────────────────────────────
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -202,102 +195,6 @@ export function DeviceSettings({
       setHvacMessage({ type: "error", text: "Failed to save HVAC settings" });
     } finally {
       setHvacSaving(false);
-    }
-  };
-
-  // ── Furnace photo identification ──────────────────────────────────────────
-
-  /** Downscale to ≤1568px and re-encode as JPEG so uploads stay small. */
-  const fileToJpegBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const maxDim = 1568;
-        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("canvas unavailable"));
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
-        resolve(dataUrl.split(",")[1] ?? "");
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error("could not read image"));
-      };
-      img.src = url;
-    });
-
-  const handleIdentifyPhoto = async (file: File) => {
-    setIdentifying(true);
-    setIdentifyNote(null);
-
-    try {
-      const image = await fileToJpegBase64(file);
-      const res = await fetch(`/api/device/${device.id}/identify-furnace`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image, mediaType: "image/jpeg" }),
-      });
-      const data = (await res.json()) as {
-        error?: string;
-        result?: {
-          isHvacNameplate: boolean;
-          make: string | null;
-          model: string | null;
-          blowerTypeGuess: "ecm" | "psc" | "unknown";
-          airflowCfmEstimate: number | null;
-          confidence: "high" | "medium" | "low";
-          notes: string | null;
-        };
-      };
-
-      if (!res.ok || !data.result) {
-        setIdentifyNote({
-          type: "error",
-          text: data.error ?? "Couldn't read that photo — try again.",
-        });
-        return;
-      }
-
-      const r = data.result;
-      if (!r.isHvacNameplate) {
-        setIdentifyNote({
-          type: "error",
-          text:
-            r.notes ??
-            "That doesn't look like a furnace label — snap the data sticker inside the front panel.",
-        });
-        return;
-      }
-
-      if (r.make) setFurnaceMake(r.make);
-      if (r.model) setFurnaceModel(r.model);
-      if (r.blowerTypeGuess !== "unknown") setBlowerType(r.blowerTypeGuess);
-      if (r.airflowCfmEstimate && r.airflowCfmEstimate >= 100 && r.airflowCfmEstimate <= 5000) {
-        setAirflowCfm(Math.round(r.airflowCfmEstimate));
-      }
-
-      const filled = [r.make && "make", r.model && "model"]
-        .filter(Boolean)
-        .join(" + ");
-      setIdentifyNote({
-        type: "success",
-        text: `✓ Read the label (${filled || "partial"}, ${r.confidence} confidence)${
-          r.notes ? ` — ${r.notes}` : ""
-        }. Review the fields below, then save.`,
-      });
-    } catch {
-      setIdentifyNote({
-        type: "error",
-        text: "Couldn't process that photo — try a well-lit, close-up shot.",
-      });
-    } finally {
-      setIdentifying(false);
     }
   };
 
@@ -441,55 +338,6 @@ export function DeviceSettings({
           These power the energy-cost model that decides when a new filter pays
           for itself.
         </p>
-
-        {/* Snap-the-label photo identification */}
-        <div className="mb-5 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-          <p className="text-sm font-medium text-blue-300 mb-1">
-            📷 Snap your furnace label
-          </p>
-          <p className="text-xs text-blue-200/70 mb-3">
-            Photograph the data sticker on your furnace (usually inside the
-            front panel) and we&apos;ll fill in the make, model, and blower
-            details for you.
-          </p>
-          <label
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-              identifying
-                ? "bg-blue-600/40 text-white/70 cursor-wait"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
-          >
-            {identifying ? (
-              <>
-                <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Reading the label…
-              </>
-            ) : (
-              "Upload or take a photo"
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              disabled={identifying}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleIdentifyPhoto(file);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          {identifyNote && (
-            <p
-              className={`mt-2 text-xs ${
-                identifyNote.type === "success" ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {identifyNote.text}
-            </p>
-          )}
-        </div>
 
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

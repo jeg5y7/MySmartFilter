@@ -40,9 +40,6 @@ export const env = createEnv({
       : z.string().optional(),
     // Base URL used for Stripe redirect URLs
     NEXTAUTH_URL: z.string().url().optional(),
-    // Claude vision (furnace nameplate photo identification) — optional;
-    // the endpoint returns a friendly 503 when unset
-    ANTHROPIC_API_KEY: z.string().optional(),
   },
 
   /**
@@ -68,7 +65,6 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },

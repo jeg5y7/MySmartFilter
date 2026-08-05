@@ -46,11 +46,11 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   record deleted), magic-link login working (DKIM + EMAIL_FROM + prod DB
   migration all fixed). Live prod DB is the us-west-2 Neon project
   (`ep-small-surf-afmlmskv`); the old us-east-1 project is stale — retire it.
-- **PR #13 (draft, open): /install guide page + furnace make/model + photo
-  auto-identify.** Merge is gated on two additive prod columns
-  (`Device.furnaceMake`, `Device.furnaceModel` — SQL in the PR body) and the
-  photo feature additionally wants `ANTHROPIC_API_KEY` in Vercel env
-  (optional; endpoint 503s gracefully without it).
+- **PR #13 (draft, open): /install guide page + furnace make/model.** Merge
+  is gated on two additive prod columns (`Device.furnaceMake`,
+  `Device.furnaceModel` — SQL in the PR body). The 📷 photo auto-identify
+  feature was built then parked by founder decision — see ROADMAP
+  "Later / ideas" for the restore pointer (commit b278ec4).
 - Next build work: task #11 smart-home bridge (OAuth server +
   Google/Alexa/SmartThings connectors). Founder-side: Vercel Pro decision,
   hardware bench test, supplier outreach, pilot batch.

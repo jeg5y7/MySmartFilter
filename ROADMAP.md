@@ -81,9 +81,7 @@ password and Stripe webhook secret**, both were in git history.
 - [ ] **Founder decision:** Vercel Pro + crons back to `*/15` and hourly
 - [x] `/install` customer installation guide — diagrams of the four common
   HVAC layouts, universal tap rules, safety cautions; "Installation" nav tab
-- [x] Furnace make/model per device + 📷 photo identification (Claude vision
-  reads the rating plate and pre-fills make/model/blower/airflow) —
-  **needs `ANTHROPIC_API_KEY` in Vercel to activate; degrades gracefully**
+- [x] Furnace make/model per device (HVAC settings card + profile list)
 - [x] PWA manifest + generated icons — dashboard installs on phones
 - [x] Welcome email on signup (NextAuth createUser event)
 - [x] Stopped logging device tokens in the sensor route
@@ -113,6 +111,10 @@ Software side can spec; physical work is on the founder:
 
 ## Later / ideas
 
+- 📷 Furnace-label photo identification (Claude vision reads the rating plate
+  → auto-fills make/model/blower/airflow). Built once and parked by founder
+  decision — restore from PR #13 history (commit b278ec4: identify-furnace
+  route + photo UI in device-settings) and add `ANTHROPIC_API_KEY` in Vercel.
 - HVAC troubleshooting insights (short-cycling detection from runtime patterns,
   frozen-coil signature: rising ΔP with falling supply temperature)
 - Native mobile app (React Native/Expo) once PWA outgrows itself
