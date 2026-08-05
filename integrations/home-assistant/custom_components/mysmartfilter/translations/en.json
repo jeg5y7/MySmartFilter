@@ -1,0 +1,34 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect MySmartFilter",
+        "description": "Paste an API key from mysmartfilter.com → Settings → Integrations → API Keys.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "That API key was rejected — check it and try again.",
+      "cannot_connect": "Couldn't reach MySmartFilter. Check your connection and try again."
+    },
+    "abort": {
+      "already_configured": "This account is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "filter_life": { "name": "Filter life" },
+      "pressure_drop": { "name": "Filter pressure drop" },
+      "temperature": { "name": "Temperature" },
+      "battery": { "name": "Battery" },
+      "wasted_energy_cost": { "name": "Wasted energy cost" },
+      "blower_runtime": { "name": "Blower runtime" }
+    },
+    "binary_sensor": {
+      "replace_filter": { "name": "Replace filter" },
+      "monitor_online": { "name": "Monitor online" }
+    }
+  }
+}
