@@ -39,24 +39,21 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   filter, the app computes wasted-energy cost vs a new filter's price, emails
   before any auto-order (one-click cancel, 24 h grace), and ships the filter.
 
-## State (2026-07-30)
+## State (2026-08-05)
 
-- Phases 0–2 shipped and merged to main via PR #2 (energy-cost model,
-  Stripe off-session auto-order charging, /admin/orders queue, security fixes).
-- DB schema already updated in production (user ran SQL in Neon console);
-  Neon password rotated; Stripe webhook endpoint created fresh.
-- **OPEN ISSUE 1: Vercel production deploy of main is FAILING.** Likely cause:
-  src/env.js now hard-requires STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
-  CRON_SECRET, RESEND_API_KEY, AUTH_SECRET in production — one is probably
-  missing/empty in Vercel env vars (check Preview scope too, not just
-  Production). Get the build log via `VERCEL_TOKEN` + api.vercel.com, or ask
-  the user to paste it. Old deployment is still serving.
-- **OPEN ISSUE 2: Chrome shows "connection is not private" on
-  mysmartfilter.com.** Unresolved — need the NET::ERR_* code from the user or
-  direct probing (curl -vI) if network access allows. Certs are Vercel-managed;
-  suspect domain/DNS config, unrelated to the code deploy.
-- Next build work: ROADMAP Phase 3 (landing page, TOS/privacy, rate limiting,
-  Vercel Pro crons, PWA), then Phase 4 hardware/firmware (device-secret in NVS).
+- Phases 0–3 + tier enforcement all shipped to production (PRs #2–#12).
+  Earlier open issues are RESOLVED: prod deploy green, SSL fixed (stale A
+  record deleted), magic-link login working (DKIM + EMAIL_FROM + prod DB
+  migration all fixed). Live prod DB is the us-west-2 Neon project
+  (`ep-small-surf-afmlmskv`); the old us-east-1 project is stale — retire it.
+- **PR #13 (draft, open): /install guide page + furnace make/model.** Merge
+  is gated on two additive prod columns (`Device.furnaceMake`,
+  `Device.furnaceModel` — SQL in the PR body). The 📷 photo auto-identify
+  feature was built then parked by founder decision — see ROADMAP
+  "Later / ideas" for the restore pointer (commit b278ec4).
+- Next build work: task #11 smart-home bridge (OAuth server +
+  Google/Alexa/SmartThings connectors). Founder-side: Vercel Pro decision,
+  hardware bench test, supplier outreach, pilot batch.
 
 ## Commands
 

@@ -566,6 +566,7 @@ export default async function Home() {
                 <h3 className="text-lg font-semibold text-white mb-4">Product</h3>
                 <ul className="space-y-2 text-sm text-gray-400">
                   <li><Link href="/store" className="hover:text-white transition-colors">Filter Store</Link></li>
+                  <li><Link href="/install" className="hover:text-white transition-colors">Installation Guide</Link></li>
                   <li><Link href="/setup" className="hover:text-white transition-colors">Device Setup</Link></li>
                   <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
                   <li><Link href="/settings/integrations" className="hover:text-white transition-colors">API &amp; Integrations</Link></li>

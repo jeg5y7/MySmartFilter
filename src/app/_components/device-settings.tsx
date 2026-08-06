@@ -15,6 +15,8 @@ interface DeviceSettingsProps {
     blowerType: string;
     airflowCfm: number;
     electricityRateCents: number;
+    furnaceMake: string | null;
+    furnaceModel: string | null;
   };
   filterProducts: FilterProduct[];
   currentPreference: {
@@ -58,6 +60,8 @@ export function DeviceSettings({
   const [blowerType, setBlowerType] = useState(device.blowerType);
   const [airflowCfm, setAirflowCfm] = useState(device.airflowCfm);
   const [electricityRate, setElectricityRate] = useState(device.electricityRateCents);
+  const [furnaceMake, setFurnaceMake] = useState(device.furnaceMake ?? "");
+  const [furnaceModel, setFurnaceModel] = useState(device.furnaceModel ?? "");
   const [hvacSaving, setHvacSaving] = useState(false);
   const [hvacMessage, setHvacMessage] = useState<{
     type: "success" | "error";
@@ -171,6 +175,8 @@ export function DeviceSettings({
           blowerType,
           airflowCfm,
           electricityRateCents: electricityRate,
+          furnaceMake: furnaceMake.trim() || null,
+          furnaceModel: furnaceModel.trim() || null,
         }),
       });
 
@@ -334,6 +340,37 @@ export function DeviceSettings({
         </p>
 
         <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Furnace Make{" "}
+                <span className="text-gray-500 font-normal">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={furnaceMake}
+                onChange={(e) => setFurnaceMake(e.target.value)}
+                placeholder="e.g. Carrier"
+                maxLength={80}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Furnace Model{" "}
+                <span className="text-gray-500 font-normal">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={furnaceModel}
+                onChange={(e) => setFurnaceModel(e.target.value)}
+                placeholder="e.g. 59TP6B080V17"
+                maxLength={80}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Blower Motor Type

@@ -281,6 +281,8 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 blowerType: device.blowerType,
                 airflowCfm: device.airflowCfm,
                 electricityRateCents: device.electricityRateCents,
+                furnaceMake: device.furnaceMake,
+                furnaceModel: device.furnaceModel,
               }}
               filterProducts={filterProducts}
               currentPreference={

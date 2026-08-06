@@ -249,6 +249,12 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
                     ) : null}
                   </p>
                   <p className="text-xs text-gray-400">
+                    {d.furnaceMake || d.furnaceModel ? (
+                      <>
+                        {[d.furnaceMake, d.furnaceModel].filter(Boolean).join(" ")}
+                        {" · "}
+                      </>
+                    ) : null}
                     {d.blowerType === "ecm" ? "Variable-speed (ECM)" : "Fixed-speed (PSC)"} ·{" "}
                     {d.airflowCfm} CFM · {d.electricityRateCents}¢/kWh
                   </p>
