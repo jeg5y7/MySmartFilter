@@ -2,13 +2,16 @@ import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { FilterProductCard } from "~/app/_components/filter-product-card";
+import { MonitorProductCard } from "~/app/_components/monitor-product-card";
 
 export default async function StorePage() {
   const session = await auth();
-  const products = await db.filterProduct.findMany({
+  const allProducts = await db.filterProduct.findMany({
     where: { inStock: true },
     orderBy: [{ size: "asc" }, { merv: "asc" }],
   });
+  const monitor = allProducts.find((p) => p.productType === "monitor") ?? null;
+  const products = allProducts.filter((p) => p.productType !== "monitor");
 
   return (
     <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
@@ -23,32 +26,40 @@ export default async function StorePage() {
             <span className="text-white">Filter Store</span>
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Air Filter Store</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Store</h1>
               <p className="text-gray-400">
-                High-quality replacement filters for your Smart Filter system
+                The smart filter monitor, and the filters it reorders for you
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               {session?.user && (
                 <Link
                   href="/store/orders"
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
                 >
                   Order History
                 </Link>
               )}
               <Link
                 href="/dashboard"
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
               >
                 Back to Dashboard
               </Link>
             </div>
           </div>
         </div>
+
+        {/* The monitor itself */}
+        {monitor && (
+          <MonitorProductCard product={monitor} isLoggedIn={!!session?.user} />
+        )}
+
+        {/* Replacement filters */}
+        <h2 className="text-2xl font-bold text-white mb-4">Replacement Filters</h2>
 
         {/* Filter Size Guide */}
         <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 mb-8">

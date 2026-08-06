@@ -42,8 +42,35 @@ const filterProducts = [
   { sku: "FILTER-20x25x4-M11", size: "20x25x4", width: 20, height: 25, depth: 4, merv: 11, price: 3699, name: "Extended Life Filter 20x25x4" },
 ];
 
+// The hardware itself — price is a placeholder pending founder pricing
+const monitorProduct = {
+  sku: "SFM-100",
+  name: "MySmartFilter Monitor",
+  productType: "monitor",
+  description:
+    "The smart filter monitor: measures the pressure drop across your furnace filter and tells you when replacing it costs less than the energy it wastes. Includes the full install kit and power adapter.",
+  size: "Monitor",
+  width: 0,
+  height: 0,
+  depth: 0,
+  merv: null as number | null,
+  price: 9900,
+};
+
 async function main() {
   console.log("Seeding filter products...");
+
+  await prisma.filterProduct.upsert({
+    where: { sku: monitorProduct.sku },
+    update: {
+      name: monitorProduct.name,
+      productType: monitorProduct.productType,
+      description: monitorProduct.description,
+      inStock: true,
+    },
+    create: { ...monitorProduct, inStock: true },
+  });
+  console.log("Seeded the smart filter monitor product");
 
   for (const product of filterProducts) {
     await prisma.filterProduct.upsert({

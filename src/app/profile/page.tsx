@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   if (!session?.user?.id) redirect("/signin");
 
   const filterProducts = await db.filterProduct.findMany({
-    where: { inStock: true },
+    where: { inStock: true, productType: "filter" },
     orderBy: [{ size: "asc" }, { merv: "asc" }],
   });
 

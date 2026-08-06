@@ -10,12 +10,12 @@ export default async function DashboardPage() {
   // Redirect to sign in if not authenticated
   if (!session?.user) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
+        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 text-center">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
             Sign in required
           </h1>
-          <p className="text-2xl text-white/70">Please sign in to access the dashboard</p>
+          <p className="text-xl sm:text-2xl text-white/70">Please sign in to access the dashboard</p>
           <Link 
             href="/api/auth/signin"
             className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
@@ -29,14 +29,14 @@ export default async function DashboardPage() {
 
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center py-10">
-          <div className="flex w-full justify-between items-center mb-8">
+      <main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
+        <div className="container flex flex-col items-center px-4 py-10">
+          <div className="flex w-full flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold">My Smart Filter</h1>
               <p className="text-white/70">Welcome, {session.user.name ?? session.user.email}</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href="/profile"
                 className="rounded-full bg-cyan-600/20 px-4 py-2 text-sm font-semibold no-underline transition hover:bg-cyan-600/30 text-cyan-300 hover:text-cyan-200 flex items-center gap-2"

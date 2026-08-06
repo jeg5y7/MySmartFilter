@@ -35,15 +35,17 @@ export function FilterProductCard({ product, isLoggedIn }: FilterProductCardProp
         }),
       });
 
-      const data = await response.json() as { sessionId?: string; error?: string };
-      
+      const data = await response.json() as { sessionId?: string; url?: string; error?: string };
+
       if (data.error) {
         alert(data.error);
         return;
       }
 
-      if (data.sessionId) {
-        // Redirect to Stripe Checkout
+      if (data.url) {
+        // Stripe's own checkout URL — the reliable redirect
+        window.location.href = data.url;
+      } else if (data.sessionId) {
         window.location.href = `https://checkout.stripe.com/c/pay/${data.sessionId}`;
       }
     } catch (error) {

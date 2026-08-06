@@ -182,6 +182,7 @@ model FilterProduct {
   sku         String   @unique
   name        String
   description String?
+  productType String   @default("filter") // "filter" | "monitor" (hardware)
   size        String   // e.g., "20x20x1", "16x25x1"
   width       Float    // inches
   height      Float    // inches

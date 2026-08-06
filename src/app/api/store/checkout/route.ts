@@ -152,7 +152,10 @@ export async function POST(request: Request) {
       data: { stripeSessionId: checkoutSession.id },
     });
 
-    return NextResponse.json({ sessionId: checkoutSession.id });
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+    });
   } catch (error) {
     console.error("Checkout error:", error);
     return NextResponse.json(
