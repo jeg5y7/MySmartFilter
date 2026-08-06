@@ -163,6 +163,8 @@ model User {
   filterAlerts          FilterAlert[]
   apiKeys               ApiKey[]
   webhooks              Webhook[]
+  oauthCodes            OAuthAuthorizationCode[]
+  oauthTokens           OAuthToken[]
 }
 
 model VerificationToken {
@@ -180,6 +182,7 @@ model FilterProduct {
   sku         String   @unique
   name        String
   description String?
+  productType String   @default("filter") // "filter" | "monitor" (hardware)
   size        String   // e.g., "20x20x1", "16x25x1"
   width       Float    // inches
   height      Float    // inches
@@ -320,6 +323,57 @@ model WebhookDelivery {
 
   @@index([webhookId])
   @@index([status])
+}
+
+// Smart-home OAuth bridge (Google Home / Alexa / SmartThings account linking)
+
+model OAuthClient {
+  id               String   @id @default(cuid())
+  clientId         String   @unique // public identifier, oc_[hex]
+  clientSecretHash String   // sha256 of the secret (shown once at creation)
+  name             String   // e.g. "Google Home", "Alexa", "SmartThings"
+  redirectUris     String[] // exact-match allowlist
+  createdAt        DateTime @default(now())
+
+  authCodes OAuthAuthorizationCode[]
+  tokens    OAuthToken[]
+}
+
+model OAuthAuthorizationCode {
+  id          String    @id @default(cuid())
+  codeHash    String    @unique // sha256 of the code sent to the client
+  clientId    String
+  userId      String
+  redirectUri String
+  scope       String    @default("devices:read")
+  expiresAt   DateTime  // short-lived (10 min)
+  usedAt      DateTime? // single-use
+  createdAt   DateTime  @default(now())
+
+  client OAuthClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model OAuthToken {
+  id               String    @id @default(cuid())
+  accessTokenHash  String    @unique
+  refreshTokenHash String    @unique
+  clientId         String
+  userId           String
+  scope            String    @default("devices:read")
+  accessExpiresAt  DateTime  // access token lifetime (1 h); refresh until revoked
+  revokedAt        DateTime?
+  lastUsedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  client OAuthClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([clientId])
 }
 
 model FilterAlert {

@@ -8,47 +8,49 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0f172a]/90 backdrop-blur-lg border-b border-white/10">
-      <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-4">
+      <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <Link
           href="/"
-          className="flex items-center gap-2 text-white font-semibold tracking-tight hover:opacity-90 transition-opacity"
+          className="flex shrink-0 items-center gap-2 text-white font-semibold tracking-tight hover:opacity-90 transition-opacity"
         >
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 border border-blue-500/40">
             <span className="block h-2.5 w-4 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400" />
           </span>
-          MySmartFilter
+          <span className="hidden min-[400px]:inline">MySmartFilter</span>
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-2">
+        {/* Every link stays visible at every width; the row scrolls sideways
+            on narrow phones instead of dropping items. */}
+        <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {session?.user ? (
             <>
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Dashboard
               </Link>
               <Link
                 href="/devices"
-                className="hidden sm:block px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Devices
               </Link>
               <Link
                 href="/store"
-                className="hidden sm:block px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Store
               </Link>
               <Link
                 href="/install"
-                className="hidden md:block px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
-                Installation
+                Install
               </Link>
               <Link
                 href="/profile"
-                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Profile
               </Link>
@@ -58,13 +60,13 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/store"
-                className="hidden sm:block px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Store
               </Link>
               <Link
                 href="/install"
-                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
               >
                 Installation
               </Link>

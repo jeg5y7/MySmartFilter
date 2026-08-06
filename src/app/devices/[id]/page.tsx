@@ -48,9 +48,9 @@ export default async function DevicePage({ params }: DevicePageProps) {
     notFound();
   }
 
-  // Get all filter products for the dropdown
+  // Get all filter products for the dropdown (filters only — not hardware)
   const filterProducts = await db.filterProduct.findMany({
-    where: { inStock: true },
+    where: { inStock: true, productType: "filter" },
     orderBy: [{ size: "asc" }, { merv: "asc" }],
   });
 
