@@ -109,6 +109,21 @@ Software side can spec; physical work is on the founder:
 - [ ] Install kit: filter-slot mounting, upstream/downstream pressure taps
 - [ ] Pilot batch (~25 units) before public sale
 
+## Smart-home bridge ✅ (software) — founder: platform accounts
+
+- [x] OAuth2 account-linking server: consent screen (`/oauth/authorize`),
+  token endpoint (auth-code + refresh grants), hashed secrets/tokens,
+  `scripts/create-oauth-client.ts` to mint per-platform credentials
+- [x] Normalized bridge API (`/api/bridge/devices`) with tier rules intact
+- [x] Google Home cloud-to-cloud fulfillment (`/api/bridge/google` —
+  SENSOR + SensorState: FilterCleanliness/FilterLifeTime)
+- [x] SmartThings Schema connector (`/api/bridge/smartthings` — filterStatus,
+  temperature, battery, healthCheck)
+- [x] Alexa Smart Home lambda (`integrations/alexa/lambda/`) → bridge API
+- [ ] **Founder:** create the three free developer accounts and paste in
+  URLs/credentials — step-by-step in `docs/smart-home-bridge.md`
+- [ ] Proactive state push + "Works with" certifications (during cert phase)
+
 ## Later / ideas
 
 - 📷 Furnace-label photo identification (Claude vision reads the rating plate

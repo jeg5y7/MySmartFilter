@@ -46,14 +46,15 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   record deleted), magic-link login working (DKIM + EMAIL_FROM + prod DB
   migration all fixed). Live prod DB is the us-west-2 Neon project
   (`ep-small-surf-afmlmskv`); the old us-east-1 project is stale — retire it.
-- **PR #13 (draft, open): /install guide page + furnace make/model.** Merge
-  is gated on two additive prod columns (`Device.furnaceMake`,
-  `Device.furnaceModel` — SQL in the PR body). The 📷 photo auto-identify
-  feature was built then parked by founder decision — see ROADMAP
-  "Later / ideas" for the restore pointer (commit b278ec4).
-- Next build work: task #11 smart-home bridge (OAuth server +
-  Google/Alexa/SmartThings connectors). Founder-side: Vercel Pro decision,
-  hardware bench test, supplier outreach, pilot batch.
+- PR #13 merged: /install guide + furnace make/model live in prod (columns
+  applied by user in Neon). The 📷 photo auto-identify feature was built
+  then parked by founder decision — restore pointer in ROADMAP "Later /
+  ideas" (commit b278ec4).
+- **In flight: smart-home bridge** (OAuth account-linking server +
+  Google/Alexa/SmartThings connectors; founder platform-account steps in
+  docs/smart-home-bridge.md). Merge needs 3 new prod tables — SQL in PR.
+- Founder-side: Vercel Pro decision, hardware bench test, supplier
+  outreach, pilot batch.
 
 ## Commands
 
