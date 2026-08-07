@@ -58,8 +58,8 @@ export default async function AdminOrdersPage() {
       <div className="container mx-auto px-4 py-10 max-w-4xl">
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
-              Dashboard
+            <Link href="/admin" className="hover:text-white transition-colors">
+              Admin
             </Link>
             <span>/</span>
             <span className="text-white">Order Queue</span>

@@ -1,10 +1,19 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
+import { db } from "~/server/db";
 import { SignOutButton } from "./sign-out-button";
 
 /** Global navigation: wordmark → home, section links, session controls. */
 export async function SiteHeader() {
   const session = await auth();
+  const isAdmin = session?.user?.id
+    ? (
+        await db.user.findUnique({
+          where: { id: session.user.id },
+          select: { isAdmin: true },
+        })
+      )?.isAdmin ?? false
+    : false;
 
   return (
     <header className="sticky top-0 z-50 bg-[#0f172a]/90 backdrop-blur-lg border-b border-white/10">
@@ -54,6 +63,14 @@ export async function SiteHeader() {
               >
                 Profile
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="px-2.5 sm:px-3 py-1.5 text-sm text-amber-300 hover:text-amber-200 hover:bg-white/5 rounded-lg transition-all"
+                >
+                  Admin
+                </Link>
+              )}
               <SignOutButton />
             </>
           ) : (
