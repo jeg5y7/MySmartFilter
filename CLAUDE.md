@@ -50,10 +50,17 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   applied by user in Neon). The 📷 photo auto-identify feature was built
   then parked by founder decision — restore pointer in ROADMAP "Later /
   ideas" (commit b278ec4).
-- **In flight: smart-home bridge** (OAuth account-linking server +
-  Google/Alexa/SmartThings connectors; founder platform-account steps in
-  docs/smart-home-bridge.md). Merge needs 3 new prod tables — SQL in PR.
-- Founder-side: Vercel Pro decision, hardware bench test, supplier
+- PR #14 merged + verified live: smart-home bridge (OAuth account-linking
+  server + Google/Alexa/SmartThings connectors), monitor product in the
+  store ($99 placeholder price — founder to set), nav/mobile fixes. OAuth
+  tables + productType column applied to prod by user in Neon.
+- ⚠️ Wrong-database trap (bit us twice): Neon console often opens the STALE
+  us-east-1 project. Prod SQL must run in us-west-2 (`ep-small-surf…`) —
+  reach it via Vercel → Storage → Open in Neon. Founder should DELETE the
+  us-east-1 project. Note: preview deployments point at a different/empty
+  DB, so preview 500s on DB pages prove nothing about prod.
+- Founder-side: smart-home platform accounts (docs/smart-home-bridge.md),
+  monitor price, Vercel Pro decision, hardware bench test, supplier
   outreach, pilot batch.
 
 ## Commands
