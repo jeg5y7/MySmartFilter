@@ -23,18 +23,35 @@ export default async function Home() {
               <div className="lg:w-1/2 space-y-8">
                 <div>
                   <span className="inline-block px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-6">
-                    Your HVAC filter, on autopilot
+                    The smart monitor that knows exactly how dirty your filter is
                   </span>
                   <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
-                    Replace your filter when it{" "}
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">costs</span>{" "}
-                    more than a new one
+                    Replace your HVAC filter{" "}
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
+                      only once you need to
+                    </span>
                   </h1>
-                  <p className="text-xl text-gray-300 mb-8 max-w-2xl">
-                    A clogged filter makes your HVAC blower burn extra electricity every hour it runs.
-                    Our sensor measures exactly how much — and when the wasted energy exceeds the price
-                    of a fresh filter, one ships to your door automatically. No guessing, no calendar
-                    reminders, no wasted filters.
+                  <p className="text-xl text-gray-300 mb-6 max-w-2xl">
+                    The smart filter monitor measures exactly how dirty your filter
+                    is — not by the calendar, but by the airflow it&apos;s actually
+                    blocking. As it clogs, your HVAC burns extra electricity every
+                    hour it runs. The moment that wasted energy starts costing you
+                    more than a fresh filter, we automatically send you a new one.
+                    No guessing, no reminders, no wasted filters.
+                  </p>
+                  <p className="text-sm text-gray-500 mb-8 max-w-2xl">
+                    &ldquo;How often should I really change my filter?&rdquo; Even
+                    the experts answer &ldquo;it depends&rdquo; —{" "}
+                    <a
+                      href="https://www.waltonemc.com/blog/how-often-do-i-really-have-to-change-my-hvac-filter/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                    >
+                      see this utility-company explainer
+                    </a>
+                    . Your monitor replaces &ldquo;it depends&rdquo; with a
+                    measurement.
                   </p>
                 </div>
 
