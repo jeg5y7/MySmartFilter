@@ -97,6 +97,9 @@ Software side can spec; physical work is on the founder:
   **needs a hardware flash + test before the pilot batch**
 - [x] Hardware Rev A design doc: 3×AA + TPS63031 buck-boost wiring, enclosure
   concept, magnet-primary mounting, ~$47 pilot BOM (artifact "Hardware Rev A")
+- [x] Printable enclosure CAD (`hardware/enclosure/` — parametric CadQuery
+  source + base/lid STLs + STEP; PETG, no supports) — **founder: print on
+  the Bambu and check battery-holder/dev-board fit before the pilot run**
 - [x] Battery architecture backend: `POST /api/sensor/batch` (sample locally,
   upload hourly with age-offset timestamps, exception-push on alerts),
   `Device.batteryPct` + low-battery email, cadence-aware offline detection
