@@ -1,8 +1,17 @@
 # Rev A enclosure — 3D-printable
 
-Parametric CadQuery model (`enclosure.py`) for the smart filter monitor
-case. Two printed parts (`base.stl`, `lid.stl`) + `enclosure.step` for any
-CAD tool. Exterior: **136.8 × 60.8 × 31.4 mm** assembled.
+Two variants, both parametric CadQuery models:
+
+- **USB-powered (current pilot direction)** — `enclosure_usb.py` →
+  `base-usb.stl` / `lid-usb.stl` / `enclosure-usb.step`.
+  **116.8 × 46.8 × 28.4 mm.** No battery bay; the dev board's USB port
+  faces a 16 × 10 mm wall opening, so the power cable plugs straight into
+  the board. Tubes enter the opposite end.
+- **Battery (parked with Rev B firmware)** — `enclosure.py` →
+  `base.stl` / `lid.stl` / `enclosure.step`. **136.8 × 60.8 × 31.4 mm**
+  with a 3×AA bay and a grommeted power-cable hole.
+
+Everything below applies to both unless noted.
 
 ## Print settings (Bambu Studio)
 
@@ -20,8 +29,11 @@ Import both STLs into one plate — combined print is roughly 3–4 h on a P1/X1
 
 ## What goes where
 
-- **Battery bay** (large fence, left): flat 3×AA holder (~58×48×16 mm),
-  drops in; dab of hot glue or foam tape to stop rattle
+- **USB variant power**: route a micro-USB/USB-C cable through the wall
+  opening straight into the dev board — no internal power wiring at all
+- **Battery bay** (battery variant only — large fence, left): flat 3×AA
+  holder (~58×48×16 mm), drops in; dab of hot glue or foam tape to stop
+  rattle
 - **ESP32 bay** (long fence, front-right): 30-pin dev board drops in flat
 - **Sensor bay** (small fence, back-right): SDP810 sits inside; the kit's
   two tubes pass through the **two grommeted holes in the right end wall**

@@ -98,8 +98,12 @@ Software side can spec; physical work is on the founder:
 - [x] Hardware Rev A design doc: 3×AA + TPS63031 buck-boost wiring, enclosure
   concept, magnet-primary mounting, ~$47 pilot BOM (artifact "Hardware Rev A")
 - [x] Printable enclosure CAD (`hardware/enclosure/` — parametric CadQuery
-  source + base/lid STLs + STEP; PETG, no supports) — **founder: print on
-  the Bambu and check battery-holder/dev-board fit before the pilot run**
+  source + STLs + STEP; PETG, no supports). **Pilot decision: USB-powered
+  variant** (`*-usb.stl`, plug-through wall opening, no battery bay, no
+  TPS63031) — simpler, cheaper (~$8–10/unit less), matches the "plug in
+  the power adapter" site copy. Battery variant + Rev B firmware stay in
+  the repo for a future battery SKU. **Founder: print the USB variant and
+  fit-check the dev board before the pilot run**
 - [x] Battery architecture backend: `POST /api/sensor/batch` (sample locally,
   upload hourly with age-offset timestamps, exception-push on alerts),
   `Device.batteryPct` + low-battery email, cadence-aware offline detection
