@@ -25,12 +25,16 @@ interface DeviceSettingsProps {
     autoOrderEnabled: boolean;
     filterProduct: FilterProduct;
   } | null;
+  stateAvgRateCents?: number | null;
+  stateCode?: string | null;
 }
 
 export function DeviceSettings({
   device,
   filterProducts,
   currentPreference,
+  stateAvgRateCents = null,
+  stateCode = null,
 }: DeviceSettingsProps) {
   const router = useRouter();
 
@@ -437,6 +441,19 @@ export function DeviceSettings({
             </div>
             <p className="mt-1.5 text-xs text-gray-500">
               Find it on your utility bill — US average is about 15¢/kWh.
+              {stateAvgRateCents !== null && (
+                <>
+                  {" "}
+                  {stateCode} average is ~{stateAvgRateCents}¢/kWh.{" "}
+                  <button
+                    type="button"
+                    onClick={() => setElectricityRate(stateAvgRateCents)}
+                    className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                  >
+                    Use {stateAvgRateCents}¢
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </div>

@@ -126,12 +126,20 @@ export default async function AdminFleetPage() {
               Every monitor across every account, and how the fleet is trending.
             </p>
           </div>
-          <Link
-            href="/admin/orders"
-            className="self-start px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
-          >
-            📦 Order Queue
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/admin/orders"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+            >
+              📦 Order Queue
+            </Link>
+            <Link
+              href="/admin/labels"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+            >
+              🏷️ QR Labels
+            </Link>
+          </div>
         </div>
 
         {/* Fleet stats */}

@@ -7,6 +7,8 @@
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <Wire.h>
+#include <time.h>
+#include "ca_bundle.h"
 
 // Firmware version — overridden by FIRMWARE_VERSION build flag in platformio.ini
 #ifndef FIRMWARE_VERSION
@@ -42,6 +44,7 @@ const int CONFIG_VERSION = 1;
 WebServer server(80);
 DNSServer dnsServer;
 Config config;
+WiFiClientSecure apiClient;  // TLS with pinned root CAs for all API calls
 bool wifiConnected = false;
 unsigned long lastReading = 0;
 const unsigned long readingInterval = 30000;  // 30 seconds
@@ -227,19 +230,18 @@ const char SETUP_HTML[] PROGMEM = R"rawliteral(
     </div>
 
     <script>
-        // Generate random device ID on page load
-        function generateDeviceId() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let deviceId = 'SF';
-            for (let i = 0; i < 14; i++) {
-                deviceId += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return deviceId;
-        }
-
-        // Display device ID
-        const deviceId = generateDeviceId();
-        document.getElementById('deviceId').textContent = deviceId;
+        // The device ID is owned by the firmware (derived from the chip's
+        // factory MAC) — fetch it so the label QR and the account link match
+        let deviceId = '';
+        fetch('/deviceinfo')
+            .then(r => r.json())
+            .then(d => {
+                deviceId = d.deviceId;
+                document.getElementById('deviceId').textContent = deviceId;
+            })
+            .catch(() => {
+                document.getElementById('deviceId').textContent = 'unavailable';
+            });
 
         // Scan for WiFi networks
         function scanNetworks() {
@@ -325,6 +327,8 @@ const char SETUP_HTML[] PROGMEM = R"rawliteral(
 )rawliteral";
 
 // Forward declarations
+void ensureDeviceId();
+void syncClock();
 void startSetupMode();
 void handleRoot();
 void handleScan();
@@ -351,7 +355,11 @@ void setup() {
   // Initialize EEPROM
   EEPROM.begin(sizeof(Config));
   loadConfig();
-  
+  ensureDeviceId();
+
+  // TLS: only trust our pinned root CAs for API calls
+  apiClient.setCACert(CA_BUNDLE);
+
   // Initialize I2C for sensor
   Wire.begin(21, 22);
   
@@ -439,6 +447,11 @@ void startSetupMode() {
   server.on("/", handleRoot);
   server.on("/scan", handleScan);
   server.on("/configure", HTTP_POST, handleConfigure);
+  server.on("/deviceinfo", []() {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    server.send(200, "application/json",
+                String("{\"deviceId\":\"") + config.deviceId + "\"}");
+  });
   server.onNotFound(handleRoot);  // Redirect all 404 to root
   
   server.begin();
@@ -474,17 +487,16 @@ void handleScan() {
 void handleConfigure() {
   String ssid = server.arg("ssid");
   String password = server.arg("password");
-  String deviceId = server.arg("deviceId");
-  
+
   Serial.println("Received configuration:");
   Serial.println("SSID: " + ssid);
-  Serial.println("Device ID: " + deviceId);
-  
-  // Save configuration
+  Serial.println("Device ID: " + String(config.deviceId));
+
+  // Save configuration — deviceId is firmware-owned (MAC-derived), never
+  // taken from the client
   ssid.toCharArray(config.ssid, sizeof(config.ssid));
   password.toCharArray(config.password, sizeof(config.password));
-  deviceId.toCharArray(config.deviceId, sizeof(config.deviceId));
-  strcpy(config.magic, "SF01");
+  strcpy(config.magic, "SF02");
   config.configured = true;
   
   saveConfig();
@@ -545,7 +557,7 @@ void checkOTAUpdate() {
   HTTPClient http;
   String url = String(API_BASE_URL_STR) + "/ota/check?version=" + FIRMWARE_VERSION;
 
-  http.begin(url);
+  http.begin(apiClient, url);
   http.addHeader("Authorization", "Bearer " + String(config.apiToken));
 
   int httpCode = http.GET();
@@ -577,10 +589,10 @@ void checkOTAUpdate() {
   Serial.printf("[OTA] Update available: %s -> %s\n", FIRMWARE_VERSION, newVersion.c_str());
   Serial.printf("[OTA] Downloading from: %s\n", binaryUrl.c_str());
 
-  // Use WiFiClientSecure for HTTPS binaries; setInsecure() skips cert check
-  // (acceptable for firmware delivered over a trusted, known URL)
+  // Validate the OTA download against the same pinned roots as API calls —
+  // an unauthenticated firmware swap is the worst-case compromise
   WiFiClientSecure client;
-  client.setInsecure();
+  client.setCACert(CA_BUNDLE);
 
   // Progress callback
   httpUpdate.onProgress([](int cur, int total) {
@@ -636,9 +648,10 @@ bool connectToWiFi() {
     Serial.println("\nConnected to WiFi");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
+    syncClock();  // TLS cert validation needs a correct clock
     return true;
   }
-  
+
   Serial.println("\nFailed to connect to WiFi");
   return false;
 }
@@ -651,7 +664,7 @@ void registerDevice() {
   HTTPClient http;
   String url = String(API_BASE_URL_STR) + "/device/register";
   
-  http.begin(url);
+  http.begin(apiClient, url);
   http.addHeader("Content-Type", "application/json");
   
   ensureDeviceSecret();
@@ -704,7 +717,7 @@ void updateDeviceStatus() {
   HTTPClient http;
   String url = String(API_BASE_URL_STR) + "/device/status";
   
-  http.begin(url);
+  http.begin(apiClient, url);
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Bearer " + String(config.apiToken));
   
@@ -742,7 +755,7 @@ bool sendSensorData(SensorData data) {
   HTTPClient http;
   String url = String(API_BASE_URL_STR) + "/sensor";
   
-  http.begin(url);
+  http.begin(apiClient, url);
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Bearer " + String(config.apiToken));
   
@@ -834,6 +847,34 @@ void loadConfig() {
     clearConfig();
     strncpy(config.magic, "SF02", sizeof(config.magic));
   }
+}
+
+// Stable device ID derived from the chip's factory MAC address: the same
+// board always produces the same ID, so a QR label printed at flash time
+// stays correct for the life of the unit.
+void ensureDeviceId() {
+  if (config.deviceId[0] != '\0') return;
+  uint64_t mac = ESP.getEfuseMac();
+  snprintf(config.deviceId, sizeof(config.deviceId), "SF%012llX",
+           (unsigned long long)(mac & 0xFFFFFFFFFFFFULL));
+  saveConfig();
+  Serial.println("Device ID: " + String(config.deviceId));
+}
+
+// TLS certificate validation needs a correct clock — sync via NTP once
+// after WiFi connects (fast; retries are cheap).
+void syncClock() {
+  configTime(0, 0, "pool.ntp.org", "time.google.com");
+  Serial.print("Syncing clock");
+  time_t now = time(nullptr);
+  int tries = 0;
+  while (now < 1700000000 && tries < 30) {  // wait for a sane date
+    delay(500);
+    Serial.print(".");
+    now = time(nullptr);
+    tries++;
+  }
+  Serial.println(now >= 1700000000 ? " done" : " FAILED (TLS may not work)");
 }
 
 // Generate the device secret from the hardware RNG on first use.
