@@ -15,11 +15,12 @@
 
 // EEPROM storage structure
 struct Config {
-  char magic[4];  // "SF01" to verify valid config
+  char magic[4];  // "SF02" to verify valid config (SF02 added deviceSecret)
   char ssid[33];
   char password[64];
   char deviceId[17];  // 16 chars + null terminator
   char apiToken[65];  // 64 chars + null terminator
+  char deviceSecret[65];  // self-generated, proves ownership on re-register
   bool configured;
 };
 
@@ -322,6 +323,26 @@ const char SETUP_HTML[] PROGMEM = R"rawliteral(
 </body>
 </html>
 )rawliteral";
+
+// Forward declarations
+void startSetupMode();
+void handleRoot();
+void handleScan();
+void handleConfigure();
+void checkOTAUpdate();
+void startNormalOperation();
+bool connectToWiFi();
+void registerDevice();
+void updateDeviceStatus();
+bool sendSensorData(SensorData data);
+void initializeSDP810();
+SensorData readSDP810();
+void loadConfig();
+void ensureDeviceSecret();
+void saveConfig();
+void clearConfig();
+bool isConfigured();
+void factoryReset();
 
 void setup() {
   Serial.begin(115200);
@@ -633,8 +654,11 @@ void registerDevice() {
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
   
-  DynamicJsonDocument doc(256);
+  ensureDeviceSecret();
+
+  DynamicJsonDocument doc(384);
   doc["deviceId"] = config.deviceId;
+  doc["deviceSecret"] = config.deviceSecret;
   doc["type"] = "SmartFilter";
   doc["firmware"] = FIRMWARE_VERSION;
   
@@ -766,7 +790,17 @@ void initializeSDP810() {
 
 SensorData readSDP810() {
   SensorData data = {0, 0, false};
-  
+
+#ifdef SKIP_SENSOR
+  // Bench-test mode: plausible fake data (blower cycles ~15 min on/off)
+  bool blowerOn = (millis() / 900000UL) % 2 == 0;
+  float noise = (esp_random() % 100) / 50.0 - 1.0;
+  data.pressure = blowerOn ? 38.0 + noise * 2.5 : 0.4 + noise * 0.3;
+  data.temperature = 21.0 + noise;
+  data.valid = true;
+  return data;
+#endif
+
   Wire.requestFrom(SDP810_I2C_ADDRESS, 9);
   
   if (Wire.available() >= 9) {
@@ -794,11 +828,26 @@ SensorData readSDP810() {
 
 void loadConfig() {
   EEPROM.get(0, config);
-  
-  // Check if config is valid
-  if (strcmp(config.magic, "SF01") != 0) {
+
+  // Check if config is valid (SF01 layouts lack the secret — start fresh)
+  if (strcmp(config.magic, "SF02") != 0) {
     clearConfig();
+    strncpy(config.magic, "SF02", sizeof(config.magic));
   }
+}
+
+// Generate the device secret from the hardware RNG on first use.
+// The server stores only a hash; presenting the same secret later is how
+// this device re-fetches its API token after a wipe or WiFi change.
+void ensureDeviceSecret() {
+  if (config.deviceSecret[0] != '\0') return;
+  const char* hex = "0123456789abcdef";
+  for (int i = 0; i < 64; i++) {
+    config.deviceSecret[i] = hex[esp_random() & 0x0F];
+  }
+  config.deviceSecret[64] = '\0';
+  saveConfig();
+  Serial.println("Generated device secret");
 }
 
 void saveConfig() {
