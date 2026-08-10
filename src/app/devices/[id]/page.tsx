@@ -10,6 +10,7 @@ import { AlertHistory } from "~/app/_components/alert-history";
 import { ExportButton } from "~/app/_components/export-button";
 import { FilterHealthCard } from "~/app/_components/filter-health-card";
 import { isAutoShipMember } from "~/lib/membership";
+import { suggestedRateForState } from "~/lib/electricity-rates";
 
 interface DevicePageProps {
   params: Promise<{ id: string }>;
@@ -56,6 +57,13 @@ export default async function DevicePage({ params }: DevicePageProps) {
 
   const preference = device.filterPreferences[0];
   const autoShip = await isAutoShipMember(session.user.id);
+
+  // Suggested electricity rate from the shipping state on file
+  const me = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { shippingState: true },
+  });
+  const stateRate = suggestedRateForState(me?.shippingState);
 
   return (
     <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
@@ -284,6 +292,8 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 furnaceMake: device.furnaceMake,
                 furnaceModel: device.furnaceModel,
               }}
+              stateAvgRateCents={stateRate}
+              stateCode={me?.shippingState ?? null}
               filterProducts={filterProducts}
               currentPreference={
                 preference
