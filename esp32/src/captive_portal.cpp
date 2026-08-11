@@ -8,6 +8,7 @@
 #include <EEPROM.h>
 #include <Wire.h>
 #include <time.h>
+#include <Update.h>
 #include "ca_bundle.h"
 
 // Firmware version — overridden by FIRMWARE_VERSION build flag in platformio.ini
@@ -24,6 +25,10 @@ struct Config {
   char apiToken[65];  // 64 chars + null terminator
   char deviceSecret[65];  // self-generated, proves ownership on re-register
   bool configured;
+  // Appended after SF02 shipped — layout stays SF02-compatible (older
+  // firmware simply reads a shorter struct). Only the exact value 1 means
+  // "OTA applied, awaiting proof of life" (uninitialized EEPROM is 0xFF).
+  uint8_t otaPending;
 };
 
 // Configuration constants
@@ -362,6 +367,7 @@ const char SETUP_HTML[] PROGMEM = R"rawliteral(
 // Forward declarations
 void ensureDeviceId();
 void syncClock();
+void validateOtaBoot();
 void startSetupMode();
 void handleRoot();
 void handleScan();
@@ -456,6 +462,13 @@ void loop() {
       lastReading = millis();
     }
     
+    // Always-on units rarely reboot — re-check for updates daily
+    static unsigned long lastOtaCheck = millis();
+    if ((unsigned long)(millis() - lastOtaCheck) >= 24UL * 3600UL * 1000UL) {
+      lastOtaCheck = millis();
+      checkOTAUpdate();
+    }
+
     // Check WiFi connection
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi disconnected. Attempting to reconnect...");
@@ -622,6 +635,11 @@ void checkOTAUpdate() {
   Serial.printf("[OTA] Update available: %s -> %s\n", FIRMWARE_VERSION, newVersion.c_str());
   Serial.printf("[OTA] Downloading from: %s\n", binaryUrl.c_str());
 
+  // Arm the boot-validation flag BEFORE flashing: if the new image can't
+  // prove it works (reach the API) on first boot, it rolls itself back.
+  config.otaPending = 1;
+  saveConfig();
+
   // Validate the OTA download against the same pinned roots as API calls —
   // an unauthenticated firmware swap is the worst-case compromise
   WiFiClientSecure client;
@@ -640,6 +658,9 @@ void checkOTAUpdate() {
       Serial.printf("[OTA] Update FAILED — error %d: %s\n",
                     httpUpdate.getLastError(),
                     httpUpdate.getLastErrorString().c_str());
+      // Nothing was flashed — disarm the boot-validation flag
+      config.otaPending = 0;
+      saveConfig();
       break;
     case HTTP_UPDATE_NO_UPDATES:
       Serial.println("[OTA] Server says no update needed (unexpected)");
@@ -654,8 +675,49 @@ void checkOTAUpdate() {
   }
 }
 
+/**
+ * validateOtaBoot()
+ *
+ * First boot after an OTA flash: the new image must prove it can reach the
+ * API over pinned TLS. Three failed attempts → automatic rollback to the
+ * previous firmware (still intact in the other partition). This is the
+ * anti-brick guarantee: a bad update reverts itself in the field.
+ */
+void validateOtaBoot() {
+  if (config.otaPending != 1) return;
+
+  Serial.println("[OTA] First boot after update — validating...");
+  for (int attempt = 1; attempt <= 3; attempt++) {
+    HTTPClient http;
+    String url = String(API_BASE_URL_STR) + "/health";
+    http.begin(apiClient, url);
+    int code = http.GET();
+    http.end();
+    if (code == 200) {
+      Serial.println("[OTA] Validation OK — update accepted");
+      config.otaPending = 0;
+      saveConfig();
+      return;
+    }
+    Serial.printf("[OTA] Validation attempt %d failed (HTTP %d)\n", attempt, code);
+    delay(20000);
+  }
+
+  Serial.println("[OTA] Validation FAILED — rolling back to previous firmware");
+  config.otaPending = 0;
+  saveConfig();
+  if (Update.canRollBack()) {
+    Update.rollBack();
+    ESP.restart();
+  } else {
+    Serial.println("[OTA] Rollback unavailable — continuing on current image");
+  }
+}
+
 void startNormalOperation() {
   wifiConnected = true;
+  // If this boot is the first after an OTA, prove the image works or revert
+  validateOtaBoot();
   // Register device with backend (obtains/refreshes API token)
   registerDevice();
   // Check for OTA firmware update on every boot
