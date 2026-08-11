@@ -39,9 +39,10 @@ burns exceeds the price of a new one.
   blower runtime detected from ΔP > 5 Pa (pressure is ~0 when the blower is off)
 - [x] Per-reading accrual of runtime + extra cost on ingest
 - [x] Clean-filter baseline auto-captured on first blower-on reading
-- [x] Energy-cost alert → email → 24 h grace → auto-order (ECM systems;
-  PSC systems fall back to the pressure threshold — physics doesn't support
-  an energy claim there)
+- [x] Energy-cost alert → email → 24 h grace → auto-order — both blower
+  types: ECM accrues direct extra blower watts; PSC accrues the
+  system-runtime penalty (less airflow → less capacity → compressor and all
+  run longer to satisfy the thermostat)
 - [x] HVAC settings UI (blower type, airflow CFM, electricity rate)
 - [x] Filter Health card with cost-vs-price progress meter
 - [x] "I replaced my filter" reset flow

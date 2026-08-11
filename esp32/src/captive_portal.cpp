@@ -56,6 +56,39 @@ struct SensorData {
   bool valid;
 };
 
+// ── Sensor auto-zero ─────────────────────────────────────────────────────────
+// Cheap MEMS differential sensors drift a few Pa; the blower being OFF is a
+// free zero reference (true ΔP ≈ 0). When readings sit dead-flat near the
+// current zero for a full window (~10 min at 30 s cadence), that plateau IS
+// zero — adopt it. Dual guard: stability (blower-on air is turbulent) and
+// proximity (a genuine steady pressure far from zero is never adopted).
+static float azZeroOffset = 0.0f;
+static const int AZ_WINDOW = 20;
+static const float AZ_STABILITY_PA = 2.0f;   // max spread of an "off" plateau
+static const float AZ_MAX_DRIFT_PA = 15.0f;  // max believable drift step
+static float azBuf[AZ_WINDOW];
+static int azCount = 0, azIdx = 0;
+
+float applyAutoZero(float raw) {
+  azBuf[azIdx] = raw;
+  azIdx = (azIdx + 1) % AZ_WINDOW;
+  if (azCount < AZ_WINDOW) azCount++;
+
+  if (azCount == AZ_WINDOW) {
+    float mn = azBuf[0], mx = azBuf[0], sum = 0;
+    for (int i = 0; i < AZ_WINDOW; i++) {
+      mn = min(mn, azBuf[i]);
+      mx = max(mx, azBuf[i]);
+      sum += azBuf[i];
+    }
+    float mean = sum / AZ_WINDOW;
+    if ((mx - mn) < AZ_STABILITY_PA && fabsf(mean - azZeroOffset) < AZ_MAX_DRIFT_PA) {
+      azZeroOffset = mean;
+    }
+  }
+  return raw - azZeroOffset;
+}
+
 // HTML for captive portal
 const char SETUP_HTML[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
@@ -826,7 +859,7 @@ SensorData readSDP810() {
     // Skip scale factor bytes
     Wire.read(); Wire.read(); Wire.read();
     
-    data.pressure = pressureRaw / 60.0;
+    data.pressure = applyAutoZero(pressureRaw / 60.0);
     data.temperature = temperatureRaw / 200.0;
     data.valid = true;
     
