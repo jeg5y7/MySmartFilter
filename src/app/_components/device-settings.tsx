@@ -394,7 +394,7 @@ export function DeviceSettings({
             <p className="mt-1.5 text-xs text-gray-500">
               {blowerType === "ecm"
                 ? "ECM blowers work harder as the filter clogs, so we track the extra electricity cost."
-                : "PSC blowers lose airflow instead of drawing more power — alerts use the pressure threshold."}
+                : "PSC blowers lose airflow as the filter clogs, so your whole system runs longer to heat or cool the house — we track that added runtime cost."}
             </p>
           </div>
 

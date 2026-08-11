@@ -39,9 +39,10 @@ burns exceeds the price of a new one.
   blower runtime detected from ΔP > 5 Pa (pressure is ~0 when the blower is off)
 - [x] Per-reading accrual of runtime + extra cost on ingest
 - [x] Clean-filter baseline auto-captured on first blower-on reading
-- [x] Energy-cost alert → email → 24 h grace → auto-order (ECM systems;
-  PSC systems fall back to the pressure threshold — physics doesn't support
-  an energy claim there)
+- [x] Energy-cost alert → email → 24 h grace → auto-order — both blower
+  types: ECM accrues direct extra blower watts; PSC accrues the
+  system-runtime penalty (less airflow → less capacity → compressor and all
+  run longer to satisfy the thermostat)
 - [x] HVAC settings UI (blower type, airflow CFM, electricity rate)
 - [x] Filter Health card with cost-vs-price progress meter
 - [x] "I replaced my filter" reset flow
@@ -130,6 +131,23 @@ Software side can spec; physical work is on the founder:
 - [ ] **Founder:** create the three free developer accounts and paste in
   URLs/credentials — step-by-step in `docs/smart-home-bridge.md`
 - [ ] Proactive state push + "Works with" certifications (during cert phase)
+
+## Advanced HVAC diagnostics (premium tier — needs pilot data first)
+
+- **Cycle-performance trending:** we already record temperature + blower
+  state every 30 s, so each heating/cooling cycle yields "minutes to move
+  the return air X degrees." Trending that per-cycle rate over months
+  reveals declining capacity (dirty filter, low refrigerant, failing
+  compressor) — but it MUST be weather-normalized (outdoor temp / degree
+  days are the dominant confounder; naive trending false-alarms every heat
+  wave). Cross-validates the PSC runtime-penalty model with measured data.
+  Plan: per-cycle summary extraction server-side once pilot data exists.
+- **Acoustic anomaly detection (Rev B hardware):** ~$0.50 MEMS mic on the
+  monitor. On-device feature extraction only (band energies/levels — NEVER
+  raw audio off the device; privacy stance worth advertising). Learn each
+  home's baseline sound signature; alert on deviation (bearing whine, belt
+  squeal, rattle, short-cycling). Long-term: fleet-wide failure signatures
+  = "your blower motor sounds like ones that failed within 60 days."
 
 ## Later / ideas
 

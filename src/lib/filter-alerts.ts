@@ -22,7 +22,8 @@ export async function maybeTriggerEnergyAlert(
   currentPressure: number
 ): Promise<string | null> {
   if (!device.userId) return null;
-  if (device.blowerType !== "ecm") return null; // PSC: threshold alert path only
+  // Both blower types accrue cost now: ECM as direct blower watts, PSC as
+  // the system-runtime penalty — the cost-vs-price trigger applies to both.
 
   const preference = await getEffectiveFilterPreference(device.userId, device.id);
   if (!preference) return null;

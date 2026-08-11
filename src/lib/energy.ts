@@ -1,15 +1,25 @@
 /**
  * Filter energy-cost model.
  *
- * Physics: blower power ≈ (airflow × static pressure) / fan efficiency.
- * As a filter loads, ΔP across it rises. An ECM (variable-speed) blower ramps
- * up to hold airflow constant, so the extra electrical power is
+ * ECM (variable-speed) blowers ramp up to hold airflow constant as the
+ * filter loads, so the extra electrical power is direct:
  *
  *   extraWatts = (ΔP − ΔP_baseline) × airflow / η
  *
- * A PSC (fixed-speed) blower does NOT ramp up — airflow just drops, so a
- * clogged filter costs comfort and coil-freeze risk, not electricity. For PSC
- * systems we accrue no energy cost and rely on the pressure threshold alert.
+ * PSC (fixed-speed) blowers do NOT ramp up — the blower actually draws a
+ * little LESS as airflow drops. But the system pays anyway: less air across
+ * the coil/heat-exchanger means less delivered heating/cooling per minute,
+ * so the WHOLE system (compressor and all) runs longer to satisfy the
+ * thermostat. We model that runtime stretch conservatively:
+ *
+ *   airflow loss   ≈ 0.2 %/Pa of ΔP rise      (typical PSC fan-curve slope)
+ *   capacity loss  ≈ 0.5 × airflow loss       (sensible capacity ~ √airflow)
+ *   extra runtime  = capLoss / (1 − capLoss)  (same heat delivered, slower)
+ *   system power   ≈ CFM/400 tons × ~1.1 kW/ton (compressor + fans estimate)
+ *   extraWatts     = system power × extra-runtime fraction
+ *
+ * Both paths report honest, order-of-magnitude-right waste — the PSC figure
+ * is an estimate of system-level energy, not a blower-plug measurement.
  *
  * Runtime detection is free: ΔP across the filter is ~0 when the blower is
  * off, so any reading above BLOWER_ON_MIN_PA counts as runtime.
@@ -20,6 +30,21 @@ export const BLOWER_ON_MIN_PA = 5;
 
 /** Combined fan + motor + drive efficiency for a typical ECM blower. */
 export const FAN_EFFICIENCY = 0.55;
+
+/** PSC: fractional airflow lost per Pa of filter ΔP rise (fan-curve slope). */
+export const PSC_AIRFLOW_LOSS_PER_PA = 0.002;
+
+/** PSC: cap modeled airflow loss — beyond this the model is unreliable. */
+export const PSC_MAX_AIRFLOW_LOSS = 0.4;
+
+/** PSC: sensible capacity scales roughly with the square root of airflow. */
+export const PSC_CAPACITY_EXPONENT = 0.5;
+
+/** Whole-system electrical watts per rated ton (compressor + fans, typical). */
+export const SYSTEM_WATTS_PER_TON = 1100;
+
+/** Rule of thumb: rated airflow is ~400 CFM per ton of capacity. */
+export const CFM_PER_TON = 400;
 
 /** Cap integration steps so an offline gap can't accrue a huge block of cost. */
 export const MAX_ACCRUAL_STEP_MS = 15 * 60 * 1000;
@@ -41,16 +66,30 @@ export interface AccrualResult {
   newBaselineDeltaP: number | null;
 }
 
-/** Extra electrical watts drawn right now vs a clean filter (ECM only). */
+/** Extra system watts being wasted right now vs a clean filter. */
 export function computeExtraWatts(
   deltaP: number,
   baselineDeltaP: number,
   airflowCfm: number,
   blowerType: string
 ): number {
-  if (blowerType !== "ecm") return 0;
   const extraPa = Math.max(0, deltaP - baselineDeltaP);
-  return (extraPa * airflowCfm * CFM_TO_M3S) / FAN_EFFICIENCY;
+  if (extraPa === 0) return 0;
+
+  if (blowerType === "ecm") {
+    // Blower works harder to hold airflow — direct electrical cost
+    return (extraPa * airflowCfm * CFM_TO_M3S) / FAN_EFFICIENCY;
+  }
+
+  // PSC: airflow drops → capacity drops → the whole system runs longer
+  const airflowLoss = Math.min(
+    PSC_MAX_AIRFLOW_LOSS,
+    PSC_AIRFLOW_LOSS_PER_PA * extraPa
+  );
+  const capacityLoss = PSC_CAPACITY_EXPONENT * airflowLoss;
+  const extraRuntimeFrac = capacityLoss / (1 - capacityLoss);
+  const systemWatts = (airflowCfm / CFM_PER_TON) * SYSTEM_WATTS_PER_TON;
+  return systemWatts * extraRuntimeFrac;
 }
 
 /**

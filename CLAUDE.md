@@ -81,6 +81,8 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
 - User is new to dev tooling — give browser-based steps, avoid assuming
   terminal fluency; explain what each step does in plain language.
 - Emails: dark-slate HTML templates, from-address via ~/lib/resend.
-- Energy model physics in src/lib/energy.ts — ECM blowers only accrue cost;
-  PSC systems use the pressure-threshold path (real physics, keep it honest).
+- Energy model physics in src/lib/energy.ts — ECM: direct extra blower watts.
+  PSC: system-runtime penalty (airflow loss → capacity loss → whole system
+  incl. compressor runs longer; conservative constants, documented in file).
+  Both accrue cost; pressure threshold stays as a parallel ceiling.
 - Never commit .env files (`.env.production` leaked once — already handled).
