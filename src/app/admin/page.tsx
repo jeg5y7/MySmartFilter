@@ -139,6 +139,12 @@ export default async function AdminFleetPage() {
             >
               🏷️ QR Labels
             </Link>
+            <Link
+              href="/admin/firmware"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+            >
+              ⬆️ Firmware
+            </Link>
           </div>
         </div>
 

@@ -1,5 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { db } from "~/server/db";
+
+/**
+ * Deterministic 0–99 bucket per device for staged rollouts: the same
+ * device always lands in the same bucket, so raising rolloutPct only ever
+ * ADDS devices to the eligible set.
+ */
+function rolloutBucket(deviceId: string): number {
+  const h = createHash("sha256").update(deviceId).digest();
+  return ((h[0]! << 8) | h[1]!) % 100;
+}
 
 /**
  * Parse a semver string into [major, minor, patch] numbers.
@@ -70,6 +81,11 @@ export async function GET(request: NextRequest) {
     });
 
     if (!latestRelease) {
+      return NextResponse.json({ hasUpdate: false });
+    }
+
+    // Staged rollout: only the release's eligible fraction of the fleet
+    if (rolloutBucket(device.deviceId) >= latestRelease.rolloutPct) {
       return NextResponse.json({ hasUpdate: false });
     }
 

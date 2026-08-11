@@ -269,9 +269,10 @@ model OrderItem {
 model FirmwareRelease {
   id           String   @id @default(cuid())
   version      String   @unique // semver e.g. "1.0.1"
-  binaryUrl    String   // URL to firmware binary (e.g. GitHub Releases)
+  binaryUrl    String   // URL to firmware binary (host on our domain for pinned TLS)
   releaseNotes String?
   isActive     Boolean  @default(true)
+  rolloutPct   Int      @default(100) // staged rollout: % of fleet eligible (deviceId-hash bucketing)
   createdAt    DateTime @default(now())
 
   @@index([isActive])
