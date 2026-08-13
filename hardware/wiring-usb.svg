@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1090 660" font-family="-apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="dot" markerWidth="6" markerHeight="6" refX="3" refY="3"><circle cx="3" cy="3" r="2.4" fill="#e2e8f0"/></marker>
+  </defs>
+  <rect width="1090" height="660" fill="#0f172a"/>
+
+  <!-- Title -->
+  <text x="40" y="46" fill="#e2e8f0" font-size="24" font-weight="700">MySmartFilter — USB pilot wiring</text>
+  <text x="40" y="72" fill="#64748b" font-size="14">Rev A-USB enclosure · firmware v1.5.0 · 6 wires + 3 resistors, no soldering required with dupont jumpers</text>
+
+  <!-- ══ ESP32 DevKit board ══ -->
+  <rect x="90" y="140" width="230" height="360" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <rect x="150" y="150" width="110" height="70" rx="4" fill="#334155" stroke="#475569"/>
+  <text x="205" y="190" fill="#94a3b8" font-size="12" text-anchor="middle">ESP32-WROOM-32</text>
+  <text x="205" y="530" fill="#e2e8f0" font-size="15" font-weight="600" text-anchor="middle">ESP32 DevKit V1 (30-pin)</text>
+
+  <!-- USB connector at bottom of board -->
+  <rect x="175" y="480" width="60" height="22" rx="3" fill="#475569"/>
+  <text x="205" y="495" fill="#cbd5e1" font-size="10" text-anchor="middle">USB</text>
+  <path d="M205 502 v58" stroke="#f8fafc" stroke-width="4" fill="none"/>
+  <rect x="150" y="560" width="110" height="40" rx="6" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="205" y="578" fill="#e2e8f0" font-size="12" text-anchor="middle">USB wall adapter</text>
+  <text x="205" y="593" fill="#64748b" font-size="10" text-anchor="middle">any 5 V phone charger</text>
+  <text x="40" y="626" fill="#64748b" font-size="11">cable enters through the 16×10 mm wall</text>
+  <text x="40" y="641" fill="#64748b" font-size="11">opening — plugs straight into the board</text>
+
+  <!-- Board pins (right edge) -->
+  <g font-size="13" font-weight="600">
+    <circle cx="320" cy="250" r="5" fill="#f87171"/><text x="270" y="255" fill="#f87171" text-anchor="end">3V3</text>
+    <circle cx="320" cy="290" r="5" fill="#94a3b8"/><text x="270" y="295" fill="#94a3b8" text-anchor="end">GND</text>
+    <circle cx="320" cy="330" r="5" fill="#facc15"/><text x="270" y="335" fill="#facc15" text-anchor="end">GPIO21</text>
+    <circle cx="320" cy="370" r="5" fill="#4ade80"/><text x="270" y="375" fill="#4ade80" text-anchor="end">GPIO22</text>
+    <circle cx="320" cy="410" r="5" fill="#38bdf8"/><text x="270" y="415" fill="#38bdf8" text-anchor="end">GPIO26</text>
+    <circle cx="320" cy="450" r="5" fill="#c084fc"/><text x="270" y="455" fill="#c084fc" text-anchor="end">GPIO27</text>
+  </g>
+
+  <!-- ══ SDP810 sensor ══ -->
+  <rect x="640" y="150" width="220" height="180" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="750" y="180" fill="#e2e8f0" font-size="15" font-weight="600" text-anchor="middle">SDP810-500Pa</text>
+  <text x="750" y="198" fill="#64748b" font-size="11" text-anchor="middle">differential pressure sensor · I2C 0x25</text>
+  <g font-size="13" font-weight="600">
+    <circle cx="640" cy="225" r="5" fill="#f87171"/><text x="655" y="230" fill="#f87171">VDD</text>
+    <circle cx="640" cy="255" r="5" fill="#94a3b8"/><text x="655" y="260" fill="#94a3b8">GND</text>
+    <circle cx="640" cy="285" r="5" fill="#facc15"/><text x="655" y="290" fill="#facc15">SDA</text>
+    <circle cx="640" cy="315" r="5" fill="#4ade80"/><text x="655" y="320" fill="#4ade80">SCL</text>
+  </g>
+  <!-- Ports + tubes -->
+  <rect x="855" y="225" width="26" height="14" rx="4" fill="#475569"/>
+  <rect x="855" y="285" width="26" height="14" rx="4" fill="#475569"/>
+  <path d="M881 232 C 930 232, 940 210, 960 205" stroke="#fbbf24" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M881 292 C 930 292, 940 315, 960 320" stroke="#34d399" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <text x="878" y="192" fill="#fbbf24" font-size="12" font-weight="600">tube → Tap A</text><text x="878" y="207" fill="#fbbf24" font-size="11">(dusty side)</text>
+  <text x="878" y="352" fill="#34d399" font-size="12" font-weight="600">tube → Tap B</text><text x="878" y="367" fill="#34d399" font-size="11">(clean side)</text>
+  <text x="738" y="395" fill="#64748b" font-size="11" text-anchor="middle">tubes pass through the two grommeted wall holes</text>
+  <text x="738" y="410" fill="#64748b" font-size="11" text-anchor="middle">(swapped tubes are fine — firmware auto-corrects)</text>
+
+  <!-- I2C wires ESP32 → sensor -->
+  <path d="M320 250 H 500 V 225 H 640" stroke="#f87171" stroke-width="2.5" fill="none"/>
+  <path d="M320 290 H 520 V 255 H 640" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+  <path d="M320 330 H 540 V 285 H 640" stroke="#facc15" stroke-width="2.5" fill="none"/>
+  <path d="M320 370 H 560 V 315 H 640" stroke="#4ade80" stroke-width="2.5" fill="none"/>
+
+  <!-- Pull-up resistors SDA/SCL → 3V3 -->
+  <rect x="533" y="238" width="14" height="30" rx="3" fill="none" stroke="#facc15" stroke-width="2"/>
+  <path d="M540 238 V 225 H 500" stroke="#facc15" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>
+  <path d="M540 268 V 285" stroke="#facc15" stroke-width="1.6" fill="none"/>
+  <rect x="553" y="248" width="14" height="30" rx="3" fill="none" stroke="#4ade80" stroke-width="2"/>
+  <path d="M560 248 V 225 H 500" stroke="#4ade80" stroke-width="1.6" fill="none" stroke-dasharray="3 3"/>
+  <path d="M560 278 V 315" stroke="#4ade80" stroke-width="1.6" fill="none"/>
+  <text x="540" y="215" fill="#94a3b8" font-size="11" text-anchor="middle">2 × 10 kΩ pull-ups (SDA &amp; SCL → 3V3)</text>
+  
+
+  <!-- ══ Lid LED ══ -->
+  <path d="M320 410 H 470" stroke="#38bdf8" stroke-width="2.5" fill="none"/>
+  <rect x="470" y="403" width="34" height="14" rx="3" fill="none" stroke="#38bdf8" stroke-width="2"/>
+  <text x="487" y="432" fill="#94a3b8" font-size="11" text-anchor="middle">220 Ω</text>
+  <path d="M504 410 H 560" stroke="#38bdf8" stroke-width="2.5" fill="none"/>
+  <circle cx="580" cy="410" r="14" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+  <circle cx="580" cy="410" r="6" fill="#38bdf8"/>
+  <path d="M594 410 H 660 V 470 H 520" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+  <text x="580" y="385" fill="#38bdf8" font-size="12" font-weight="600" text-anchor="middle">5 mm LED (lid)</text>
+  <text x="612" y="428" fill="#64748b" font-size="10">long leg → resistor side</text>
+
+  <!-- ══ Lid button ══ -->
+  <path d="M320 450 H 430" stroke="#c084fc" stroke-width="2.5" fill="none"/>
+  <rect x="430" y="437" width="46" height="26" rx="6" fill="#1e293b" stroke="#c084fc" stroke-width="2.5"/>
+  <circle cx="453" cy="450" r="7" fill="#c084fc"/>
+  <path d="M476 450 H 520 V 470" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+  <text x="453" y="484" fill="#c084fc" font-size="12" font-weight="600" text-anchor="middle">12 mm button (lid)</text>
+  <text x="620" y="490" fill="#94a3b8" font-size="11">→ GND (shared)</text>
+
+  <!-- ══ Notes ══ -->
+  <rect x="90" y="530" width="0" height="0" fill="none"/>
+  <g transform="translate(370,548)">
+    <rect x="0" y="0" width="700" height="92" rx="10" fill="#1e293b" stroke="#334155"/>
+    <text x="16" y="24" fill="#e2e8f0" font-size="12" font-weight="600">Button: short press = status blink (3 slow = online, 6 fast = trouble) · hold 10 s = factory reset</text>
+    <text x="16" y="46" fill="#94a3b8" font-size="12">Deleted vs battery Rev A: 3×AA holder, TPS63031 buck-boost, battery divider.</text>
+    <text x="16" y="66" fill="#94a3b8" font-size="12">Parts: dev board · SDP810 · 2×10 kΩ · 1×220 Ω · LED · button · 4 magnets ·</text><text x="16" y="84" fill="#94a3b8" font-size="12">4 screws · 2 grommets · tubes</text>
+  </g>
+</svg>
