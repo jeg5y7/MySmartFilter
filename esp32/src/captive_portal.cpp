@@ -43,7 +43,15 @@ const int CONFIG_VERSION = 1;
 
 // Hardware configuration
 #define SDP810_I2C_ADDRESS 0x25
-#define LED_PIN 2  // Built-in LED for status
+#define LED_PIN 2       // Built-in LED (dev board)
+#define LED_EXT_PIN 26  // 5 mm status LED in the lid (through 220 Ω to GND)
+#define BUTTON_PIN 27   // Lid momentary button to GND (INPUT_PULLUP)
+
+// Drive both status LEDs together
+inline void ledWrite(int v) {
+  digitalWrite(LED_PIN, v);
+  digitalWrite(LED_EXT_PIN, v);
+}
 
 // Global objects
 WebServer server(80);
@@ -51,8 +59,39 @@ DNSServer dnsServer;
 Config config;
 WiFiClientSecure apiClient;  // TLS with pinned root CAs for all API calls
 bool wifiConnected = false;
+bool lastSendOk = false;
 unsigned long lastReading = 0;
 const unsigned long readingInterval = 30000;  // 30 seconds
+
+// ── Lid button ───────────────────────────────────────────────────────────────
+// Short press: blink the lid LED with connection status (3 slow = online and
+// reporting, 6 fast = trouble). Hold 10 s: factory reset (wipes WiFi + link).
+void factoryReset();
+static unsigned long btnPressedAt = 0;
+
+void handleButton() {
+  bool down = digitalRead(BUTTON_PIN) == LOW;
+  if (down && btnPressedAt == 0) {
+    btnPressedAt = millis();
+    return;
+  }
+  if (!down && btnPressedAt != 0) {
+    unsigned long held = millis() - btnPressedAt;
+    btnPressedAt = 0;
+    if (held >= 10000) {
+      factoryReset();  // restarts
+    } else if (held >= 50) {
+      bool healthy = wifiConnected && lastSendOk;
+      int blinks = healthy ? 3 : 6;
+      int period = healthy ? 350 : 120;
+      for (int i = 0; i < blinks; i++) {
+        ledWrite(HIGH); delay(period);
+        ledWrite(LOW);  delay(period);
+      }
+      ledWrite(healthy ? HIGH : LOW);
+    }
+  }
+}
 
 // Sensor data structure
 struct SensorData {
@@ -404,6 +443,8 @@ void setup() {
   
   // Setup LED for status indication
   pinMode(LED_PIN, OUTPUT);
+  pinMode(LED_EXT_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
   
   // Check if already configured
   if (isConfigured()) {
@@ -423,6 +464,8 @@ void setup() {
 }
 
 void loop() {
+  handleButton();
+
   if (WiFi.getMode() == WIFI_AP) {
     // Handle DNS and web server in AP mode
     dnsServer.processNextRequest();
@@ -431,7 +474,7 @@ void loop() {
     // Blink LED to indicate setup mode
     static unsigned long lastBlink = 0;
     if (millis() - lastBlink > 500) {
-      digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+      ledWrite(!digitalRead(LED_PIN));
       lastBlink = millis();
     }
   } else if (wifiConnected) {
@@ -445,15 +488,17 @@ void loop() {
         
         if (sendSensorData(data)) {
           Serial.println("✓ Data sent successfully");
+          lastSendOk = true;
           // Solid LED for successful operation
-          digitalWrite(LED_PIN, HIGH);
+          ledWrite(HIGH);
         } else {
           Serial.println("✗ Failed to send data");
+          lastSendOk = false;
           // Flash LED for error
           for(int i = 0; i < 3; i++) {
-            digitalWrite(LED_PIN, LOW);
+            ledWrite(LOW);
             delay(100);
-            digitalWrite(LED_PIN, HIGH);
+            ledWrite(HIGH);
             delay(100);
           }
         }
@@ -922,6 +967,10 @@ SensorData readSDP810() {
     Wire.read(); Wire.read(); Wire.read();
     
     data.pressure = applyAutoZero(pressureRaw / 60.0);
+    // Reversed tubes read as large negative pressure — honor the install
+    // guide's "either tube can be A or B" by folding the sign over. Small
+    // negative noise near zero is left alone.
+    if (data.pressure < -5.0f) data.pressure = -data.pressure;
     data.temperature = temperatureRaw / 200.0;
     data.valid = true;
     
