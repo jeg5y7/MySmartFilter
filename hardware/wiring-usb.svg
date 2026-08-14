@@ -6,7 +6,7 @@
 
   <!-- Title -->
   <text x="40" y="46" fill="#e2e8f0" font-size="24" font-weight="700">MySmartFilter — USB pilot wiring</text>
-  <text x="40" y="72" fill="#64748b" font-size="14">Rev A-USB enclosure · firmware v1.5.0 · 6 wires + 3 resistors, no soldering required with dupont jumpers</text>
+  <text x="40" y="72" fill="#64748b" font-size="14">Rev A-USB enclosure · firmware v1.6.0 · 8 wires + 5 resistors, no soldering required with dupont jumpers</text>
 
   <!-- ══ ESP32 DevKit board ══ -->
   <rect x="90" y="140" width="230" height="360" rx="10" fill="#1e293b" stroke="#475569" stroke-width="2"/>
@@ -30,8 +30,8 @@
     <circle cx="320" cy="290" r="5" fill="#94a3b8"/><text x="270" y="295" fill="#94a3b8" text-anchor="end">GND</text>
     <circle cx="320" cy="330" r="5" fill="#facc15"/><text x="270" y="335" fill="#facc15" text-anchor="end">GPIO21</text>
     <circle cx="320" cy="370" r="5" fill="#4ade80"/><text x="270" y="375" fill="#4ade80" text-anchor="end">GPIO22</text>
-    <circle cx="320" cy="410" r="5" fill="#38bdf8"/><text x="270" y="415" fill="#38bdf8" text-anchor="end">GPIO26</text>
-    <circle cx="320" cy="450" r="5" fill="#c084fc"/><text x="270" y="455" fill="#c084fc" text-anchor="end">GPIO27</text>
+    <circle cx="320" cy="410" r="5" fill="#f87171"/><text x="270" y="415" fill="#f87171" text-anchor="end">GPIO25/26/27</text>
+    <circle cx="320" cy="450" r="5" fill="#94a3b8"/><text x="270" y="455" fill="#94a3b8" text-anchor="end">GND</text>
   </g>
 
   <!-- ══ SDP810 sensor ══ -->
@@ -70,31 +70,29 @@
   <text x="540" y="215" fill="#94a3b8" font-size="11" text-anchor="middle">2 × 10 kΩ pull-ups (SDA &amp; SCL → 3V3)</text>
   
 
-  <!-- ══ Lid LED ══ -->
-  <path d="M320 410 H 470" stroke="#38bdf8" stroke-width="2.5" fill="none"/>
-  <rect x="470" y="403" width="34" height="14" rx="3" fill="none" stroke="#38bdf8" stroke-width="2"/>
-  <text x="487" y="432" fill="#94a3b8" font-size="11" text-anchor="middle">220 Ω</text>
-  <path d="M504 410 H 560" stroke="#38bdf8" stroke-width="2.5" fill="none"/>
-  <circle cx="580" cy="410" r="14" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
-  <circle cx="580" cy="410" r="6" fill="#38bdf8"/>
-  <path d="M594 410 H 660 V 470 H 520" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
-  <text x="580" y="385" fill="#38bdf8" font-size="12" font-weight="600" text-anchor="middle">5 mm LED (lid)</text>
-  <text x="612" y="428" fill="#64748b" font-size="10">long leg → resistor side</text>
-
-  <!-- ══ Lid button ══ -->
-  <path d="M320 450 H 430" stroke="#c084fc" stroke-width="2.5" fill="none"/>
-  <rect x="430" y="437" width="46" height="26" rx="6" fill="#1e293b" stroke="#c084fc" stroke-width="2.5"/>
-  <circle cx="453" cy="450" r="7" fill="#c084fc"/>
-  <path d="M476 450 H 520 V 470" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
-  <text x="453" y="484" fill="#c084fc" font-size="12" font-weight="600" text-anchor="middle">12 mm button (lid)</text>
-  <text x="620" y="490" fill="#94a3b8" font-size="11">→ GND (shared)</text>
+  <!-- ══ Glow-top RGB LED ══ -->
+  <path d="M320 410 H 440" stroke="#f87171" stroke-width="2.5" fill="none"/>
+  <path d="M320 418 H 440" stroke="#4ade80" stroke-width="2.5" fill="none" transform="translate(0,-4)"/>
+  <path d="M320 422 H 440" stroke="#38bdf8" stroke-width="2.5" fill="none"/>
+  <rect x="440" y="396" width="30" height="10" rx="3" fill="none" stroke="#f87171" stroke-width="2"/>
+  <rect x="440" y="409" width="30" height="10" rx="3" fill="none" stroke="#4ade80" stroke-width="2"/>
+  <rect x="440" y="422" width="30" height="10" rx="3" fill="none" stroke="#38bdf8" stroke-width="2"/>
+  <text x="455" y="448" fill="#94a3b8" font-size="10" text-anchor="middle">3 × 220 Ω</text>
+  <path d="M470 401 H 530 M470 414 H 530 M470 427 H 530" stroke="#64748b" stroke-width="2" fill="none"/>
+  <circle cx="560" cy="414" r="17" fill="none" stroke="#e2e8f0" stroke-width="2.5"/>
+  <circle cx="560" cy="414" r="8" fill="#a78bfa" opacity="0.8"/>
+  <text x="560" y="386" fill="#e2e8f0" font-size="12" font-weight="600" text-anchor="middle">RGB LED (common cathode)</text>
+  <text x="560" y="452" fill="#64748b" font-size="10" text-anchor="middle">sits under the lid's glow window</text>
+  <path d="M577 414 H 640 V 450 H 520 V 450" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+  <path d="M320 450 H 520 V 450" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+  <text x="648" y="454" fill="#94a3b8" font-size="11">common leg → GND</text>
 
   <!-- ══ Notes ══ -->
   <rect x="90" y="530" width="0" height="0" fill="none"/>
   <g transform="translate(370,548)">
     <rect x="0" y="0" width="700" height="92" rx="10" fill="#1e293b" stroke="#334155"/>
-    <text x="16" y="24" fill="#e2e8f0" font-size="12" font-weight="600">Button: short press = status blink (3 slow = online, 6 fast = trouble) · hold 10 s = factory reset</text>
+    <text x="16" y="24" fill="#e2e8f0" font-size="12" font-weight="600">Glow: blue pulse = setup · amber = connecting/due soon · green = healthy · red = replace/error</text>
     <text x="16" y="46" fill="#94a3b8" font-size="12">Deleted vs battery Rev A: 3×AA holder, TPS63031 buck-boost, battery divider.</text>
-    <text x="16" y="66" fill="#94a3b8" font-size="12">Parts: dev board · SDP810 · 2×10 kΩ · 1×220 Ω · LED · button · 4 magnets ·</text><text x="16" y="84" fill="#94a3b8" font-size="12">4 screws · 2 grommets · tubes</text>
+    <text x="16" y="66" fill="#94a3b8" font-size="12">Parts: dev board · SDP810 · 2×10 kΩ · 3×220 Ω · RGB LED · 4 magnets ·</text><text x="16" y="84" fill="#94a3b8" font-size="12">4 screws · 2 grommets · tubes</text>
   </g>
 </svg>

@@ -43,14 +43,58 @@ const int CONFIG_VERSION = 1;
 
 // Hardware configuration
 #define SDP810_I2C_ADDRESS 0x25
-#define LED_PIN 2       // Built-in LED (dev board)
-#define LED_EXT_PIN 26  // 5 mm status LED in the lid (through 220 Ω to GND)
-#define BUTTON_PIN 27   // Lid momentary button to GND (INPUT_PULLUP)
+#define LED_PIN 2      // Built-in LED (dev board) — mirrors "online"
+#define LED_R_PIN 25   // Glow-top RGB LED (common cathode, 220 Ω per leg)
+#define LED_G_PIN 26
+#define LED_B_PIN 27
 
-// Drive both status LEDs together
-inline void ledWrite(int v) {
-  digitalWrite(LED_PIN, v);
-  digitalWrite(LED_EXT_PIN, v);
+// ── Glow-top status light ────────────────────────────────────────────────────
+// The lid diffuses an RGB LED into an ambient status glow (no button):
+//   pulsing blue   = setup mode (join SmartFilter_Setup from your phone)
+//   amber blink    = connecting to WiFi
+//   soft green     = online, filter healthy
+//   solid amber    = filter due soon
+//   breathing red  = replace filter now
+//   fast red blink = can't reach MySmartFilter (check WiFi/internet)
+enum GlowState {
+  GLOW_SETUP,
+  GLOW_CONNECTING,
+  GLOW_OK,
+  GLOW_SOON,
+  GLOW_NOW,
+  GLOW_ERROR,
+};
+static GlowState glowState = GLOW_CONNECTING;
+static char lastFilterStatus[16] = "ok";
+
+void glowSet(uint8_t r, uint8_t g, uint8_t b) {
+  ledcWrite(0, r);
+  ledcWrite(1, g);
+  ledcWrite(2, b);
+}
+
+// Non-blocking update, call every loop pass. Breathing = triangle wave.
+void glowTick() {
+  unsigned long t = millis();
+  uint8_t tri = (t / 8) % 512;            // 0..511 over ~4 s
+  if (tri > 255) tri = 511 - tri;         // triangle 0..255..0
+  bool blinkSlow = (t / 500) % 2 == 0;
+  bool blinkFast = (t / 150) % 2 == 0;
+
+  switch (glowState) {
+    case GLOW_SETUP:      glowSet(0, 0, 40 + (tri * 3) / 4); break;
+    case GLOW_CONNECTING: glowSet(blinkSlow ? 180 : 0, blinkSlow ? 90 : 0, 0); break;
+    case GLOW_OK:         glowSet(0, 60, 4); break;              // calm, dim green
+    case GLOW_SOON:       glowSet(200, 90, 0); break;            // amber
+    case GLOW_NOW:        glowSet(40 + (tri * 6) / 8, 0, 0); break; // breathing red
+    case GLOW_ERROR:      glowSet(blinkFast ? 220 : 0, 0, 0); break;
+  }
+}
+
+void glowFromFilterStatus() {
+  if (strcmp(lastFilterStatus, "replace_now") == 0) glowState = GLOW_NOW;
+  else if (strcmp(lastFilterStatus, "replace_soon") == 0) glowState = GLOW_SOON;
+  else glowState = GLOW_OK;
 }
 
 // Global objects
@@ -62,36 +106,6 @@ bool wifiConnected = false;
 bool lastSendOk = false;
 unsigned long lastReading = 0;
 const unsigned long readingInterval = 30000;  // 30 seconds
-
-// ── Lid button ───────────────────────────────────────────────────────────────
-// Short press: blink the lid LED with connection status (3 slow = online and
-// reporting, 6 fast = trouble). Hold 10 s: factory reset (wipes WiFi + link).
-void factoryReset();
-static unsigned long btnPressedAt = 0;
-
-void handleButton() {
-  bool down = digitalRead(BUTTON_PIN) == LOW;
-  if (down && btnPressedAt == 0) {
-    btnPressedAt = millis();
-    return;
-  }
-  if (!down && btnPressedAt != 0) {
-    unsigned long held = millis() - btnPressedAt;
-    btnPressedAt = 0;
-    if (held >= 10000) {
-      factoryReset();  // restarts
-    } else if (held >= 50) {
-      bool healthy = wifiConnected && lastSendOk;
-      int blinks = healthy ? 3 : 6;
-      int period = healthy ? 350 : 120;
-      for (int i = 0; i < blinks; i++) {
-        ledWrite(HIGH); delay(period);
-        ledWrite(LOW);  delay(period);
-      }
-      ledWrite(healthy ? HIGH : LOW);
-    }
-  }
-}
 
 // Sensor data structure
 struct SensorData {
@@ -443,8 +457,11 @@ void setup() {
   
   // Setup LED for status indication
   pinMode(LED_PIN, OUTPUT);
-  pinMode(LED_EXT_PIN, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  // Glow-top RGB: 5 kHz PWM, 8-bit, one channel per color leg
+  ledcSetup(0, 5000, 8); ledcAttachPin(LED_R_PIN, 0);
+  ledcSetup(1, 5000, 8); ledcAttachPin(LED_G_PIN, 1);
+  ledcSetup(2, 5000, 8); ledcAttachPin(LED_B_PIN, 2);
+  glowSet(0, 0, 0);
   
   // Check if already configured
   if (isConfigured()) {
@@ -464,19 +481,13 @@ void setup() {
 }
 
 void loop() {
-  handleButton();
+  glowTick();
 
   if (WiFi.getMode() == WIFI_AP) {
+    glowState = GLOW_SETUP;
     // Handle DNS and web server in AP mode
     dnsServer.processNextRequest();
     server.handleClient();
-    
-    // Blink LED to indicate setup mode
-    static unsigned long lastBlink = 0;
-    if (millis() - lastBlink > 500) {
-      ledWrite(!digitalRead(LED_PIN));
-      lastBlink = millis();
-    }
   } else if (wifiConnected) {
     // Normal operation - read sensor and send data
     if (millis() - lastReading >= readingInterval) {
@@ -489,18 +500,13 @@ void loop() {
         if (sendSensorData(data)) {
           Serial.println("✓ Data sent successfully");
           lastSendOk = true;
-          // Solid LED for successful operation
-          ledWrite(HIGH);
+          digitalWrite(LED_PIN, HIGH);   // onboard LED mirrors "online"
+          glowFromFilterStatus();        // glow shows the server's verdict
         } else {
           Serial.println("✗ Failed to send data");
           lastSendOk = false;
-          // Flash LED for error
-          for(int i = 0; i < 3; i++) {
-            ledWrite(LOW);
-            delay(100);
-            ledWrite(HIGH);
-            delay(100);
-          }
+          digitalWrite(LED_PIN, LOW);
+          glowState = GLOW_ERROR;
         }
       }
       
@@ -773,7 +779,8 @@ bool connectToWiFi() {
   if (strlen(config.ssid) == 0) {
     return false;
   }
-  
+
+  glowState = GLOW_CONNECTING;
   WiFi.mode(WIFI_STA);
   WiFi.begin(config.ssid, config.password);
   
@@ -911,8 +918,16 @@ bool sendSensorData(SensorData data) {
   
   int httpResponseCode = http.POST(jsonString);
   bool success = (httpResponseCode == 200);
-  
-  if (!success) {
+
+  if (success) {
+    // The server replies with its filter verdict — cache it for the glow
+    DynamicJsonDocument resp(256);
+    if (deserializeJson(resp, http.getString()) == DeserializationError::Ok &&
+        resp["filterStatus"].is<const char*>()) {
+      strlcpy(lastFilterStatus, resp["filterStatus"].as<const char*>(),
+              sizeof(lastFilterStatus));
+    }
+  } else {
     Serial.printf("Failed to send data. HTTP code: %d\n", httpResponseCode);
     if (httpResponseCode == 401) {
       Serial.println("Authentication failed. Token may be invalid.");
@@ -921,7 +936,7 @@ bool sendSensorData(SensorData data) {
       saveConfig();
     }
   }
-  
+
   http.end();
   return success;
 }

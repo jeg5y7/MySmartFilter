@@ -57,8 +57,13 @@ MAGNETS = [(-38, -13), (-38, 13), (38, -13), (38, 13)]
 TUBE_D, TUBE_SPACING, TUBE_Z = 7.6, 12.0, FLOOR + 11.0
 
 # Lid features (open floor zone between the two bays)
-BUTTON_D, BUTTON_POS = 12.4, (12.0, 5.0)
-LED_D, LED_POS = 5.2, (12.0, -7.0)
+# Glow window: a thinned disc in the lid diffuses the RGB status LED into
+# an ambient glow (print the lid in white/natural PETG). No button — the
+# monitor pairs itself when WiFi is unreachable and detects new filters
+# automatically from the pressure drop.
+GLOW_D = 30.0          # window diameter
+GLOW_MEMBRANE = 0.8    # remaining wall = 4 layers at 0.2 mm, glows nicely
+GLOW_POS = (12.0, 0.0)
 TEXT, TEXT_DEPTH = "MySmartFilter", 0.6
 
 
@@ -165,18 +170,16 @@ for (px, py) in POSTS:
         .extrude(CBORE_DEPTH + 0.01).translate((0, 0, LID_T - CBORE_DEPTH))
     )
 
+# Glow window: pocket cut from the underside, leaving a thin diffusing
+# membrane at the top surface (prints bridge-free with the lid face-down)
 lid = lid.cut(
-    cq.Workplane("XY").center(*BUTTON_POS).circle(BUTTON_D / 2)
-    .extrude(LID_T + SKIRT_H + 2).translate((0, 0, -SKIRT_H - 1))
-)
-lid = lid.cut(
-    cq.Workplane("XY").center(*LED_POS).circle(LED_D / 2)
-    .extrude(LID_T + SKIRT_H + 2).translate((0, 0, -SKIRT_H - 1))
+    cq.Workplane("XY").center(*GLOW_POS).circle(GLOW_D / 2)
+    .extrude(LID_T - GLOW_MEMBRANE)
 )
 
 lid = lid.cut(
-    cq.Workplane("XY").center(-26, 0)
-    .text(TEXT, 8, -TEXT_DEPTH, font="DejaVu Sans", kind="bold")
+    cq.Workplane("XY").center(-31, 0)
+    .text(TEXT, 6, -TEXT_DEPTH, font="DejaVu Sans", kind="bold")
     .translate((0, 0, LID_T))
 )
 
