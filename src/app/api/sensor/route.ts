@@ -4,6 +4,8 @@ import { db } from "~/server/db";
 import { dispatchWebhook } from "~/lib/webhooks";
 import { accrueReading } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
+import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
+import { computeFilterHealth } from "~/lib/filter-health";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 
 // Schema for validating ESP32 sensor data
@@ -132,10 +134,27 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error("[sensor] energy alert check failed:", err);
       }
+      // A sharp sustained drop back to clean-baseline ΔP means a new filter
+      // was installed — reset tracking automatically, no button needed
+      try {
+        await maybeDetectFilterReplacement(updatedDevice, pressure);
+      } catch (err) {
+        console.error("[sensor] replacement detection failed:", err);
+      }
+    }
+
+    // Tell the device its filter verdict so the glow light can show it
+    let filterStatus: string | null = null;
+    try {
+      const health = await computeFilterHealth(updatedDevice, pressure);
+      filterStatus = health.status;
+    } catch (err) {
+      console.error("[sensor] filter health compute failed:", err);
     }
 
     return NextResponse.json({
       success: true,
+      filterStatus,
       data: {
         id: sensorReading.id,
         timestamp: sensorReading.timestamp,

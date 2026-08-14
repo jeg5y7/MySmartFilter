@@ -2,11 +2,11 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.5.0.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.6.0.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.5.0.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.6.0.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
 Both include the captive-portal WiFi setup and the device-secret handshake.
@@ -37,7 +37,7 @@ Both include the captive-portal WiFi setup and the device-secret handshake.
 Factory reset (wipe WiFi + relink): reflash, or hold the board's BOOT
 button while tapping EN, then reflash.
 
-## v1.5.0 — stable IDs + TLS validation
+## v1.6.0 — stable IDs + TLS validation
 
 - The device ID is now derived from the chip's factory MAC (`SF` + 12 hex),
   so it never changes across setups/wipes. The setup page shows it — that's
@@ -46,14 +46,14 @@ button while tapping EN, then reflash.
   (Let's Encrypt + Google Trust Services) with NTP clock sync — a spoofed
   network can no longer impersonate the server or feed fake updates.
 
-## v1.5.0 — sensor auto-zero
+## v1.6.0 — sensor auto-zero
 
 Drift correction learned from blower-off periods: when readings sit flat
 near zero for ~10 minutes (blower off), that plateau becomes the new zero.
 Makes low-cost differential sensors (XGZP-class, ~$2–3) viable for Rev B —
 their offset drift self-corrects many times a day.
 
-## v1.5.0 — field-safe OTA
+## v1.6.0 — field-safe OTA
 
 - Devices check for updates on boot AND every 24 h (always-on units never
   reboot, so the daily check is what actually delivers updates).
@@ -64,11 +64,15 @@ their offset drift self-corrects many times a day.
   ramp → 100%), and only the OTA *application* updates — the bootloader is
   never touched, and browser reflash over USB always remains the fallback.
 
-## v1.5.0 — lid button + LED + reversed-tube tolerance
+## v1.6.0 — glow-top status light (button removed)
 
-- GPIO26 drives the 5 mm lid LED (through 220 Ω); GPIO27 reads the lid
-  button (to GND). Short press: 3 slow blinks = online & reporting, 6 fast
-  = trouble. Hold 10 s: factory reset.
-- Reversed pressure tubes (large negative readings) auto-fold positive —
-  either tube really can go in either port now.
+- RGB LED (common cathode) on GPIO25/26/27 through 220 Ω each, diffused
+  through the lid's thin glow window. Colors: pulsing blue = setup mode,
+  amber blink = connecting, soft green = filter healthy, solid amber =
+  replace soon, breathing red = replace now, fast red blink = can't reach
+  the server.
+- No button: pairing self-triggers when WiFi is unreachable; account
+  transfer = remove the device in the app (it re-registers unclaimed);
+  new filters are detected automatically from the pressure drop.
+- Reversed pressure tubes (large negative readings) auto-fold positive.
 - Wiring diagram: hardware/wiring-usb.svg

@@ -4,6 +4,7 @@ import { db } from "~/server/db";
 import { dispatchWebhook } from "~/lib/webhooks";
 import { accrueReading, type EnergyDeviceState } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
+import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { resend, EMAIL_FROM } from "~/lib/resend";
 import { computeFilterHealth } from "~/lib/filter-health";
@@ -151,6 +152,13 @@ export async function POST(request: NextRequest) {
       await maybeTriggerEnergyAlert(updatedDevice, newest.pressure);
     } catch (err) {
       console.error("[sensor/batch] energy alert check failed:", err);
+    }
+
+    // Auto-detect a freshly installed filter (sustained drop to baseline)
+    try {
+      await maybeDetectFilterReplacement(updatedDevice, newest.pressure);
+    } catch (err) {
+      console.error("[sensor/batch] replacement detection failed:", err);
     }
 
     // Low-battery email on downward crossing of the threshold
