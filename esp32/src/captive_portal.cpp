@@ -18,7 +18,7 @@
 
 // EEPROM storage structure
 struct Config {
-  char magic[4];  // "SF02" to verify valid config (SF02 added deviceSecret)
+  char magic[5];  // "SF02" + NUL to verify valid config (SF02 added deviceSecret)
   char ssid[33];
   char password[64];
   char deviceId[17];  // 16 chars + null terminator
@@ -1096,7 +1096,7 @@ void clearConfig() {
 }
 
 bool isConfigured() {
-  return strcmp(config.magic, "SF01") == 0 && config.configured;
+  return strcmp(config.magic, "SF02") == 0 && config.configured;
 }
 
 // Factory reset function (call from serial monitor or button press)
