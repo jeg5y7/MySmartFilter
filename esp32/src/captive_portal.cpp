@@ -18,11 +18,13 @@
 
 // EEPROM storage structure
 struct Config {
-  char magic[4];  // "SF02" to verify valid config (SF02 added deviceSecret)
+  char magic[5];  // "SF03" + NUL. SF03 = magic widened to 5B + apiToken to 80B;
+                  // an SF02 blob read into this layout is byte-shifted, so the
+                  // version MUST change to force a clean wipe.
   char ssid[33];
   char password[64];
   char deviceId[17];  // 16 chars + null terminator
-  char apiToken[65];  // 64 chars + null terminator
+  char apiToken[80];  // server issues "sf_" + 64 hex = 67 chars + NUL
   char deviceSecret[65];  // self-generated, proves ownership on re-register
   bool configured;
   // Appended after SF02 shipped — layout stays SF02-compatible (older
@@ -449,6 +451,26 @@ void clearConfig();
 bool isConfigured();
 void factoryReset();
 
+// Scan results are cached before the AP starts: WiFi.scanNetworks() flips
+// the radio into STA mode and goes off-channel mid-scan, which drops or
+// wedges soft-AP clients — the AP keeps beaconing but DHCP/TCP go dead.
+// Scanning with no AP up (and no clients) is safe.
+String cachedScanJson = "{\"networks\":[]}";
+
+static String buildScanJson(int n) {
+  String json = "{\"networks\":[";
+  for (int i = 0; i < n; i++) {
+    if (i > 0) json += ",";
+    json += "{";
+    json += "\"ssid\":\"" + WiFi.SSID(i) + "\",";
+    json += "\"rssi\":" + String(WiFi.RSSI(i)) + ",";
+    json += "\"encrypted\":" + String(WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
+    json += "}";
+  }
+  json += "]}";
+  return json;
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("\n\nSmart Filter WiFi Manager Starting...");
@@ -539,10 +561,35 @@ void loop() {
 }
 
 void startSetupMode() {
-  // Create AP
+  // Scan for networks BEFORE hosting the AP (see cachedScanJson comment).
+  WiFi.mode(WIFI_AP_STA);
+  Serial.println("[setup] pre-AP WiFi scan starting");
+  int n = WiFi.scanNetworks();
+  Serial.printf("[setup] pre-AP scan done: %d networks\n", n);
+  cachedScanJson = buildScanJson(n);
+  WiFi.scanDelete();
+
+  // Back to pure AP before serving. Leaving the STA interface up (AP_STA)
+  // lets association and DHCP succeed while TCP never reaches the server —
+  // a silent failure that looks exactly like a dead web server.
   WiFi.mode(WIFI_AP);
+  delay(100);
+
+  // Trace AP client joins/leaves so a silent data-path failure is visible
+  // on serial even when no HTTP arrives
+  WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+    if (event == ARDUINO_EVENT_WIFI_AP_STACONNECTED) {
+      Serial.println("[ap] client associated");
+    } else if (event == ARDUINO_EVENT_WIFI_AP_STADISCONNECTED) {
+      Serial.println("[ap] client disconnected");
+    } else if (event == ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED) {
+      Serial.println("[ap] client got DHCP lease");
+    }
+  });
+
+  // Create AP
   WiFi.softAP(AP_SSID, AP_PASSWORD);
-  
+
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
@@ -555,6 +602,7 @@ void startSetupMode() {
   server.on("/scan", handleScan);
   server.on("/configure", HTTP_POST, handleConfigure);
   server.on("/deviceinfo", []() {
+    Serial.println("[http] GET /deviceinfo");
     server.sendHeader("Access-Control-Allow-Origin", "*");
     server.send(200, "application/json",
                 String("{\"deviceId\":\"") + config.deviceId + "\"}");
@@ -568,30 +616,21 @@ void startSetupMode() {
 }
 
 void handleRoot() {
+  Serial.printf("[http] %s %s -> root page\n",
+                server.method() == HTTP_POST ? "POST" : "GET",
+                server.uri().c_str());
   server.send(200, "text/html", SETUP_HTML);
 }
 
 void handleScan() {
-  String json = "{\"networks\":[";
-  int n = WiFi.scanNetworks();
-  
-  if (n > 0) {
-    for (int i = 0; i < n; i++) {
-      if (i > 0) json += ",";
-      json += "{";
-      json += "\"ssid\":\"" + WiFi.SSID(i) + "\",";
-      json += "\"rssi\":" + String(WiFi.RSSI(i)) + ",";
-      json += "\"encrypted\":" + String(WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
-      json += "}";
-    }
-  }
-  json += "]}";
-  
+  // Never scan while the AP has clients — serve the pre-AP cache
+  Serial.println("[http] GET /scan (cached)");
   server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.send(200, "application/json", json);
+  server.send(200, "application/json", cachedScanJson);
 }
 
 void handleConfigure() {
+  Serial.println("[http] POST /configure");
   String ssid = server.arg("ssid");
   String password = server.arg("password");
 
@@ -603,7 +642,7 @@ void handleConfigure() {
   // taken from the client
   ssid.toCharArray(config.ssid, sizeof(config.ssid));
   password.toCharArray(config.password, sizeof(config.password));
-  strcpy(config.magic, "SF02");
+  strcpy(config.magic, "SF03");
   config.configured = true;
   
   saveConfig();
@@ -940,18 +979,54 @@ bool sendSensorData(SensorData data) {
 }
 
 void initializeSDP810() {
+  // The sensor keeps measuring across an ESP32 reboot (continuous mode ends
+  // only on command or power loss), and a start command sent while it is
+  // already running is NACKed — which left it streaming a saturated 0x8000.
+  // Always stop first so init is idempotent.
+  Wire.beginTransmission(SDP810_I2C_ADDRESS);
+  Wire.write(0x3F);
+  Wire.write(0xF9);  // stop continuous measurement
+  Wire.endTransmission();
+  delay(25);         // datasheet 3.2: soft reset / mode change ~2ms, 25ms tPU
+
+  // 0x3615 = continuous, DIFFERENTIAL PRESSURE temperature compensation,
+  // averaged until read. The previous 0x3603 selects MASS FLOW compensation,
+  // which is the wrong compensation model for measuring filter dP.
   Wire.beginTransmission(SDP810_I2C_ADDRESS);
   Wire.write(0x36);
-  Wire.write(0x03);
+  Wire.write(0x15);
   int error = Wire.endTransmission();
-  
+
   if (error == 0) {
     Serial.println("SDP810 sensor initialized successfully");
   } else {
-    Serial.println("Failed to initialize SDP810 sensor");
+    Serial.printf("Failed to initialize SDP810 sensor (I2C error %d)\n", error);
   }
-  
+
   delay(100);
+}
+
+// SDP8xx scale factors (datasheet 6.5.1): 125Pa part = 240 Pa-1,
+// 500Pa part = 60 Pa-1. The sensor also reports its own scale factor in
+// bytes 7-8 of every measurement frame, which we prefer; this is only the
+// fallback if that word is unreadable.
+#ifndef SDP_SCALE_FACTOR_DEFAULT
+  #define SDP_SCALE_FACTOR_DEFAULT 240   // SDP810-125Pa
+#endif
+#ifndef DEBUG_SENSOR_RAW
+  #define DEBUG_SENSOR_RAW 0
+#endif
+
+// CRC-8, polynomial 0x31, init 0xFF (datasheet 6.4)
+static bool sdpCrcOk(const uint8_t* twoBytes, uint8_t expected) {
+  uint8_t crc = 0xFF;
+  for (int i = 0; i < 2; i++) {
+    crc ^= twoBytes[i];
+    for (int bit = 0; bit < 8; bit++) {
+      crc = (crc & 0x80) ? (uint8_t)((crc << 1) ^ 0x31) : (uint8_t)(crc << 1);
+    }
+  }
+  return crc == expected;
 }
 
 SensorData readSDP810() {
@@ -968,18 +1043,48 @@ SensorData readSDP810() {
 #endif
 
   Wire.requestFrom(SDP810_I2C_ADDRESS, 9);
-  
+
   if (Wire.available() >= 9) {
-    int16_t pressureRaw = (Wire.read() << 8) | Wire.read();
-    Wire.read(); // CRC
-    
-    int16_t temperatureRaw = (Wire.read() << 8) | Wire.read();
-    Wire.read(); // CRC
-    
-    // Skip scale factor bytes
-    Wire.read(); Wire.read(); Wire.read();
-    
-    data.pressure = applyAutoZero(pressureRaw / 60.0);
+    // Read all 9 bytes explicitly. NEVER inline these as
+    // (Wire.read() << 8) | Wire.read() — operand evaluation order is
+    // unspecified in C++, so the MSB/LSB can silently swap.
+    uint8_t b[9];
+    for (int i = 0; i < 9; i++) b[i] = Wire.read();
+
+    // Each 2-byte word is followed by a CRC-8 (poly 0x31, init 0xFF).
+    // Validating it is the only way to tell corrupted-bus garbage apart
+    // from a genuinely odd reading.
+    bool crcOk = sdpCrcOk(&b[0], b[2]) && sdpCrcOk(&b[3], b[5]) &&
+                 sdpCrcOk(&b[6], b[8]);
+    if (!crcOk) {
+      Serial.printf("[sdp] CRC FAIL raw=%02X %02X %02X | %02X %02X %02X | %02X %02X %02X\n",
+                    b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8]);
+      data.valid = false;
+      return data;
+    }
+
+    int16_t pressureRaw = (int16_t)((b[0] << 8) | b[1]);
+    int16_t temperatureRaw = (int16_t)((b[3] << 8) | b[4]);
+    // The sensor reports its own scale factor — trust it over a hardcoded
+    // constant so a 125Pa and a 500Pa part both read correctly.
+    int16_t scaleFactor = (int16_t)((b[6] << 8) | b[7]);
+    if (scaleFactor <= 0) scaleFactor = SDP_SCALE_FACTOR_DEFAULT;
+
+    if (DEBUG_SENSOR_RAW) {
+      Serial.printf("[sdp] raw dp=%d temp=%d scale=%d\n",
+                    pressureRaw, temperatureRaw, scaleFactor);
+    }
+
+    // A rail value is a fault, not a measurement. Reject it BEFORE the
+    // reversed-tube fold below, which would otherwise turn -32768 into a
+    // perfectly plausible +136.5 Pa and publish it as real data.
+    if (pressureRaw == -32768 || pressureRaw == 32767) {
+      Serial.printf("[sdp] saturated raw dp=%d — treating as invalid\n", pressureRaw);
+      data.valid = false;
+      return data;
+    }
+
+    data.pressure = applyAutoZero((float)pressureRaw / (float)scaleFactor);
     // Reversed tubes read as large negative pressure — honor the install
     // guide's "either tube can be A or B" by folding the sign over. Small
     // negative noise near zero is left alone.
@@ -1000,9 +1105,9 @@ void loadConfig() {
   EEPROM.get(0, config);
 
   // Check if config is valid (SF01 layouts lack the secret — start fresh)
-  if (strcmp(config.magic, "SF02") != 0) {
+  if (strcmp(config.magic, "SF03") != 0) {
     clearConfig();
-    strncpy(config.magic, "SF02", sizeof(config.magic));
+    strncpy(config.magic, "SF03", sizeof(config.magic));
   }
 }
 
@@ -1059,7 +1164,7 @@ void clearConfig() {
 }
 
 bool isConfigured() {
-  return strcmp(config.magic, "SF01") == 0 && config.configured;
+  return strcmp(config.magic, "SF03") == 0 && config.configured;
 }
 
 // Factory reset function (call from serial monitor or button press)
