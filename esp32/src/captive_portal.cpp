@@ -567,6 +567,12 @@ void startSetupMode() {
   cachedScanJson = buildScanJson(n);
   WiFi.scanDelete();
 
+  // Back to pure AP before serving. Leaving the STA interface up (AP_STA)
+  // lets association and DHCP succeed while TCP never reaches the server —
+  // a silent failure that looks exactly like a dead web server.
+  WiFi.mode(WIFI_AP);
+  delay(100);
+
   // Trace AP client joins/leaves so a silent data-path failure is visible
   // on serial even when no HTTP arrives
   WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
