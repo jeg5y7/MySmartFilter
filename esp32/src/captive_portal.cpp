@@ -993,6 +993,29 @@ void initializeSDP810() {
   delay(100);
 }
 
+// SDP8xx scale factors (datasheet 6.5.1): 125Pa part = 240 Pa-1,
+// 500Pa part = 60 Pa-1. The sensor also reports its own scale factor in
+// bytes 7-8 of every measurement frame, which we prefer; this is only the
+// fallback if that word is unreadable.
+#ifndef SDP_SCALE_FACTOR_DEFAULT
+  #define SDP_SCALE_FACTOR_DEFAULT 240   // SDP810-125Pa
+#endif
+#ifndef DEBUG_SENSOR_RAW
+  #define DEBUG_SENSOR_RAW 0
+#endif
+
+// CRC-8, polynomial 0x31, init 0xFF (datasheet 6.4)
+static bool sdpCrcOk(const uint8_t* twoBytes, uint8_t expected) {
+  uint8_t crc = 0xFF;
+  for (int i = 0; i < 2; i++) {
+    crc ^= twoBytes[i];
+    for (int bit = 0; bit < 8; bit++) {
+      crc = (crc & 0x80) ? (uint8_t)((crc << 1) ^ 0x31) : (uint8_t)(crc << 1);
+    }
+  }
+  return crc == expected;
+}
+
 SensorData readSDP810() {
   SensorData data = {0, 0, false};
 
@@ -1007,18 +1030,39 @@ SensorData readSDP810() {
 #endif
 
   Wire.requestFrom(SDP810_I2C_ADDRESS, 9);
-  
+
   if (Wire.available() >= 9) {
-    int16_t pressureRaw = (Wire.read() << 8) | Wire.read();
-    Wire.read(); // CRC
-    
-    int16_t temperatureRaw = (Wire.read() << 8) | Wire.read();
-    Wire.read(); // CRC
-    
-    // Skip scale factor bytes
-    Wire.read(); Wire.read(); Wire.read();
-    
-    data.pressure = applyAutoZero(pressureRaw / 60.0);
+    // Read all 9 bytes explicitly. NEVER inline these as
+    // (Wire.read() << 8) | Wire.read() — operand evaluation order is
+    // unspecified in C++, so the MSB/LSB can silently swap.
+    uint8_t b[9];
+    for (int i = 0; i < 9; i++) b[i] = Wire.read();
+
+    // Each 2-byte word is followed by a CRC-8 (poly 0x31, init 0xFF).
+    // Validating it is the only way to tell corrupted-bus garbage apart
+    // from a genuinely odd reading.
+    bool crcOk = sdpCrcOk(&b[0], b[2]) && sdpCrcOk(&b[3], b[5]) &&
+                 sdpCrcOk(&b[6], b[8]);
+    if (!crcOk) {
+      Serial.printf("[sdp] CRC FAIL raw=%02X %02X %02X | %02X %02X %02X | %02X %02X %02X\n",
+                    b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8]);
+      data.valid = false;
+      return data;
+    }
+
+    int16_t pressureRaw = (int16_t)((b[0] << 8) | b[1]);
+    int16_t temperatureRaw = (int16_t)((b[3] << 8) | b[4]);
+    // The sensor reports its own scale factor — trust it over a hardcoded
+    // constant so a 125Pa and a 500Pa part both read correctly.
+    int16_t scaleFactor = (int16_t)((b[6] << 8) | b[7]);
+    if (scaleFactor <= 0) scaleFactor = SDP_SCALE_FACTOR_DEFAULT;
+
+    if (DEBUG_SENSOR_RAW) {
+      Serial.printf("[sdp] raw dp=%d temp=%d scale=%d\n",
+                    pressureRaw, temperatureRaw, scaleFactor);
+    }
+
+    data.pressure = applyAutoZero((float)pressureRaw / (float)scaleFactor);
     // Reversed tubes read as large negative pressure — honor the install
     // guide's "either tube can be A or B" by folding the sign over. Small
     // negative noise near zero is left alone.
