@@ -443,8 +443,6 @@ void registerDevice();
 void updateDeviceStatus();
 bool sendSensorData(SensorData data);
 void initializeSDP810();
-void logSdpProductId();
-static bool sdpCrcOk(const uint8_t* twoBytes, uint8_t expected);
 SensorData readSDP810();
 void loadConfig();
 void ensureDeviceSecret();
@@ -488,7 +486,6 @@ void setup() {
 
   // Initialize I2C for sensor
   Wire.begin(21, 22);
-  logSdpProductId();
   
   // Setup LED for status indication
   pinMode(LED_PIN, OUTPUT);
@@ -1007,47 +1004,6 @@ void initializeSDP810() {
   }
 
   delay(100);
-}
-
-// Bench diagnostic: read the product identifier (datasheet 6.3.6). Confirms
-// the part is alive and which SDP8xx variant is fitted, independent of
-// whether its pressure element is returning sane values.
-void logSdpProductId() {
-  // Must not be in continuous-measurement mode: the sensor would keep
-  // streaming measurement frames instead of answering the ID command.
-  Wire.beginTransmission(SDP810_I2C_ADDRESS);
-  Wire.write(0x3F); Wire.write(0xF9);
-  Wire.endTransmission();
-  delay(25);
-
-  Wire.beginTransmission(SDP810_I2C_ADDRESS);
-  Wire.write(0x36); Wire.write(0x7C);
-  Wire.endTransmission(false);
-  Wire.beginTransmission(SDP810_I2C_ADDRESS);
-  Wire.write(0xE1); Wire.write(0x02);
-  if (Wire.endTransmission() != 0) {
-    Serial.println("[sdp] product-id command NACKed");
-    return;
-  }
-  delay(5);
-  Wire.requestFrom(SDP810_I2C_ADDRESS, 18);
-  if (Wire.available() < 18) {
-    Serial.printf("[sdp] product-id short read (%d bytes)\n", Wire.available());
-    return;
-  }
-  uint8_t p[18];
-  for (int i = 0; i < 18; i++) p[i] = Wire.read();
-  for (int w = 0; w < 6; w++) {
-    if (!sdpCrcOk(&p[w * 3], p[w * 3 + 2])) {
-      Serial.printf("[sdp] product-id CRC fail at word %d — result not trustworthy\n", w);
-      return;
-    }
-  }
-  uint32_t product = ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
-                     ((uint32_t)p[3] << 8) | (uint32_t)p[4];
-  Serial.printf("[sdp] product=0x%08lX serial=%02X%02X%02X%02X%02X%02X%02X%02X\n",
-                (unsigned long)product,
-                p[6], p[7], p[9], p[10], p[12], p[13], p[15], p[16]);
 }
 
 // SDP8xx scale factors (datasheet 6.5.1): 125Pa part = 240 Pa-1,
