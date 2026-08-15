@@ -8,7 +8,9 @@ import Link from "next/link";
 
 type Step = 1 | 2 | 3 | 4;
 
-const DEVICE_ID_REGEX = /^SF[A-Za-z0-9]{14}$/i;
+// Current monitors: SF + 12 hex (derived from the chip's factory MAC).
+// Legacy/pre-pilot units used SF + 14 random characters — accept both.
+const DEVICE_ID_REGEX = /^SF[A-Za-z0-9]{12,14}$/i;
 
 // ─── Progress Bar ─────────────────────────────────────────────────────────────
 
@@ -69,8 +71,8 @@ function Step1PowerOn({ onNext }: { onNext: () => void }) {
         Power On Your Device
       </h1>
       <p className="text-gray-400 mb-8">
-        Press the button on your Smart Filter device. The LED will blink blue
-        when it&apos;s ready.
+        Plug in your smart filter monitor. Its light will pulse blue when
+        it&apos;s ready to set up.
       </p>
 
       {/* Animated pulsing blue circle */}
@@ -294,7 +296,7 @@ function Step2IdentifyDevice({
     const trimmed = deviceId.trim().toUpperCase();
     if (!DEVICE_ID_REGEX.test(trimmed)) {
       setError(
-        "Device ID must start with SF followed by 14 alphanumeric characters (e.g. SF1234567890ABCD)",
+        "Device ID must start with SF followed by 12-14 letters/numbers - it's shown on the monitor's setup screen and its label",
       );
       return;
     }
@@ -392,8 +394,8 @@ function Step2IdentifyDevice({
             }`}
           />
           <p className="mt-1.5 text-xs text-gray-500">
-            Format: SF + 14 characters (e.g.{" "}
-            <span className="text-gray-400 font-mono">SF1234567890ABCD</span>)
+            Format: SF + 12 characters, as shown on your monitor (e.g.{" "}
+            <span className="text-gray-400 font-mono">SF44B176A13484</span>)
           </p>
         </div>
       )}
