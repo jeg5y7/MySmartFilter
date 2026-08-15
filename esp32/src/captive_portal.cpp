@@ -395,11 +395,20 @@ const char SETUP_HTML[] PROGMEM = R"rawliteral(
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    msg.innerHTML = '<p class="success">✓ Connected! Redirecting to complete setup...</p>';
-                    // Store device ID for the redirect
-                    setTimeout(() => {
-                        window.location.href = `https://mysmartfilter.com/setup/device?id=${deviceId}`;
-                    }, 3000);
+                    const id = data.deviceId || deviceId;
+                    msg.innerHTML = `
+                      <p class="success">✓ Saved! The monitor is connecting to your WiFi now.</p>
+                      <div class="step" style="margin-top:12px;">
+                        <strong>Almost done — 2 steps:</strong><br>
+                        1. This SmartFilter_Setup network will disappear shortly.
+                        Reconnect your phone to your <strong>home WiFi</strong>.<br>
+                        2. Then visit <strong>mysmartfilter.com/setup/device</strong>
+                        and enter this Device ID:
+                        <div class="device-id">${id}</div>
+                        (If SmartFilter_Setup reappears after a minute, the WiFi
+                        password didn't work — join it again and retry.)
+                      </div>`;
+                    btn.style.display = 'none';
                 } else {
                     msg.innerHTML = `<p class="error">✗ ${data.message || 'Connection failed. Please try again.'}</p>`;
                     btn.disabled = false;
@@ -443,6 +452,7 @@ void factoryReset();
 void setup() {
   Serial.begin(115200);
   Serial.println("\n\nSmart Filter WiFi Manager Starting...");
+  Serial.printf("Firmware: %s\n", FIRMWARE_VERSION);
   
   // Initialize EEPROM
   EEPROM.begin(sizeof(Config));
@@ -597,40 +607,19 @@ void handleConfigure() {
   config.configured = true;
   
   saveConfig();
-  
-  // Try to connect
-  WiFi.begin(ssid.c_str(), password.c_str());
-  
-  // Wait for connection (max 10 seconds)
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-    delay(500);
-    attempts++;
-  }
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("Connected to WiFi!");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-    
-    // Send success response
-    String response = "{\"success\":true,\"ip\":\"" + WiFi.localIP().toString() + "\"}";
-    server.sendHeader("Access-Control-Allow-Origin", "*");
-    server.send(200, "application/json", response);
-    
-    // Restart to begin normal operation
-    delay(2000);
-    ESP.restart();
-  } else {
-    // Connection failed
-    Serial.println("Failed to connect to WiFi");
-    String response = "{\"success\":false,\"message\":\"Failed to connect to WiFi. Check password.\"}";
-    server.sendHeader("Access-Control-Allow-Origin", "*");
-    server.send(200, "application/json", response);
-    
-    // Clear the failed configuration
-    clearConfig();
-  }
+
+  // Respond to the phone FIRST, while the AP link is still solid — joining
+  // the home network while hosting the AP drops clients mid-request (the
+  // old flow's "spinner timeout"). The actual join happens after reboot,
+  // with the AP down and a patient window. Credentials are NEVER wiped on
+  // a failed join — the device just returns to setup mode with them kept.
+  String response = String("{\"success\":true,\"deviceId\":\"") +
+                    config.deviceId + "\"}";
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "application/json", response);
+  Serial.println("Config saved — rebooting to join the home network");
+  delay(1500);  // let the response flush to the phone
+  ESP.restart();
 }
 
 /**
@@ -782,13 +771,22 @@ bool connectToWiFi() {
 
   glowState = GLOW_CONNECTING;
   WiFi.mode(WIFI_STA);
-  WiFi.begin(config.ssid, config.password);
-  
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 40) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
+
+  // Two patient rounds (30 s each) — first joins after a fresh config
+  // save deserve real time, and a router mid-reboot deserves a second try
+  for (int round = 0; round < 2 && WiFi.status() != WL_CONNECTED; round++) {
+    if (round > 0) {
+      Serial.println("\nRetrying WiFi connection...");
+      WiFi.disconnect(true);
+      delay(1000);
+    }
+    WiFi.begin(config.ssid, config.password);
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 60) {
+      delay(500);
+      Serial.print(".");
+      attempts++;
+    }
   }
   
   if (WiFi.status() == WL_CONNECTED) {
