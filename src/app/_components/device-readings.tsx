@@ -12,6 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { api } from "~/trpc/react";
+import { cToF } from "~/lib/units";
 
 interface DeviceReadingsProps {
   deviceId: string;
@@ -119,7 +120,7 @@ function downsample(readings: RawReading[], bucketMs: number): ChartPoint[] {
     .map(([key, b]) => ({
       ts: key,
       pressure: b.pressure.reduce((a, c) => a + c, 0) / b.pressure.length,
-      temperature: b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length,
+      temperature: cToF(b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length),
     }));
 }
 
@@ -131,7 +132,7 @@ function toChartPoints(readings: RawReading[], cfg: RangeConfig): ChartPoint[] {
   return sorted.map((r) => ({
     ts: r.timestamp.getTime(),
     pressure: r.pressure,
-    temperature: r.temperature,
+    temperature: cToF(r.temperature),
   }));
 }
 
@@ -562,7 +563,7 @@ export function DeviceReadings({
         {/* Temperature Chart */}
         <ChartPanel
           title="Temperature"
-          unit="°C"
+          unit="°F"
           dataKey="temperature"
           color="#34d399"
           data={chartPoints}
@@ -590,8 +591,8 @@ export function DeviceReadings({
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
           <p className="text-gray-400 text-xs mb-1">Avg Temp</p>
           <p className="text-lg font-bold text-emerald-400">
-            {avgTemp.toFixed(1)}
-            <span className="text-xs font-normal text-gray-400 ml-1">°C</span>
+            {cToF(avgTemp).toFixed(1)}
+            <span className="text-xs font-normal text-gray-400 ml-1">°F</span>
           </p>
         </div>
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
@@ -628,7 +629,7 @@ export function DeviceReadings({
               <tr className="border-b border-white/10 bg-white/5">
                 <th className="text-left px-4 py-2 text-gray-400 font-medium">Time</th>
                 <th className="text-right px-4 py-2 text-gray-400 font-medium">Pressure (Pa)</th>
-                <th className="text-right px-4 py-2 text-gray-400 font-medium">Temp (°C)</th>
+                <th className="text-right px-4 py-2 text-gray-400 font-medium">Temp (°F)</th>
                 {(recentReadings.some((r) => r.humidity != null)) && (
                   <th className="text-right px-4 py-2 text-gray-400 font-medium">Humidity (%)</th>
                 )}
@@ -668,7 +669,7 @@ export function DeviceReadings({
                       {reading.pressure.toFixed(1)} Pa
                     </td>
                     <td className="px-4 py-2.5 text-right font-mono text-gray-300">
-                      {reading.temperature.toFixed(1)} °C
+                      {cToF(reading.temperature).toFixed(1)} °F
                     </td>
                     {recentReadings.some((r) => r.humidity != null) && (
                       <td className="px-4 py-2.5 text-right font-mono text-cyan-300">

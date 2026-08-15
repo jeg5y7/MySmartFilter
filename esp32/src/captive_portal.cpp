@@ -107,7 +107,11 @@ WiFiClientSecure apiClient;  // TLS with pinned root CAs for all API calls
 bool wifiConnected = false;
 bool lastSendOk = false;
 unsigned long lastReading = 0;
-const unsigned long readingInterval = 30000;  // 30 seconds
+// Adaptive sampling: granular while the blower runs (cycle edges matter for
+// the runtime graph), relaxed while it's off (nothing is changing).
+const unsigned long ACTIVE_INTERVAL_MS = 10000;  // blower on — every 10 s
+const unsigned long IDLE_INTERVAL_MS = 60000;    // blower off — every 60 s
+unsigned long readingInterval = ACTIVE_INTERVAL_MS;  // start eager
 
 // Sensor data structure
 struct SensorData {
@@ -398,17 +402,27 @@ const char SETUP_HTML[] PROGMEM = R"rawliteral(
             .then(data => {
                 if (data.success) {
                     const id = data.deviceId || deviceId;
+                    // The link carries the device ID — nothing to remember or
+                    // screenshot. The tap happens AFTER the phone falls back to
+                    // home WiFi (this page stays loaded through the switch).
                     msg.innerHTML = `
                       <p class="success">✓ Saved! The monitor is connecting to your WiFi now.</p>
                       <div class="step" style="margin-top:12px;">
-                        <strong>Almost done — 2 steps:</strong><br>
-                        1. This SmartFilter_Setup network will disappear shortly.
-                        Reconnect your phone to your <strong>home WiFi</strong>.<br>
-                        2. Then visit <strong>mysmartfilter.com/setup/device</strong>
-                        and enter this Device ID:
-                        <div class="device-id">${id}</div>
-                        (If SmartFilter_Setup reappears after a minute, the WiFi
-                        password didn't work — join it again and retry.)
+                        <strong>One more tap:</strong> wait ~30 seconds for the
+                        SmartFilter_Setup network to disappear (your phone
+                        reconnects to your home WiFi by itself), then tap:
+                        <a href="https://www.mysmartfilter.com/setup/device?device=${id}"
+                           style="display:block;text-align:center;margin:14px 0 8px;padding:14px;
+                                  background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                                  color:white;border-radius:8px;font-weight:600;
+                                  text-decoration:none;">
+                          Finish setup on MySmartFilter →
+                        </a>
+                        <span style="font-size:12px;color:#666;">Your Device ID
+                        (<span style="font-family:monospace;">${id}</span>) is
+                        already in the link — no need to write it down. If the
+                        SmartFilter_Setup network reappears instead, the WiFi
+                        password didn't work: join it again and retry.</span>
                       </div>`;
                     btn.style.display = 'none';
                 } else {
@@ -526,9 +540,14 @@ void loop() {
       SensorData data = readSDP810();
       
       if (data.valid) {
-        Serial.printf("Pressure: %.2f Pa, Temperature: %.2f °C\n", 
+        Serial.printf("Pressure: %.2f Pa, Temperature: %.2f °C\n",
                       data.pressure, data.temperature);
-        
+
+        // Blower running (ΔP above the on-threshold) → sample granularly so
+        // the graph shows crisp cycle edges; idle → back off
+        readingInterval =
+            (data.pressure >= 5.0f) ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS;
+
         if (sendSensorData(data)) {
           Serial.println("✓ Data sent successfully");
           lastSendOk = true;
