@@ -18,11 +18,13 @@
 
 // EEPROM storage structure
 struct Config {
-  char magic[5];  // "SF02" + NUL to verify valid config (SF02 added deviceSecret)
+  char magic[5];  // "SF03" + NUL. SF03 = magic widened to 5B + apiToken to 80B;
+                  // an SF02 blob read into this layout is byte-shifted, so the
+                  // version MUST change to force a clean wipe.
   char ssid[33];
   char password[64];
   char deviceId[17];  // 16 chars + null terminator
-  char apiToken[65];  // 64 chars + null terminator
+  char apiToken[80];  // server issues "sf_" + 64 hex = 67 chars + NUL
   char deviceSecret[65];  // self-generated, proves ownership on re-register
   bool configured;
   // Appended after SF02 shipped — layout stays SF02-compatible (older
@@ -640,7 +642,7 @@ void handleConfigure() {
   // taken from the client
   ssid.toCharArray(config.ssid, sizeof(config.ssid));
   password.toCharArray(config.password, sizeof(config.password));
-  strcpy(config.magic, "SF02");
+  strcpy(config.magic, "SF03");
   config.configured = true;
   
   saveConfig();
@@ -1037,9 +1039,9 @@ void loadConfig() {
   EEPROM.get(0, config);
 
   // Check if config is valid (SF01 layouts lack the secret — start fresh)
-  if (strcmp(config.magic, "SF02") != 0) {
+  if (strcmp(config.magic, "SF03") != 0) {
     clearConfig();
-    strncpy(config.magic, "SF02", sizeof(config.magic));
+    strncpy(config.magic, "SF03", sizeof(config.magic));
   }
 }
 
@@ -1096,7 +1098,7 @@ void clearConfig() {
 }
 
 bool isConfigured() {
-  return strcmp(config.magic, "SF02") == 0 && config.configured;
+  return strcmp(config.magic, "SF03") == 0 && config.configured;
 }
 
 // Factory reset function (call from serial monitor or button press)
