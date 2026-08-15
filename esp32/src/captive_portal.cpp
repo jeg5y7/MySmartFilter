@@ -979,17 +979,30 @@ bool sendSensorData(SensorData data) {
 }
 
 void initializeSDP810() {
+  // The sensor keeps measuring across an ESP32 reboot (continuous mode ends
+  // only on command or power loss), and a start command sent while it is
+  // already running is NACKed — which left it streaming a saturated 0x8000.
+  // Always stop first so init is idempotent.
+  Wire.beginTransmission(SDP810_I2C_ADDRESS);
+  Wire.write(0x3F);
+  Wire.write(0xF9);  // stop continuous measurement
+  Wire.endTransmission();
+  delay(25);         // datasheet 3.2: soft reset / mode change ~2ms, 25ms tPU
+
+  // 0x3615 = continuous, DIFFERENTIAL PRESSURE temperature compensation,
+  // averaged until read. The previous 0x3603 selects MASS FLOW compensation,
+  // which is the wrong compensation model for measuring filter dP.
   Wire.beginTransmission(SDP810_I2C_ADDRESS);
   Wire.write(0x36);
-  Wire.write(0x03);
+  Wire.write(0x15);
   int error = Wire.endTransmission();
-  
+
   if (error == 0) {
     Serial.println("SDP810 sensor initialized successfully");
   } else {
-    Serial.println("Failed to initialize SDP810 sensor");
+    Serial.printf("Failed to initialize SDP810 sensor (I2C error %d)\n", error);
   }
-  
+
   delay(100);
 }
 
@@ -1060,6 +1073,15 @@ SensorData readSDP810() {
     if (DEBUG_SENSOR_RAW) {
       Serial.printf("[sdp] raw dp=%d temp=%d scale=%d\n",
                     pressureRaw, temperatureRaw, scaleFactor);
+    }
+
+    // A rail value is a fault, not a measurement. Reject it BEFORE the
+    // reversed-tube fold below, which would otherwise turn -32768 into a
+    // perfectly plausible +136.5 Pa and publish it as real data.
+    if (pressureRaw == -32768 || pressureRaw == 32767) {
+      Serial.printf("[sdp] saturated raw dp=%d — treating as invalid\n", pressureRaw);
+      data.valid = false;
+      return data;
     }
 
     data.pressure = applyAutoZero((float)pressureRaw / (float)scaleFactor);
