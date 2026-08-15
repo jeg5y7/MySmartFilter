@@ -449,6 +449,26 @@ void clearConfig();
 bool isConfigured();
 void factoryReset();
 
+// Scan results are cached before the AP starts: WiFi.scanNetworks() flips
+// the radio into STA mode and goes off-channel mid-scan, which drops or
+// wedges soft-AP clients — the AP keeps beaconing but DHCP/TCP go dead.
+// Scanning with no AP up (and no clients) is safe.
+String cachedScanJson = "{\"networks\":[]}";
+
+static String buildScanJson(int n) {
+  String json = "{\"networks\":[";
+  for (int i = 0; i < n; i++) {
+    if (i > 0) json += ",";
+    json += "{";
+    json += "\"ssid\":\"" + WiFi.SSID(i) + "\",";
+    json += "\"rssi\":" + String(WiFi.RSSI(i)) + ",";
+    json += "\"encrypted\":" + String(WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
+    json += "}";
+  }
+  json += "]}";
+  return json;
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("\n\nSmart Filter WiFi Manager Starting...");
@@ -539,10 +559,29 @@ void loop() {
 }
 
 void startSetupMode() {
+  // Scan for networks BEFORE hosting the AP (see cachedScanJson comment).
+  WiFi.mode(WIFI_AP_STA);
+  Serial.println("[setup] pre-AP WiFi scan starting");
+  int n = WiFi.scanNetworks();
+  Serial.printf("[setup] pre-AP scan done: %d networks\n", n);
+  cachedScanJson = buildScanJson(n);
+  WiFi.scanDelete();
+
+  // Trace AP client joins/leaves so a silent data-path failure is visible
+  // on serial even when no HTTP arrives
+  WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+    if (event == ARDUINO_EVENT_WIFI_AP_STACONNECTED) {
+      Serial.println("[ap] client associated");
+    } else if (event == ARDUINO_EVENT_WIFI_AP_STADISCONNECTED) {
+      Serial.println("[ap] client disconnected");
+    } else if (event == ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED) {
+      Serial.println("[ap] client got DHCP lease");
+    }
+  });
+
   // Create AP
-  WiFi.mode(WIFI_AP);
   WiFi.softAP(AP_SSID, AP_PASSWORD);
-  
+
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
@@ -555,6 +594,7 @@ void startSetupMode() {
   server.on("/scan", handleScan);
   server.on("/configure", HTTP_POST, handleConfigure);
   server.on("/deviceinfo", []() {
+    Serial.println("[http] GET /deviceinfo");
     server.sendHeader("Access-Control-Allow-Origin", "*");
     server.send(200, "application/json",
                 String("{\"deviceId\":\"") + config.deviceId + "\"}");
@@ -568,30 +608,21 @@ void startSetupMode() {
 }
 
 void handleRoot() {
+  Serial.printf("[http] %s %s -> root page\n",
+                server.method() == HTTP_POST ? "POST" : "GET",
+                server.uri().c_str());
   server.send(200, "text/html", SETUP_HTML);
 }
 
 void handleScan() {
-  String json = "{\"networks\":[";
-  int n = WiFi.scanNetworks();
-  
-  if (n > 0) {
-    for (int i = 0; i < n; i++) {
-      if (i > 0) json += ",";
-      json += "{";
-      json += "\"ssid\":\"" + WiFi.SSID(i) + "\",";
-      json += "\"rssi\":" + String(WiFi.RSSI(i)) + ",";
-      json += "\"encrypted\":" + String(WiFi.encryptionType(i) != WIFI_AUTH_OPEN);
-      json += "}";
-    }
-  }
-  json += "]}";
-  
+  // Never scan while the AP has clients — serve the pre-AP cache
+  Serial.println("[http] GET /scan (cached)");
   server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.send(200, "application/json", json);
+  server.send(200, "application/json", cachedScanJson);
 }
 
 void handleConfigure() {
+  Serial.println("[http] POST /configure");
   String ssid = server.arg("ssid");
   String password = server.arg("password");
 
