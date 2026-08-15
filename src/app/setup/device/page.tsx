@@ -220,8 +220,8 @@ function Step2IdentifyDevice({
   // QR labels encode mysmartfilter.com/setup/device?device=SF… — prefill the
   // ID so the user just confirms (device may still be booting, so no auto-submit)
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search)
-      .get("device")
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = (params.get("device") ?? params.get("id"))
       ?.trim()
       .toUpperCase();
     if (fromUrl && DEVICE_ID_REGEX.test(fromUrl)) {

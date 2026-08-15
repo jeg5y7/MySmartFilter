@@ -1,4 +1,5 @@
 import { api } from "~/trpc/server";
+import { cToF } from "~/lib/units";
 
 export async function SensorDashboard() {
   const latestReadings = await api.sensor.getLatest({ limit: 20 });
@@ -29,7 +30,7 @@ export async function SensorDashboard() {
           />
           <StatCard
             title="Avg Temperature"
-            value={`${stats.temperature.avg.toFixed(1)} °C`}
+            value={`${cToF(stats.temperature.avg).toFixed(1)} °F`}
             subtitle={`Range: ${stats.temperature.min.toFixed(1)} - ${stats.temperature.max.toFixed(1)}`}
             icon="🌡️"
           />
@@ -130,7 +131,7 @@ function ReadingCard({ reading }: { reading: { id: string; deviceId: string; pre
         </div>
         <div className="flex justify-between">
           <span className="text-white/70">Temperature:</span>
-          <span className="font-semibold">{reading.temperature.toFixed(1)} °C</span>
+          <span className="font-semibold">{cToF(reading.temperature).toFixed(1)} °F</span>
         </div>
       </div>
       

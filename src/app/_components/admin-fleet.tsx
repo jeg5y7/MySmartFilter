@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { cToF } from "~/lib/units";
 import {
   ResponsiveContainer,
   LineChart,
@@ -230,7 +231,7 @@ export function AdminFleet({
                       {d.pressure !== null ? `${d.pressure.toFixed(1)} Pa` : "—"}
                     </td>
                     <td className="px-3 py-3 text-gray-300">
-                      {d.temperature !== null ? `${d.temperature.toFixed(1)} °C` : "—"}
+                      {d.temperature !== null ? `${cToF(d.temperature).toFixed(1)} °F` : "—"}
                     </td>
                     <td className="px-3 py-3">
                       {d.batteryPct !== null ? (
