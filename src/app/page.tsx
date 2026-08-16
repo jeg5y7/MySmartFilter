@@ -36,10 +36,11 @@ export default async function Home() {
                     have — any brand, any size, no special filters to buy. It
                     shows you in real time exactly how dirty your filter is —
                     not by the calendar, but by the airflow it&apos;s actually
-                    blocking. As it clogs, your HVAC burns extra electricity every
-                    hour it runs. The moment that wasted energy starts costing you
-                    more than a fresh filter, we automatically send you a new one.
-                    No guessing, no reminders, no wasted filters.
+                    blocking. As it clogs, your HVAC works harder than it needs
+                    to, burning extra electricity every hour it runs. The moment
+                    that wasted energy starts costing you more than a fresh
+                    filter, we automatically send you a new one. No guessing, no
+                    reminders, no wasted filters.
                   </p>
                   <p className="text-sm text-gray-500 mb-8 max-w-2xl">
                     &ldquo;How often should I really change my filter?&rdquo; Even
@@ -256,7 +257,7 @@ export default async function Home() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-3 group-hover:text-cyan-400 transition-colors">Smart Alerts</h3>
-                <p className="text-gray-400 mb-4">Never miss a filter change. Get timely alerts based on actual filter condition, not just calendar dates.</p>
+                <p className="text-gray-400 mb-4">Know exactly when your air is too dirty. Get timely alerts based on actual filter condition, not just calendar dates.</p>
                 <ul className="space-y-2 text-sm text-gray-500">
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
