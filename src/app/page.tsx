@@ -34,8 +34,9 @@ export default async function Home() {
                   <p className="text-xl text-gray-300 mb-6 max-w-2xl">
                     The smart filter monitor works with the filter you already
                     have — any brand, any size, no special filters to buy. It
-                    measures exactly how dirty your filter is — not by the
-                    calendar, but by the airflow it&apos;s actually blocking. As it clogs, your HVAC burns extra electricity every
+                    shows you in real time exactly how dirty your filter is —
+                    not by the calendar, but by the airflow it&apos;s actually
+                    blocking. As it clogs, your HVAC burns extra electricity every
                     hour it runs. The moment that wasted energy starts costing you
                     more than a fresh filter, we automatically send you a new one.
                     No guessing, no reminders, no wasted filters.
