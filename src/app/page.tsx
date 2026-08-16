@@ -23,7 +23,7 @@ export default async function Home() {
               <div className="lg:w-1/2 space-y-8">
                 <div>
                   <span className="inline-block px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-6">
-                    The smart monitor that knows exactly how dirty your filter is
+                    We turn every filter into a smart filter
                   </span>
                   <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
                     Replace your HVAC filter{" "}
@@ -32,12 +32,15 @@ export default async function Home() {
                     </span>
                   </h1>
                   <p className="text-xl text-gray-300 mb-6 max-w-2xl">
-                    The smart filter monitor measures exactly how dirty your filter
-                    is — not by the calendar, but by the airflow it&apos;s actually
-                    blocking. As it clogs, your HVAC burns extra electricity every
-                    hour it runs. The moment that wasted energy starts costing you
-                    more than a fresh filter, we automatically send you a new one.
-                    No guessing, no reminders, no wasted filters.
+                    The smart filter monitor works with the filter you already
+                    have — any brand, any size, no special filters to buy. It
+                    shows you in real time exactly how dirty your filter is —
+                    not by the calendar, but by the airflow it&apos;s actually
+                    blocking. As it clogs, your HVAC works harder than it needs
+                    to, burning extra electricity every hour it runs. The moment
+                    that wasted energy starts costing you more than a fresh
+                    filter, we automatically send you a new one. No guessing, no
+                    reminders, no wasted filters.
                   </p>
                   <p className="text-sm text-gray-500 mb-8 max-w-2xl">
                     &ldquo;How often should I really change my filter?&rdquo; Even
@@ -164,8 +167,8 @@ export default async function Home() {
                 <div className="text-gray-400">Cost Savings</div>
               </div>
               <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-                <div className="text-4xl font-bold text-white mb-1">Smart</div>
-                <div className="text-gray-400">Predictions</div>
+                <div className="text-4xl font-bold text-white mb-1">Any Filter</div>
+                <div className="text-gray-400">Every brand &amp; size</div>
               </div>
               <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
                 <div className="text-4xl font-bold text-white mb-1">Easy</div>
@@ -179,8 +182,8 @@ export default async function Home() {
         <section className="py-24 bg-gradient-to-b from-[#1e293b] to-[#0f172a]">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Everything you need for smart filter monitoring</h2>
-              <p className="text-xl text-gray-400">Save money, improve air quality, and never miss a filter change with intelligent monitoring.</p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">Your filter is already fine. Now make it smart.</h2>
+              <p className="text-xl text-gray-400">No special filters required — the monitor works with whatever filter your system uses today. Save money, improve air quality, and never miss a filter change.</p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -254,7 +257,7 @@ export default async function Home() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-3 group-hover:text-cyan-400 transition-colors">Smart Alerts</h3>
-                <p className="text-gray-400 mb-4">Never miss a filter change. Get timely alerts based on actual filter condition, not just calendar dates.</p>
+                <p className="text-gray-400 mb-4">Know exactly when your air is too dirty. Get timely alerts based on actual filter condition, not just calendar dates.</p>
                 <ul className="space-y-2 text-sm text-gray-500">
                   <li className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">

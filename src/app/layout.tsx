@@ -10,7 +10,7 @@ import { SiteHeader } from "./_components/site-header";
 export const metadata: Metadata = {
   title: "MySmartFilter — Replace your HVAC filter only once you need to",
   description:
-    "The smart monitor that knows exactly how dirty your HVAC filter is. When a clogged filter starts costing you more to run your HVAC than a new filter would, we automatically send you one.",
+    "We turn every filter into a smart filter. The monitor works with the HVAC filter you already have — any brand, any size — and shows you in real time exactly how dirty it is. When a clogged filter starts costing you more than a new one would, we automatically send you one.",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
