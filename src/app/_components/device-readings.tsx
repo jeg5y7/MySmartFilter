@@ -295,6 +295,13 @@ interface ChartPanelProps {
   referenceLine?: number;
   referenceColor?: string;
   referenceLabel?: string;
+  referenceLine2?: number;
+  referenceColor2?: string;
+  referenceLabel2?: string;
+  /** Fit the Y axis to the data (with padding) instead of starting at 0 —
+   *  essential for temperature, where the interesting detail is a few
+   *  degrees of movement around room temperature. */
+  autoScaleY?: boolean;
   isLoading: boolean;
 }
 
@@ -308,6 +315,10 @@ function ChartPanel({
   referenceLine,
   referenceColor,
   referenceLabel,
+  referenceLine2,
+  referenceColor2,
+  referenceLabel2,
+  autoScaleY = false,
   isLoading,
 }: ChartPanelProps) {
   const cfg = RANGES[rangeKey];
@@ -343,6 +354,14 @@ function ChartPanel({
               minTickGap={40}
             />
             <YAxis
+              domain={
+                autoScaleY
+                  ? [
+                      (dataMin: number) => Math.floor(dataMin - 1),
+                      (dataMax: number) => Math.ceil(dataMax + 1),
+                    ]
+                  : [0, "auto"]
+              }
               tick={{ fill: "#6b7280", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
@@ -364,6 +383,20 @@ function ChartPanel({
                   fill: referenceColor ?? "#f59e0b",
                   fontSize: 9,
                   position: "insideTopRight",
+                }}
+              />
+            )}
+            {referenceLine2 !== undefined && (
+              <ReferenceLine
+                y={referenceLine2}
+                stroke={referenceColor2 ?? "#34d399"}
+                strokeDasharray="4 3"
+                strokeOpacity={0.8}
+                label={{
+                  value: referenceLabel2 ?? "",
+                  fill: referenceColor2 ?? "#34d399",
+                  fontSize: 9,
+                  position: "insideBottomRight",
                 }}
               />
             )}
@@ -475,7 +508,13 @@ export function DeviceReadings({
 
   const pressures = recentReadings.map((r) => r.pressure);
   const temperatures = recentReadings.map((r) => r.temperature);
-  const avgPressure = pressures.reduce((a, b) => a + b, 0) / pressures.length;
+  // "Average" means average while the system is RUNNING — near-zero readings
+  // from idle periods would drag it down and hide the number that matters
+  const runningPressures = pressures.filter((v) => v >= 5);
+  const avgRunning =
+    runningPressures.length > 0
+      ? runningPressures.reduce((a, b) => a + b, 0) / runningPressures.length
+      : null;
   const maxPressure = Math.max(...pressures);
   const avgTemp = temperatures.reduce((a, b) => a + b, 0) / temperatures.length;
   const recentTen = recentReadings.slice(0, 10);
@@ -548,7 +587,7 @@ export function DeviceReadings({
 
         {/* Pressure Chart */}
         <ChartPanel
-          title="Pressure"
+          title="Pressure Drop Across Filter"
           unit="Pa"
           dataKey="pressure"
           color="#60a5fa"
@@ -556,7 +595,10 @@ export function DeviceReadings({
           rangeKey={activeRange}
           referenceLine={pressureThreshold}
           referenceColor="#f59e0b"
-          referenceLabel={`${pressureThreshold} Pa`}
+          referenceLabel="Alert level"
+          referenceLine2={avgRunning ?? undefined}
+          referenceColor2="#34d399"
+          referenceLabel2="Average while running"
           isLoading={rangeLoading}
         />
 
@@ -568,6 +610,7 @@ export function DeviceReadings({
           color="#34d399"
           data={chartPoints}
           rangeKey={activeRange}
+          autoScaleY
           isLoading={rangeLoading}
         />
       </div>
@@ -575,11 +618,15 @@ export function DeviceReadings({
       {/* ── Stats Bar ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3">
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-          <p className="text-gray-400 text-xs mb-1">Avg Pressure</p>
-          <p className={`text-lg font-bold ${getPressureColor(avgPressure, pressureThreshold)}`}>
-            {avgPressure.toFixed(1)}
-            <span className="text-xs font-normal text-gray-400 ml-1">Pa</span>
-          </p>
+          <p className="text-gray-400 text-xs mb-1">Avg While Running</p>
+          {avgRunning !== null ? (
+            <p className={`text-lg font-bold ${getPressureColor(avgRunning, pressureThreshold)}`}>
+              {avgRunning.toFixed(1)}
+              <span className="text-xs font-normal text-gray-400 ml-1">Pa</span>
+            </p>
+          ) : (
+            <p className="text-lg font-bold text-gray-500">—</p>
+          )}
         </div>
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
           <p className="text-gray-400 text-xs mb-1">Peak Pressure</p>
