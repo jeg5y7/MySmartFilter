@@ -111,7 +111,7 @@ export async function PUT(
     if (
       pressureThreshold !== undefined &&
       (typeof pressureThreshold !== "number" ||
-        pressureThreshold < 50 ||
+        pressureThreshold < 10 ||
         pressureThreshold > 500)
     ) {
       return NextResponse.json(

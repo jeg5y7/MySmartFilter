@@ -177,9 +177,11 @@ export function DeviceList() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {devices.map((device) => {
           const latestPressure = device.latestReading?.pressure;
+          const alertCeiling =
+            (device.baselineDeltaP ?? 0) + device.pressureThreshold;
           const pressurePct =
             latestPressure !== undefined
-              ? latestPressure / device.pressureThreshold
+              ? latestPressure / alertCeiling
               : null;
           const connectivity = getConnectivityStatus(device.status, device.lastSeen);
 
@@ -253,7 +255,7 @@ export function DeviceList() {
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {device.pressureThreshold} Pa threshold
+                    alert at {Math.round(alertCeiling)} Pa
                   </p>
                 </div>
               )}

@@ -6,6 +6,7 @@ import { accrueReading, type EnergyDeviceState } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
+import { alertCeilingPa } from "~/lib/filter-health";
 import { resend, EMAIL_FROM } from "~/lib/resend";
 import { computeFilterHealth } from "~/lib/filter-health";
 
@@ -135,14 +136,15 @@ export async function POST(request: NextRequest) {
 
     const newest = stamped[stamped.length - 1]!;
 
-    // Threshold webhook on the newest reading (alert dedupe lives downstream)
-    if (newest.pressure >= device.pressureThreshold) {
+    // Threshold webhook on the newest reading (alert dedupe lives downstream).
+    // Ceiling = fresh-filter baseline + allowed rise.
+    if (newest.pressure >= alertCeilingPa(updatedDevice)) {
       void dispatchWebhook(device.userId, "reading.threshold", {
         deviceId: device.deviceId,
         deviceName: device.name ?? device.deviceId,
         pressure: newest.pressure,
         temperature: newest.temperature,
-        threshold: device.pressureThreshold,
+        threshold: alertCeilingPa(updatedDevice),
         timestamp: newest.timestamp,
       });
     }

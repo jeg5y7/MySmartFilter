@@ -5,7 +5,7 @@ import { dispatchWebhook } from "~/lib/webhooks";
 import { accrueReading } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
-import { computeFilterHealth } from "~/lib/filter-health";
+import { computeFilterHealth, alertCeilingPa } from "~/lib/filter-health";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 
 // Schema for validating ESP32 sensor data
@@ -113,14 +113,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Fire webhook for reading.threshold if pressure exceeds device threshold
-    if (pressure >= device.pressureThreshold && device.userId) {
+    // Fire webhook for reading.threshold if pressure exceeds the alert
+    // ceiling (fresh-filter baseline + allowed rise)
+    if (pressure >= alertCeilingPa(updatedDevice) && device.userId) {
       void dispatchWebhook(device.userId, "reading.threshold", {
         deviceId: device.deviceId,
         deviceName: device.name ?? device.deviceId,
         pressure,
         temperature,
-        threshold: device.pressureThreshold,
+        threshold: alertCeilingPa(updatedDevice),
         readingId: sensorReading.id,
         timestamp: sensorReading.timestamp,
       });

@@ -11,11 +11,26 @@ export interface FilterHealth {
 }
 
 /**
+ * The pressure ceiling is BASELINE-RELATIVE: pressureThreshold is the allowed
+ * RISE above the fresh-filter baseline, not an absolute reading. Real installs
+ * taught us why — the first pilot unit's fresh-filter plateau (~120 Pa) sat
+ * far above the old absolute default (50 Pa), which silently disabled the
+ * pressure signal (negative span). Absolute plateaus vary wildly per home;
+ * the rise above each home's own baseline is comparable everywhere.
+ */
+export function alertCeilingPa(device: {
+  baselineDeltaP: number | null;
+  pressureThreshold: number;
+}): number {
+  return (device.baselineDeltaP ?? 0) + device.pressureThreshold;
+}
+
+/**
  * Shared filter-health summary used by the public API and smart-home
  * integrations. Both blower types accrue wasted-energy cost (ECM as direct
  * blower watts, PSC as the system-runtime penalty), so when a filter price
  * is on file: life = 1 − (accrued extra cost ÷ filter price). The pressure
- * threshold acts as a parallel ceiling — whichever signal is worse wins.
+ * ceiling acts as a parallel signal — whichever signal is worse wins.
  */
 export async function computeFilterHealth(
   device: Device,
@@ -30,13 +45,13 @@ export async function computeFilterHealth(
   if (price && price > 0) {
     consumedSignals.push(Math.min(1.5, device.extraEnergyCostCents / price));
   }
-  if (latestPressure !== null && device.baselineDeltaP !== null) {
-    const span = device.pressureThreshold - device.baselineDeltaP;
-    if (span > 0) {
-      consumedSignals.push(
-        Math.min(1.5, (latestPressure - device.baselineDeltaP) / span)
-      );
-    }
+  if (
+    latestPressure !== null &&
+    device.baselineDeltaP !== null &&
+    device.pressureThreshold > 0
+  ) {
+    const rise = Math.max(0, latestPressure - device.baselineDeltaP);
+    consumedSignals.push(Math.min(1.5, rise / device.pressureThreshold));
   }
 
   if (consumedSignals.length > 0) {
@@ -47,11 +62,12 @@ export async function computeFilterHealth(
     return { lifePct, status, filterPriceCents: price };
   }
 
-  // No price and no baseline yet: raw threshold check is all we have
+  // No price and no baseline yet: compare against the ceiling (baseline
+  // still null here, so this is effectively the raw rise allowance)
   return {
     lifePct: null,
     status:
-      latestPressure !== null && latestPressure >= device.pressureThreshold
+      latestPressure !== null && latestPressure >= alertCeilingPa(device)
         ? "replace_now"
         : "ok",
     filterPriceCents: price,
