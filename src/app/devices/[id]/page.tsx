@@ -9,6 +9,7 @@ import { AlertActionButtons } from "~/app/_components/alert-action-buttons";
 import { AlertHistory } from "~/app/_components/alert-history";
 import { ExportButton } from "~/app/_components/export-button";
 import { FilterHealthCard } from "~/app/_components/filter-health-card";
+import { LocalTime } from "~/app/_components/local-time";
 import { isAutoShipMember } from "~/lib/membership";
 import { suggestedRateForState } from "~/lib/electricity-rates";
 
@@ -133,9 +134,11 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 <div>
                   <p className="text-gray-400 text-sm">Last Seen</p>
                   <p className="text-white font-medium">
-                    {device.lastSeen
-                      ? new Date(device.lastSeen).toLocaleString()
-                      : "Never"}
+                    {device.lastSeen ? (
+                      <LocalTime iso={device.lastSeen.toISOString()} />
+                    ) : (
+                      "Never"
+                    )}
                   </p>
                 </div>
                 <div>
@@ -237,7 +240,7 @@ export default async function DevicePage({ params }: DevicePageProps) {
                       {alert.autoOrderAt && (
                         <p className="text-yellow-300 text-sm">
                           Auto-order scheduled for:{" "}
-                          {new Date(alert.autoOrderAt).toLocaleString()}
+                          <LocalTime iso={new Date(alert.autoOrderAt).toISOString()} />
                         </p>
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-3">

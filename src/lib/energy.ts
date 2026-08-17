@@ -14,9 +14,14 @@
  *
  *   airflow loss   ≈ 0.2 %/Pa of ΔP rise      (typical PSC fan-curve slope)
  *   capacity loss  ≈ 0.5 × airflow loss       (sensible capacity ~ √airflow)
- *   extra runtime  = capLoss / (1 − capLoss)  (same heat delivered, slower)
  *   system power   ≈ CFM/400 tons × ~1.1 kW/ton (compressor + fans estimate)
- *   extraWatts     = system power × extra-runtime fraction
+ *   extraWatts     = system power × capacity loss
+ *
+ * Why × capacity loss and not × the runtime stretch: we accrue against
+ * OBSERVED runtime, which already includes the stretched minutes. Of each
+ * observed hour, the wasted fraction is exactly the capacity loss
+ * (stretch/(1+stretch) = capLoss), so charging capLoss per observed hour
+ * is the exact bookkeeping, not an approximation.
  *
  * Both paths report honest, order-of-magnitude-right waste — the PSC figure
  * is an estimate of system-level energy, not a blower-plug measurement.
@@ -81,15 +86,16 @@ export function computeExtraWatts(
     return (extraPa * airflowCfm * CFM_TO_M3S) / FAN_EFFICIENCY;
   }
 
-  // PSC: airflow drops → capacity drops → the whole system runs longer
+  // PSC: airflow drops → capacity drops → the whole system runs longer.
+  // Accrued per OBSERVED (already-stretched) runtime hour, the wasted
+  // fraction of each hour equals the capacity loss — see header comment.
   const airflowLoss = Math.min(
     PSC_MAX_AIRFLOW_LOSS,
     PSC_AIRFLOW_LOSS_PER_PA * extraPa
   );
   const capacityLoss = PSC_CAPACITY_EXPONENT * airflowLoss;
-  const extraRuntimeFrac = capacityLoss / (1 - capacityLoss);
   const systemWatts = (airflowCfm / CFM_PER_TON) * SYSTEM_WATTS_PER_TON;
-  return systemWatts * extraRuntimeFrac;
+  return systemWatts * capacityLoss;
 }
 
 /**

@@ -71,10 +71,18 @@ export async function GET(request: Request) {
         continue;
       }
 
-      const lastSeenFormatted = device.lastSeen.toLocaleString("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      });
+      // Relative wording is timezone-proof — an absolute time formatted here
+      // would be in the server's timezone (UTC), not the reader's.
+      const offlineMins = Math.max(
+        1,
+        Math.round((now.getTime() - device.lastSeen.getTime()) / 60_000)
+      );
+      const lastSeenFormatted =
+        offlineMins < 60
+          ? `about ${offlineMins} min ago`
+          : offlineMins < 48 * 60
+            ? `about ${Math.round(offlineMins / 60)} hour${Math.round(offlineMins / 60) === 1 ? "" : "s"} ago`
+            : `about ${Math.round(offlineMins / 1440)} days ago`;
 
       try {
         await resend.emails.send({
