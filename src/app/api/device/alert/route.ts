@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 import { resend, EMAIL_FROM } from "~/lib/resend";
 import { getEffectiveFilterPreference } from "~/lib/filter-preference";
+import { alertCeilingPa } from "~/lib/filter-health";
 import crypto from "crypto";
 
 interface AlertRequest {
@@ -40,13 +41,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if pressure exceeds threshold
-    if (pressure < device.pressureThreshold) {
+    // Check if pressure exceeds the alert ceiling (baseline + allowed rise)
+    if (pressure < alertCeilingPa(device)) {
       return NextResponse.json({
         alert: false,
         message: "Pressure within normal range",
         pressure,
-        threshold: device.pressureThreshold,
+        threshold: alertCeilingPa(device),
       });
     }
 

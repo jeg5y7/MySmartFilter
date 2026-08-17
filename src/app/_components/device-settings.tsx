@@ -526,9 +526,9 @@ export function DeviceSettings({
                 type="number"
                 value={pressureThreshold}
                 onChange={(e) => setPressureThreshold(Number(e.target.value))}
-                min={50}
+                min={10}
                 max={500}
-                step={10}
+                step={5}
                 className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
@@ -536,7 +536,7 @@ export function DeviceSettings({
               </span>
             </div>
             <p className="mt-1.5 text-xs text-gray-500">
-              Alert triggers when pressure exceeds this value
+              Alerts when the pressure rises this much above your fresh-filter baseline
             </p>
           </div>
         </div>

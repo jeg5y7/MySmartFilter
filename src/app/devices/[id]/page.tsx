@@ -147,7 +147,7 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">
-                    {device.batteryPct !== null ? "Battery" : "Pressure Threshold"}
+                    {device.batteryPct !== null ? "Battery" : "Alert Threshold"}
                   </p>
                   {device.batteryPct !== null ? (
                     <p
@@ -162,7 +162,10 @@ export default async function DevicePage({ params }: DevicePageProps) {
                       🔋 {Math.round(device.batteryPct)}%
                     </p>
                   ) : (
-                    <p className="text-white font-medium">{device.pressureThreshold} Pa</p>
+                    <p className="text-white font-medium">
+                      +{device.pressureThreshold} Pa
+                      <span className="text-gray-500 text-xs font-normal"> over baseline</span>
+                    </p>
                   )}
                 </div>
               </div>
@@ -275,6 +278,7 @@ export default async function DevicePage({ params }: DevicePageProps) {
               <DeviceReadings
                 deviceId={device.deviceId}
                 pressureThreshold={device.pressureThreshold}
+                baselineDeltaP={device.baselineDeltaP}
                 isAutoShipMember={autoShip}
               />
             </Suspense>

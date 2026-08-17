@@ -16,7 +16,10 @@ import { cToF } from "~/lib/units";
 
 interface DeviceReadingsProps {
   deviceId: string;
+  /** Allowed RISE (Pa) above the fresh-filter baseline before alerting. */
   pressureThreshold: number;
+  /** Fresh-filter baseline ΔP (Pa); null until first capture. */
+  baselineDeltaP: number | null;
   /** Filter AutoShip members get full history; free tier is live-only (1h). */
   isAutoShipMember: boolean;
 }
@@ -432,8 +435,11 @@ const SENSOR_TYPE_LABELS: Record<string, { name: string; unit: string }> = {
 export function DeviceReadings({
   deviceId,
   pressureThreshold,
+  baselineDeltaP,
   isAutoShipMember,
 }: DeviceReadingsProps) {
+  // Absolute alert level shown to the user: baseline + allowed rise
+  const alertCeiling = (baselineDeltaP ?? 0) + pressureThreshold;
   const [activeRange, setActiveRange] = useState<RangeKey>(
     isAutoShipMember ? "24h" : "1h"
   );
@@ -593,7 +599,7 @@ export function DeviceReadings({
           color="#60a5fa"
           data={chartPoints}
           rangeKey={activeRange}
-          referenceLine={pressureThreshold}
+          referenceLine={alertCeiling}
           referenceColor="#f59e0b"
           referenceLabel="Alert level"
           referenceLine2={avgRunning ?? undefined}
@@ -620,7 +626,7 @@ export function DeviceReadings({
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
           <p className="text-gray-400 text-xs mb-1">Avg While Running</p>
           {avgRunning !== null ? (
-            <p className={`text-lg font-bold ${getPressureColor(avgRunning, pressureThreshold)}`}>
+            <p className={`text-lg font-bold ${getPressureColor(avgRunning, alertCeiling)}`}>
               {avgRunning.toFixed(1)}
               <span className="text-xs font-normal text-gray-400 ml-1">Pa</span>
             </p>
@@ -630,7 +636,7 @@ export function DeviceReadings({
         </div>
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
           <p className="text-gray-400 text-xs mb-1">Peak Pressure</p>
-          <p className={`text-lg font-bold ${getPressureColor(maxPressure, pressureThreshold)}`}>
+          <p className={`text-lg font-bold ${getPressureColor(maxPressure, alertCeiling)}`}>
             {maxPressure.toFixed(1)}
             <span className="text-xs font-normal text-gray-400 ml-1">Pa</span>
           </p>
@@ -654,7 +660,7 @@ export function DeviceReadings({
       {/* ── Sparkline (legacy) ──────────────────────────────────────────── */}
       <div className="bg-white/5 rounded-lg p-4 border border-white/10">
         <p className="text-xs text-gray-400 mb-2">Pressure trend — last 20 readings</p>
-        <PressureSparkline readings={recentReadings} threshold={pressureThreshold} />
+        <PressureSparkline readings={recentReadings} threshold={alertCeiling} />
         <div className="flex items-center gap-4 mt-2">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-0.5 bg-blue-400 rounded" />
@@ -662,7 +668,7 @@ export function DeviceReadings({
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-0.5 bg-yellow-400 rounded" />
-            <span className="text-xs text-gray-400">Threshold ({pressureThreshold} Pa)</span>
+            <span className="text-xs text-gray-400">Alert level ({Math.round(alertCeiling)} Pa)</span>
           </div>
         </div>
       </div>
@@ -691,7 +697,7 @@ export function DeviceReadings({
             </thead>
             <tbody>
               {recentTen.map((reading, i) => {
-                const pct = reading.pressure / pressureThreshold;
+                const pct = reading.pressure / alertCeiling;
                 const label =
                   pct >= 1.0 ? "High" : pct >= 0.7 ? "Warning" : "Normal";
                 return (
@@ -711,7 +717,7 @@ export function DeviceReadings({
                       })}
                     </td>
                     <td
-                      className={`px-4 py-2.5 text-right font-mono font-semibold ${getPressureColor(reading.pressure, pressureThreshold)}`}
+                      className={`px-4 py-2.5 text-right font-mono font-semibold ${getPressureColor(reading.pressure, alertCeiling)}`}
                     >
                       {reading.pressure.toFixed(1)} Pa
                     </td>
@@ -735,7 +741,7 @@ export function DeviceReadings({
                     )}
                     <td className="px-4 py-2.5 text-center">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium border ${getPressureBg(reading.pressure, pressureThreshold)} ${getPressureColor(reading.pressure, pressureThreshold)}`}
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium border ${getPressureBg(reading.pressure, alertCeiling)} ${getPressureColor(reading.pressure, alertCeiling)}`}
                       >
                         {label}
                       </span>

@@ -28,6 +28,7 @@ export const deviceRouter = createTRPCRouter({
       status: device.status,
       lastSeen: device.lastSeen,
       pressureThreshold: device.pressureThreshold,
+      baselineDeltaP: device.baselineDeltaP,
       createdAt: device.createdAt,
       latestReading: device.sensorReadings[0] ?? null,
     }));
