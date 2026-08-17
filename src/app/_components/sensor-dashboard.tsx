@@ -1,5 +1,6 @@
 import { api } from "~/trpc/server";
 import { cToF } from "~/lib/units";
+import { LocalTime } from "~/app/_components/local-time";
 
 export async function SensorDashboard() {
   const latestReadings = await api.sensor.getLatest({ limit: 20 });
@@ -110,8 +111,6 @@ function StatCard({
 
 // Reading Card Component
 function ReadingCard({ reading }: { reading: { id: string; deviceId: string; pressure: number; temperature: number; timestamp: Date } }) {
-  const timeAgo = new Date(reading.timestamp).toLocaleTimeString();
-  
   return (
     <div className="rounded-lg bg-white/20 p-4 hover:bg-white/25 transition-colors">
       <div className="flex items-start justify-between mb-2">
@@ -119,7 +118,9 @@ function ReadingCard({ reading }: { reading: { id: string; deviceId: string; pre
           <p className="text-sm text-white/80 font-medium">
             {reading.deviceId}
           </p>
-          <p className="text-xs text-white/60">{timeAgo}</p>
+          <p className="text-xs text-white/60">
+            <LocalTime iso={new Date(reading.timestamp).toISOString()} mode="time" />
+          </p>
         </div>
         <div className="text-green-400">●</div>
       </div>
