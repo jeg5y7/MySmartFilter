@@ -6,9 +6,11 @@ import { BLOWER_ON_MIN_PA } from "~/lib/energy";
 /**
  * Automatic new-filter detection.
  *
- * A fresh filter announces itself: blower-on ΔP falls sharply from the
- * loaded level back to (or below) the clean baseline and stays there. When
- * we see that, we reset the cost accumulators without the customer touching
+ * A fresh filter announces itself two ways: blower-on ΔP falls sharply from
+ * the loaded level back to the clean baseline and stays there (path A), or —
+ * when the monitor was installed on an already-dirty filter — ΔP settles into
+ * a stable plateau well BELOW the stored baseline (path B). Either way we
+ * re-baseline and reset the cost accumulators without the customer touching
  * anything — the monitor simply notices.
  *
  * Guards against false positives:
@@ -31,6 +33,22 @@ const LOADED_RISE_PA = 15;
 
 /** ...or if this much cost had accrued (¢). */
 const LOADED_COST_CENTS = 10;
+
+/**
+ * Downward path: the stored baseline was captured on an already-dirty
+ * filter (a monitor installed mid-filter-life), so a fresh filter plateaus
+ * BELOW it and the return-to-baseline path above can never fire. A
+ * sustained, STABLE plateau this far under baseline is a new filter — ΔP
+ * across a filter only moves durably downward when the filter is replaced.
+ */
+const DROP_MARGIN_PA = 8;
+
+/** Consecutive blower-on readings that must hold the lower plateau. */
+const DROP_CONSEC_READINGS = 5;
+
+/** Max spread (Pa) within those readings — a blower ramp-up passes through
+ *  low values but rises fast, so it fails this stability check. */
+const DROP_STABILITY_PA = 6;
 
 /**
  * Call after storing a blower-on pressure reading. Returns true if a
@@ -58,28 +76,62 @@ export async function maybeDetectFilterReplacement(
     select: { pressure: true },
   });
 
+  // ── Path A: loaded filter dropped back to the clean baseline ─────────────
   const cleanRun = recent.slice(0, CONSEC_CLEAN_READINGS);
-  if (cleanRun.length < CONSEC_CLEAN_READINGS) return false;
-  if (!cleanRun.every((r) => r.pressure <= baseline + CLEAN_MARGIN_PA)) {
-    return false;
+  let detected = false;
+  let newBaselineRun: number[] = [];
+  let pathLabel = "";
+
+  if (
+    cleanRun.length === CONSEC_CLEAN_READINGS &&
+    cleanRun.every((r) => r.pressure <= baseline + CLEAN_MARGIN_PA)
+  ) {
+    const priorPeak = Math.max(
+      0,
+      ...recent.slice(CONSEC_CLEAN_READINGS).map((r) => r.pressure)
+    );
+    const wasLoaded =
+      priorPeak - baseline >= LOADED_RISE_PA ||
+      device.extraEnergyCostCents >= LOADED_COST_CENTS;
+    if (wasLoaded) {
+      detected = true;
+      newBaselineRun = cleanRun.map((r) => r.pressure);
+      pathLabel = `return-to-baseline (peak ${priorPeak.toFixed(1)})`;
+    }
   }
 
-  const priorPeak = Math.max(
-    0,
-    ...recent.slice(CONSEC_CLEAN_READINGS).map((r) => r.pressure)
-  );
-  const wasLoaded =
-    priorPeak - baseline >= LOADED_RISE_PA ||
-    device.extraEnergyCostCents >= LOADED_COST_CENTS;
-  if (!wasLoaded) return false;
+  // ── Path B: stable plateau well BELOW baseline (baseline was captured on
+  //    an already-dirty filter; the fresh one reads lower) ──────────────────
+  if (!detected) {
+    const dropRun = recent.slice(0, DROP_CONSEC_READINGS);
+    if (
+      dropRun.length === DROP_CONSEC_READINGS &&
+      dropRun.every((r) => r.pressure <= baseline - DROP_MARGIN_PA)
+    ) {
+      const values = dropRun.map((r) => r.pressure);
+      const spread = Math.max(...values) - Math.min(...values);
+      if (spread <= DROP_STABILITY_PA) {
+        detected = true;
+        newBaselineRun = values;
+        pathLabel = `sustained-drop (spread ${spread.toFixed(1)})`;
+      }
+    }
+  }
 
-  // New filter confirmed — same reset semantics as the manual flow.
+  if (!detected) return false;
+
+  // New filter confirmed. Set the baseline straight from the observed clean
+  // plateau (median of the confirming run) rather than recapturing from the
+  // next reading — the next reading might land mid blower-ramp and skew low.
+  const sortedRun = [...newBaselineRun].sort((a, b) => a - b);
+  const newBaseline = sortedRun[Math.floor(sortedRun.length / 2)]!;
+
   const now = new Date();
   await db.$transaction([
     db.device.update({
       where: { id: device.id },
       data: {
-        baselineDeltaP: null, // recaptured from the next blower-on reading
+        baselineDeltaP: newBaseline,
         filterInstalledAt: now,
         runtimeHours: 0,
         extraEnergyCostCents: 0,
@@ -93,8 +145,8 @@ export async function maybeDetectFilterReplacement(
   ]);
 
   console.log(
-    `[filter-replacement] auto-detected on ${device.deviceId}: ` +
-      `ΔP ${currentPressure.toFixed(1)} Pa vs baseline ${baseline.toFixed(1)} Pa (peak ${priorPeak.toFixed(1)})`
+    `[filter-replacement] auto-detected on ${device.deviceId} via ${pathLabel}: ` +
+      `ΔP ${currentPressure.toFixed(1)} Pa vs baseline ${baseline.toFixed(1)} Pa → new baseline ${newBaseline.toFixed(1)} Pa`
   );
 
   if (device.userId) {
