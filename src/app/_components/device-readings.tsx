@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { api } from "~/trpc/react";
 import { cToF } from "~/lib/units";
+import { BLOWER_ON_MIN_PA } from "~/lib/energy";
 
 interface DeviceReadingsProps {
   deviceId: string;
@@ -47,8 +48,10 @@ type RangeKey = "1h" | "6h" | "24h" | "7d" | "30d";
 interface RangeConfig {
   label: string;
   ms: number;
-  /** bucket size for downsampling (ms). null = no downsampling */
-  bucketMs: number | null;
+  /** true = one point per local day: average of blower-ON readings only.
+   *  Averaging idle near-zeros in would make the line track duty cycle
+   *  instead of filter condition. */
+  dailyOnAvg: boolean;
   tickFormat: (ts: number) => string;
 }
 
@@ -56,35 +59,35 @@ const RANGES: Record<RangeKey, RangeConfig> = {
   "1h": {
     label: "1h",
     ms: 60 * 60 * 1000,
-    bucketMs: null,
+    dailyOnAvg: false,
     tickFormat: (ts) =>
       new Date(ts).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
   },
   "6h": {
     label: "6h",
     ms: 6 * 60 * 60 * 1000,
-    bucketMs: null,
+    dailyOnAvg: false,
     tickFormat: (ts) =>
       new Date(ts).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
   },
   "24h": {
     label: "24h",
     ms: 24 * 60 * 60 * 1000,
-    bucketMs: null,
+    dailyOnAvg: false,
     tickFormat: (ts) =>
       new Date(ts).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
   },
   "7d": {
     label: "7d",
     ms: 7 * 24 * 60 * 60 * 1000,
-    bucketMs: 60 * 60 * 1000, // 1-hour buckets → ~168 pts
+    dailyOnAvg: true,
     tickFormat: (ts) =>
       new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
   },
   "30d": {
     label: "30d",
     ms: 30 * 24 * 60 * 60 * 1000,
-    bucketMs: 6 * 60 * 60 * 1000, // 6-hour buckets → ~120 pts
+    dailyOnAvg: true,
     tickFormat: (ts) =>
       new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
   },
@@ -107,23 +110,31 @@ interface ChartPoint {
   temperature: number;
 }
 
-function downsample(readings: RawReading[], bucketMs: number): ChartPoint[] {
-  const buckets = new Map<number, { pressure: number[]; temperature: number[] }>();
+/** One point per local day. Pressure = average of blower-ON readings only
+ *  (days where the blower never ran are omitted, so the line connects real
+ *  measurements instead of dipping to zero). Temperature = daily average of
+ *  all readings. */
+function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
+  const days = new Map<number, { on: number[]; temperature: number[] }>();
 
   for (const r of readings) {
-    const key = Math.floor(r.timestamp.getTime() / bucketMs) * bucketMs;
-    if (!buckets.has(key)) buckets.set(key, { pressure: [], temperature: [] });
-    const b = buckets.get(key)!;
-    b.pressure.push(r.pressure);
+    const d = r.timestamp;
+    const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if (!days.has(key)) days.set(key, { on: [], temperature: [] });
+    const b = days.get(key)!;
+    if (r.pressure >= BLOWER_ON_MIN_PA) b.on.push(r.pressure);
     b.temperature.push(r.temperature);
   }
 
-  return Array.from(buckets.entries())
+  return Array.from(days.entries())
     .sort(([a], [b]) => a - b)
+    .filter(([, b]) => b.on.length > 0)
     .map(([key, b]) => ({
       ts: key,
-      pressure: b.pressure.reduce((a, c) => a + c, 0) / b.pressure.length,
-      temperature: cToF(b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length),
+      pressure: b.on.reduce((a, c) => a + c, 0) / b.on.length,
+      temperature: cToF(
+        b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length
+      ),
     }));
 }
 
@@ -131,7 +142,7 @@ function toChartPoints(readings: RawReading[], cfg: RangeConfig): ChartPoint[] {
   const sorted = [...readings].sort(
     (a, b) => a.timestamp.getTime() - b.timestamp.getTime(),
   );
-  if (cfg.bucketMs) return downsample(sorted, cfg.bucketMs);
+  if (cfg.dailyOnAvg) return dailyOnAverage(sorted);
   return sorted.map((r) => ({
     ts: r.timestamp.getTime(),
     pressure: r.pressure,
@@ -261,11 +272,10 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
 
   const dateStr =
     rangeKey === "7d" || rangeKey === "30d"
-      ? new Date(label).toLocaleString(undefined, {
+      ? new Date(label).toLocaleDateString(undefined, {
+          weekday: "short",
           month: "short",
           day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
         })
       : new Date(label).toLocaleTimeString(undefined, {
           hour: "2-digit",
@@ -516,7 +526,7 @@ export function DeviceReadings({
   const temperatures = recentReadings.map((r) => r.temperature);
   // "Average" means average while the system is RUNNING — near-zero readings
   // from idle periods would drag it down and hide the number that matters
-  const runningPressures = pressures.filter((v) => v >= 5);
+  const runningPressures = pressures.filter((v) => v >= BLOWER_ON_MIN_PA);
   const avgRunning =
     runningPressures.length > 0
       ? runningPressures.reduce((a, b) => a + b, 0) / runningPressures.length
