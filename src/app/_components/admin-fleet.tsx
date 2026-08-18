@@ -19,6 +19,7 @@ export interface FleetDevice {
   deviceId: string;
   name: string | null;
   ownerEmail: string | null;
+  firmware: string | null;
   online: boolean;
   lastSeen: string;
   pressure: number | null;
@@ -184,12 +185,13 @@ export function AdminFleet({
 
         {/* Horizontal scroll keeps the table usable on phones */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[760px]">
+          <table className="w-full text-sm min-w-[860px]">
             <thead>
               <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-white/10">
                 <th className="px-5 py-3 font-medium">Device</th>
                 <th className="px-3 py-3 font-medium">Owner</th>
                 <th className="px-3 py-3 font-medium">Status</th>
+                <th className="px-3 py-3 font-medium">Firmware</th>
                 <th className="px-3 py-3 font-medium">Last seen</th>
                 <th className="px-3 py-3 font-medium">ΔP</th>
                 <th className="px-3 py-3 font-medium">Temp</th>
@@ -224,6 +226,11 @@ export function AdminFleet({
                           }`}
                         />
                         {d.online ? "online" : "offline"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="text-xs font-mono text-gray-300">
+                        {d.firmware ?? "—"}
                       </span>
                     </td>
                     <td className="px-3 py-3 text-gray-400">{timeAgo(d.lastSeen)}</td>
@@ -264,7 +271,7 @@ export function AdminFleet({
               })}
               {shown.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={10} className="px-5 py-10 text-center text-gray-500">
                     No devices match this filter.
                   </td>
                 </tr>

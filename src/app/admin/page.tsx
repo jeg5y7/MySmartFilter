@@ -75,6 +75,7 @@ export default async function AdminFleetPage() {
         deviceId: d.deviceId,
         name: d.name,
         ownerEmail: d.user?.email ?? null,
+        firmware: d.firmware,
         online: now - new Date(d.lastSeen).getTime() < offlineAfterMs,
         lastSeen: d.lastSeen.toISOString(),
         pressure: latest?.pressure ?? null,
