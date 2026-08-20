@@ -106,6 +106,12 @@ Config config;
 WiFiClientSecure apiClient;  // TLS with pinned root CAs for all API calls
 bool wifiConnected = false;
 bool lastSendOk = false;
+// Auto-recovery from setup mode: a CONFIGURED unit only sits in setup mode
+// because a join failed (e.g. it rebooted after a power outage while the
+// router was still down). Reboot-and-retry every few minutes, unless someone
+// is actively using the setup portal.
+unsigned long lastPortalActivityMs = 0;
+const unsigned long SETUP_RETRY_MS = 5UL * 60UL * 1000UL;
 unsigned long lastReading = 0;
 // Adaptive sampling: granular while the blower runs (cycle edges matter for
 // the runtime graph), relaxed while it's off (nothing is changing).
@@ -534,6 +540,16 @@ void loop() {
     // Handle DNS and web server in AP mode
     dnsServer.processNextRequest();
     server.handleClient();
+
+    // Auto-recover after a power outage: the router usually comes back
+    // minutes after we do. If we have saved credentials and nobody has
+    // touched the setup portal lately, reboot and retry the join — forever.
+    if (isConfigured() &&
+        (unsigned long)(millis() - lastPortalActivityMs) >= SETUP_RETRY_MS) {
+      Serial.println("[setup] configured but offline — rebooting to retry WiFi join");
+      delay(200);
+      ESP.restart();
+    }
   } else if (wifiConnected) {
     // Normal operation - read sensor and send data
     if (millis() - lastReading >= readingInterval) {
@@ -599,6 +615,7 @@ void startSetupMode() {
   WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
     if (event == ARDUINO_EVENT_WIFI_AP_STACONNECTED) {
       Serial.println("[ap] client associated");
+      lastPortalActivityMs = millis();
     } else if (event == ARDUINO_EVENT_WIFI_AP_STADISCONNECTED) {
       Serial.println("[ap] client disconnected");
     } else if (event == ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED) {
@@ -621,6 +638,7 @@ void startSetupMode() {
   server.on("/scan", handleScan);
   server.on("/configure", HTTP_POST, handleConfigure);
   server.on("/deviceinfo", []() {
+    lastPortalActivityMs = millis();
     Serial.println("[http] GET /deviceinfo");
     server.sendHeader("Access-Control-Allow-Origin", "*");
     server.send(200, "application/json",
@@ -628,6 +646,7 @@ void startSetupMode() {
   });
   server.onNotFound(handleRoot);  // Redirect all 404 to root
   
+  lastPortalActivityMs = millis();  // fresh grace window on AP start
   server.begin();
   Serial.println("Setup server started");
   Serial.println("Connect to WiFi network: " + String(AP_SSID));
@@ -635,6 +654,7 @@ void startSetupMode() {
 }
 
 void handleRoot() {
+  lastPortalActivityMs = millis();
   Serial.printf("[http] %s %s -> root page\n",
                 server.method() == HTTP_POST ? "POST" : "GET",
                 server.uri().c_str());
@@ -642,6 +662,7 @@ void handleRoot() {
 }
 
 void handleScan() {
+  lastPortalActivityMs = millis();
   // Never scan while the AP has clients — serve the pre-AP cache
   Serial.println("[http] GET /scan (cached)");
   server.sendHeader("Access-Control-Allow-Origin", "*");
@@ -851,6 +872,8 @@ bool connectToWiFi() {
     Serial.println("\nConnected to WiFi");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
+    WiFi.setAutoReconnect(true);  // heal short blips without a full rejoin
+    WiFi.persistent(false);       // we manage credentials ourselves
     syncClock();  // TLS cert validation needs a correct clock
     return true;
   }

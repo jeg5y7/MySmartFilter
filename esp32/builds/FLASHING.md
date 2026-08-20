@@ -2,12 +2,25 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.8.0.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.9.0.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.8.0.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.9.0.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
+
+## v1.9.0 — survives power outages (field finding)
+
+The first real outage taught us the failure mode: the monitor boots back
+in seconds, the router takes minutes, so the ~65 s join attempt fails and
+the unit sat in setup mode FOREVER (broadcasting SmartFilter_Setup, no
+data). Now a configured unit in setup mode reboots and retries the join
+every 5 minutes, indefinitely, until it reconnects — unless someone is
+actively using the setup portal (any page touch or AP association resets
+the 5-minute clock, so reconfiguring is never interrupted). Also enables
+WiFi auto-reconnect for transient drops during normal operation. Interim
+recovery for a v1.8.0 unit stuck in setup mode: power-cycle it once the
+router is back.
 
 Both include the captive-portal WiFi setup and the device-secret handshake.
 
