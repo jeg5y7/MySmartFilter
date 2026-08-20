@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { FirmwareManager } from "~/app/_components/firmware-manager";
+import { FirmwareSchemaRepair } from "~/app/_components/firmware-schema-repair";
 
 export const dynamic = "force-dynamic";
 
@@ -20,13 +21,23 @@ export default async function AdminFirmwarePage() {
   });
   if (!me?.isAdmin) notFound();
 
-  const [releases, versionCounts] = await Promise.all([
-    db.firmwareRelease.findMany({ orderBy: { createdAt: "desc" } }),
-    db.device.groupBy({
-      by: ["firmware"],
-      _count: { _all: true },
-    }),
-  ]);
+  // The FirmwareRelease table may not exist yet in a fresh database —
+  // render a one-click repair card instead of crashing the page.
+  let releases: Awaited<ReturnType<typeof db.firmwareRelease.findMany>> | null =
+    null;
+  let versionCounts: { firmware: string | null; _count: { _all: number } }[] =
+    [];
+  try {
+    [releases, versionCounts] = await Promise.all([
+      db.firmwareRelease.findMany({ orderBy: { createdAt: "desc" } }),
+      db.device.groupBy({
+        by: ["firmware"],
+        _count: { _all: true },
+      }),
+    ]);
+  } catch {
+    releases = null;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
@@ -48,6 +59,9 @@ export default async function AdminFirmwarePage() {
           </p>
         </div>
 
+        {releases === null ? (
+          <FirmwareSchemaRepair />
+        ) : (
         <FirmwareManager
           initialReleases={releases.map((r) => ({
             id: r.id,
@@ -63,6 +77,7 @@ export default async function AdminFirmwarePage() {
             count: v._count._all,
           }))}
         />
+        )}
       </div>
     </main>
   );
