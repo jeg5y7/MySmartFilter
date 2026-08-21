@@ -70,20 +70,38 @@ class PresenceScanCallbacks : public NimBLEAdvertisedDeviceCallbacks {
   }
 };
 
+// Duty-cycled: a 3 s passive scan every 30 s. Continuous scanning
+// (v1.10.0/1.10.1) starved and fragmented the heap until TLS died —
+// short bursts give the same walk-up latency at ~10% of the pressure.
+const unsigned long PRESENCE_SCAN_EVERY_MS = 30UL * 1000UL;
+const uint32_t PRESENCE_SCAN_SECS = 3;
+static unsigned long lastPresenceScanMs = 0;
+
 void startPresenceScan() {
   NimBLEDevice::init("");
   NimBLEScan* scan = NimBLEDevice::getScan();
   scan->setAdvertisedDeviceCallbacks(new PresenceScanCallbacks(), false);
   scan->setActiveScan(false);        // passive: listen only, radio-polite
   scan->setDuplicateFilter(false);   // repeated adverts must keep refreshing
-  scan->setInterval(320);            // ~10% radio duty — plays nice with WiFi
+  scan->setInterval(320);            // ~10% radio duty within a burst
   scan->setWindow(32);
-  // CRITICAL: never store scan results. A continuous scan that keeps its
-  // results list grows until the heap is gone — the TLS connection to the
-  // API is the first thing that dies (v1.10.0 field bug).
-  scan->setMaxResults(0);
-  scan->start(0, nullptr, false);    // forever
-  Serial.println("[presence] BLE proximity scan started");
+  scan->setMaxResults(0);            // callback-only, never store results
+  Serial.println("[presence] BLE configured (duty-cycled scan)");
+}
+
+void presenceTick() {
+  if ((unsigned long)(millis() - lastPresenceScanMs) < PRESENCE_SCAN_EVERY_MS)
+    return;
+  NimBLEScan* scan = NimBLEDevice::getScan();
+  if (scan->isScanning()) return;
+  // Heap guard: TLS needs big contiguous blocks — skip a burst under pressure
+  if (ESP.getFreeHeap() < 70000) {
+    Serial.printf("[presence] heap low (%u), skipping scan burst\n", ESP.getFreeHeap());
+    lastPresenceScanMs = millis();
+    return;
+  }
+  lastPresenceScanMs = millis();
+  scan->start(PRESENCE_SCAN_SECS, nullptr, false);
 }
 
 bool presenceNear() {
@@ -91,6 +109,7 @@ bool presenceNear() {
 }
 #else
 void startPresenceScan() {}
+void presenceTick() {}
 bool presenceNear() { return true; }
 #endif
 
@@ -164,6 +183,11 @@ Config config;
 WiFiClientSecure apiClient;  // TLS with pinned root CAs for all API calls
 bool wifiConnected = false;
 bool lastSendOk = false;
+// Self-healing: whatever wedges the network (heap fragmentation, radio
+// coexistence, router weirdness), a reboot restores the known-good boot
+// path. Never let the monitor silently stop reporting.
+uint8_t consecutiveSendFailures = 0;
+const uint8_t MAX_SEND_FAILURES = 5;
 // Auto-recovery from setup mode: a CONFIGURED unit only sits in setup mode
 // because a join failed (e.g. it rebooted after a power outage while the
 // router was still down). Reboot-and-retry every few minutes, unless someone
@@ -609,6 +633,7 @@ void loop() {
       ESP.restart();
     }
   } else if (wifiConnected) {
+    presenceTick();  // duty-cycled BLE proximity bursts
     // Normal operation - read sensor and send data
     if (millis() - lastReading >= readingInterval) {
       SensorData data = readSDP810();
@@ -624,6 +649,7 @@ void loop() {
 
         if (sendSensorData(data)) {
           Serial.printf("✓ Data sent (heap %u)\n", ESP.getFreeHeap());
+          consecutiveSendFailures = 0;
           lastSendOk = true;
           digitalWrite(LED_PIN, HIGH);   // onboard LED mirrors "online"
           glowFromFilterStatus();        // glow shows the server's verdict
@@ -632,6 +658,11 @@ void loop() {
           lastSendOk = false;
           digitalWrite(LED_PIN, LOW);
           glowState = GLOW_ERROR;
+          if (++consecutiveSendFailures >= MAX_SEND_FAILURES) {
+            Serial.println("[watchdog] repeated send failures — rebooting to recover");
+            delay(200);
+            ESP.restart();
+          }
         }
       }
       
