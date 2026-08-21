@@ -2,14 +2,27 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.10.3.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.10.4.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.10.3.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.10.4.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
-## v1.10.3 — presence parked, hardware watchdog added (SHIP THIS ONE)
+## v1.10.4 — sensor faults are visible + self-healing (SHIP THIS ONE)
+
+Field lesson: a mute sensor (loose jumper wire) froze BOTH readings and
+last-seen — indistinguishable from a dead device, and it mimicked the
+BLE bugs all day. Now, after 3 invalid reads the monitor:
+- heartbeats the server every 60 s with status "error" (dashboard shows
+  ONLINE + sensor fault instead of fake offline)
+- blinks the onboard blue LED fast (~5 Hz) — no glow LED required
+- re-initializes the sensor every 30 s, which self-heals flaky
+  connections, and reports "active" the moment reads recover
+Root fix for the pilot unit remains physical: soldered loom / glued
+connectors per the build sheet.
+
+## v1.10.3 — presence parked, hardware watchdog added
 
 v1.10.2 still froze solid after ~30-40 min in the field — a hang, not
 failed sends, so the software watchdog never ran. Two decisions:
