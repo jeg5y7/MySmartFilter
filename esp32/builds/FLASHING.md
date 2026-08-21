@@ -2,12 +2,22 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.10.1.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.10.2.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.10.1.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.10.2.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
+
+## v1.10.2 — duty-cycled BLE + self-healing watchdog (ship this one)
+
+v1.10.1's continuous scan still degraded the network over ~40 min in the
+field (heap fragmentation starving TLS). Two structural fixes:
+- BLE now scans in 3 s bursts every 30 s (same walk-up latency, ~10% of
+  the radio/heap pressure), with a low-heap guard that skips bursts.
+- Watchdog: 5 consecutive failed uploads → self-reboot into the
+  known-good boot path (WiFi → OTA check → BLE). The monitor can never
+  silently stop reporting for more than ~10 minutes, whatever the cause.
 
 ## v1.10.1 — fix: BLE scan memory leak (URGENT over v1.10.0)
 
