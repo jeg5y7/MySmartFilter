@@ -190,6 +190,17 @@ bool lastSendOk = false;
 // path. Never let the monitor silently stop reporting.
 uint8_t consecutiveSendFailures = 0;
 const uint8_t MAX_SEND_FAILURES = 5;
+// Sensor-fault visibility: a mute sensor (loose wire, dead part) must never
+// look like a dead device. After N invalid reads we heartbeat the server
+// with status "error" (dashboard shows online + sensor fault), blink the
+// onboard LED, and retry sensor init — which self-heals a flaky connection.
+uint8_t consecutiveInvalidReads = 0;
+bool sensorFault = false;
+unsigned long lastSensorReinitMs = 0;
+unsigned long lastFaultHeartbeatMs = 0;
+const uint8_t SENSOR_FAULT_AFTER_READS = 3;
+const unsigned long SENSOR_REINIT_EVERY_MS = 30UL * 1000UL;
+const unsigned long FAULT_HEARTBEAT_EVERY_MS = 60UL * 1000UL;
 // Auto-recovery from setup mode: a CONFIGURED unit only sits in setup mode
 // because a join failed (e.g. it rebooted after a power outage while the
 // router was still down). Reboot-and-retry every few minutes, unless someone
@@ -546,6 +557,7 @@ bool connectToWiFi();
 void registerDevice();
 void updateDeviceStatus();
 bool sendSensorData(SensorData data);
+void sendStatusHeartbeat(const char* status);
 void initializeSDP810();
 SensorData readSDP810();
 void loadConfig();
@@ -627,6 +639,9 @@ void setup() {
 void loop() {
   esp_task_wdt_reset();  // feed the hardware dead-man timer
   glowTick();
+  // No glow LED needed to see a sensor fault: the onboard blue LED blinks
+  // fast (~5 Hz) while the sensor is mute, steady otherwise per send state
+  if (sensorFault) digitalWrite(LED_PIN, (millis() / 100) % 2);
 
   if (WiFi.getMode() == WIFI_AP) {
     glowState = GLOW_SETUP;
@@ -648,8 +663,36 @@ void loop() {
     // Normal operation - read sensor and send data
     if (millis() - lastReading >= readingInterval) {
       SensorData data = readSDP810();
-      
+
+      if (!data.valid) {
+        if (consecutiveInvalidReads < 255) consecutiveInvalidReads++;
+        if (!sensorFault && consecutiveInvalidReads >= SENSOR_FAULT_AFTER_READS) {
+          sensorFault = true;
+          Serial.println("[sensor-fault] sensor not responding — entering fault mode");
+          sendStatusHeartbeat("error");
+          lastFaultHeartbeatMs = millis();
+        }
+        if (sensorFault) {
+          if ((unsigned long)(millis() - lastSensorReinitMs) >= SENSOR_REINIT_EVERY_MS) {
+            lastSensorReinitMs = millis();
+            Serial.println("[sensor-fault] attempting sensor re-init");
+            initializeSDP810();
+          }
+          if ((unsigned long)(millis() - lastFaultHeartbeatMs) >= FAULT_HEARTBEAT_EVERY_MS) {
+            lastFaultHeartbeatMs = millis();
+            sendStatusHeartbeat("error");
+          }
+          readingInterval = 10000;  // probe often while faulted
+        }
+      }
+
       if (data.valid) {
+        if (sensorFault) {
+          Serial.println("[sensor-fault] sensor recovered");
+          sensorFault = false;
+          sendStatusHeartbeat("active");
+        }
+        consecutiveInvalidReads = 0;
         Serial.printf("Pressure: %.2f Pa, Temperature: %.2f °C\n",
                       data.pressure, data.temperature);
 
@@ -1121,6 +1164,21 @@ bool sendSensorData(SensorData data) {
 
   http.end();
   return success;
+}
+
+// PUT /api/device/status — bumps lastSeen and sets the device status so a
+// sensor fault shows as "online + error" instead of a fake offline.
+void sendStatusHeartbeat(const char* status) {
+  if (WiFi.status() != WL_CONNECTED || strlen(config.apiToken) == 0) return;
+  HTTPClient http;
+  http.begin(apiClient, String(API_BASE_URL_STR) + "/device/status");
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", "Bearer " + String(config.apiToken));
+  String body = String("{\"status\":\"") + status + "\",\"firmware\":\"" +
+                FIRMWARE_VERSION + "\"}";
+  int code = http.PUT(body);
+  Serial.printf("[heartbeat] status=%s -> HTTP %d\n", status, code);
+  http.end();
 }
 
 void initializeSDP810() {
