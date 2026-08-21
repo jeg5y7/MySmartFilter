@@ -9,6 +9,20 @@ Ready-to-flash images, each a single file written at address `0x0`:
 - **`smartfilter-usb-pilot-v1.9.0.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
+## v1.10.0 — presence-aware glow (BLE proximity)
+
+The monitor now listens passively for Bluetooth signals from phones and
+wearables. When someone carrying a device comes within a few meters, the
+status glow swells to full brightness and holds for 10 minutes; with
+nobody around it settles to a faint 15% idle glow — no more bright LED
+lighting up a dark basement all night, and the light "greets" whoever
+walks up to check it. Setup mode, connecting, and error states always
+show at full brightness. Detection needs a phone/watch on the person;
+firmware-only (uses the BLE radio already in the chip). Rev B will add a
+$3 mmWave radar for true any-person detection through the enclosure.
+Note: the app image is now 93.5% of the OTA slot — spec bigger flash on
+Rev B.
+
 ## v1.9.0 — survives power outages (field finding)
 
 The first real outage taught us the failure mode: the monitor boots back

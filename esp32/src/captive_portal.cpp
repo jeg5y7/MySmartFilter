@@ -50,6 +50,46 @@ const int CONFIG_VERSION = 1;
 #define LED_G_PIN 26
 #define LED_B_PIN 27
 
+// ── Presence detection (BLE proximity) ───────────────────────────────────────
+// Phones and wearables constantly emit BLE advertisements. A strong RSSI
+// means someone is within a few meters — swell the glow to full brightness
+// for PRESENCE_HOLD_MS, then settle back to a faint idle glow. Detects
+// phones, not people: good enough for "it lit up when I walked over".
+#ifdef ENABLE_PRESENCE
+#include <NimBLEDevice.h>
+static volatile unsigned long presenceUntilMs = 0;
+const unsigned long PRESENCE_HOLD_MS = 10UL * 60UL * 1000UL;  // 10 minutes
+const int PRESENCE_RSSI_DBM = -60;      // ≈ within 2-4 m through a pocket
+const uint8_t GLOW_DIM_PCT = 15;        // idle brightness when nobody near
+
+class PresenceScanCallbacks : public NimBLEAdvertisedDeviceCallbacks {
+  void onResult(NimBLEAdvertisedDevice* d) override {
+    if (d->getRSSI() >= PRESENCE_RSSI_DBM) {
+      presenceUntilMs = millis() + PRESENCE_HOLD_MS;
+    }
+  }
+};
+
+void startPresenceScan() {
+  NimBLEDevice::init("");
+  NimBLEScan* scan = NimBLEDevice::getScan();
+  scan->setAdvertisedDeviceCallbacks(new PresenceScanCallbacks(), false);
+  scan->setActiveScan(false);        // passive: listen only, radio-polite
+  scan->setDuplicateFilter(false);   // repeated adverts must keep refreshing
+  scan->setInterval(320);            // ~10% radio duty — plays nice with WiFi
+  scan->setWindow(32);
+  scan->start(0, nullptr, false);    // forever
+  Serial.println("[presence] BLE proximity scan started");
+}
+
+bool presenceNear() {
+  return (long)(presenceUntilMs - millis()) > 0;
+}
+#else
+void startPresenceScan() {}
+bool presenceNear() { return true; }
+#endif
+
 // ── Glow-top status light ────────────────────────────────────────────────────
 // The lid diffuses an RGB LED into an ambient status glow (no button):
 //   pulsing blue   = setup mode (join SmartFilter_Setup from your phone)
@@ -75,6 +115,20 @@ void glowSet(uint8_t r, uint8_t g, uint8_t b) {
   ledcWrite(2, b);
 }
 
+// Status states dim to a faint glow when nobody is nearby; setup,
+// connecting, and error always show at full brightness — those are the
+// states where someone needs to see the light from across the room.
+void glowSetStatus(uint8_t r, uint8_t g, uint8_t b) {
+#ifdef ENABLE_PRESENCE
+  if (!presenceNear()) {
+    glowSet((r * GLOW_DIM_PCT) / 100, (g * GLOW_DIM_PCT) / 100,
+            (b * GLOW_DIM_PCT) / 100);
+    return;
+  }
+#endif
+  glowSet(r, g, b);
+}
+
 // Non-blocking update, call every loop pass. Breathing = triangle wave.
 void glowTick() {
   unsigned long t = millis();
@@ -86,9 +140,9 @@ void glowTick() {
   switch (glowState) {
     case GLOW_SETUP:      glowSet(0, 0, 40 + (tri * 3) / 4); break;
     case GLOW_CONNECTING: glowSet(blinkSlow ? 180 : 0, blinkSlow ? 90 : 0, 0); break;
-    case GLOW_OK:         glowSet(0, 60, 4); break;              // calm, dim green
-    case GLOW_SOON:       glowSet(200, 90, 0); break;            // amber
-    case GLOW_NOW:        glowSet(40 + (tri * 6) / 8, 0, 0); break; // breathing red
+    case GLOW_OK:         glowSetStatus(0, 60, 4); break;           // calm green
+    case GLOW_SOON:       glowSetStatus(200, 90, 0); break;         // amber
+    case GLOW_NOW:        glowSetStatus(40 + (tri * 6) / 8, 0, 0); break; // breathing red
     case GLOW_ERROR:      glowSet(blinkFast ? 220 : 0, 0, 0); break;
   }
 }
@@ -841,6 +895,9 @@ void startNormalOperation() {
   registerDevice();
   // Check for OTA firmware update on every boot
   checkOTAUpdate();
+  // BLE proximity only runs alongside normal operation — never during the
+  // setup portal, where the radio needs to be a stable AP
+  startPresenceScan();
 }
 
 bool connectToWiFi() {
