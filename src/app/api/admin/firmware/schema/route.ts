@@ -37,12 +37,26 @@ export async function POST() {
       CONSTRAINT "FirmwareRelease_pkey" PRIMARY KEY ("id")
     )
   `);
-  await db.$executeRawUnsafe(
-    `CREATE UNIQUE INDEX IF NOT EXISTS "FirmwareRelease_version_key" ON "FirmwareRelease"("version")`
-  );
-  await db.$executeRawUnsafe(
-    `CREATE INDEX IF NOT EXISTS "FirmwareRelease_isActive_idx" ON "FirmwareRelease"("isActive")`
-  );
+    // The table may predate newer columns (it was found in prod in an older
+    // shape missing rolloutPct) — bring it up to the current schema.
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "FirmwareRelease" ADD COLUMN IF NOT EXISTS "rolloutPct" INTEGER NOT NULL DEFAULT 100`
+    );
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "FirmwareRelease" ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true`
+    );
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "FirmwareRelease" ADD COLUMN IF NOT EXISTS "releaseNotes" TEXT`
+    );
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "FirmwareRelease" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`
+    );
+    await db.$executeRawUnsafe(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "FirmwareRelease_version_key" ON "FirmwareRelease"("version")`
+    );
+    await db.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "FirmwareRelease_isActive_idx" ON "FirmwareRelease"("isActive")`
+    );
 
     const count = await db.firmwareRelease.count();
     return NextResponse.json({ ok: true, releases: count });
