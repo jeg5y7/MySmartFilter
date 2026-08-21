@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { generateApiKey } from "~/lib/api-key";
+import { generateApiKey, hashApiKey } from "~/lib/api-key";
 import { randomBytes } from "crypto";
 
 const WEBHOOK_EVENTS = ["filter.alert", "device.offline", "reading.threshold"] as const;
@@ -26,14 +26,16 @@ export const integrationsRouter = createTRPCRouter({
     .input(z.object({ name: z.string().min(1).max(64) }))
     .mutation(async ({ ctx, input }) => {
       const key = generateApiKey();
+      // Store only the hash — the raw key is returned to the user exactly
+      // once, right here, and can never be read back out of the database.
       const apiKey = await ctx.db.apiKey.create({
         data: {
           userId: ctx.session.user.id,
           name: input.name,
-          key,
+          key: hashApiKey(key),
         },
       });
-      return { id: apiKey.id, name: apiKey.name, key: apiKey.key, createdAt: apiKey.createdAt };
+      return { id: apiKey.id, name: apiKey.name, key, createdAt: apiKey.createdAt };
     }),
 
   deleteApiKey: protectedProcedure

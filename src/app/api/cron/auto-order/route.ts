@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
-import { resend, EMAIL_FROM } from "~/lib/resend";
+import { resend, EMAIL_FROM, escapeHtml } from "~/lib/resend";
 import { env } from "~/env";
 import { getEffectiveFilterPreference } from "~/lib/filter-preference";
 import { stripe } from "~/lib/stripe";
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
       const resolved = await getEffectiveFilterPreference(alert.userId, alert.deviceId);
       const preference = resolved?.autoOrderEnabled ? resolved : undefined;
       const userEmail = alert.user.email;
-      const deviceName = alert.device.name ?? alert.device.deviceId;
+      const deviceName = escapeHtml(alert.device.name ?? alert.device.deviceId);
 
       try {
         let order;

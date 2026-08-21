@@ -7,6 +7,7 @@ import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { alertCeilingPa } from "~/lib/filter-health";
+import { escapeHtml } from "~/lib/resend";
 import { resend, EMAIL_FROM } from "~/lib/resend";
 import { computeFilterHealth } from "~/lib/filter-health";
 
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
       batteryPct <= LOW_BATTERY_PCT &&
       (previousBattery === null || previousBattery > LOW_BATTERY_PCT)
     ) {
-      void sendLowBatteryEmail(device.userId, device.name ?? device.deviceId, batteryPct);
+      void sendLowBatteryEmail(device.userId, escapeHtml(device.name ?? device.deviceId), batteryPct);
     }
 
     // Tell the device its filter status so the button-press LED can show it

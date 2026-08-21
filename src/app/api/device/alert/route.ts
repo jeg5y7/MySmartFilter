@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
-import { resend, EMAIL_FROM } from "~/lib/resend";
+import { resend, EMAIL_FROM, escapeHtml } from "~/lib/resend";
 import { getEffectiveFilterPreference } from "~/lib/filter-preference";
 import { alertCeilingPa } from "~/lib/filter-health";
 import crypto from "crypto";
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     });
 
     // Send email notification to user via Resend
-    const deviceName = device.name ?? device.deviceId;
+    const deviceName = escapeHtml(device.name ?? device.deviceId);
     const userEmail = device.user.email;
 
     if (userEmail) {

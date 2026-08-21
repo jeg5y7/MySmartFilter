@@ -5,6 +5,13 @@ import { isAutoShipMember } from "~/lib/membership";
 
 const MAX_ROWS = 10000;
 
+/** Spreadsheet apps execute cells starting with = + - @ as formulas —
+ *  neutralize user-controlled text so an exported CSV can't carry one. */
+function csvSafe(value: string): string {
+  const quoted = value.replace(/"/g, '""');
+  return /^[=+\-@]/.test(quoted) ? `'${quoted}` : quoted;
+}
+
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -79,7 +86,7 @@ export async function GET(req: NextRequest) {
   for (const r of rows) {
     const deviceName = (r.device.name ?? r.device.deviceId).replace(/"/g, '""');
     lines.push(
-      `${r.timestamp.toISOString()},${r.device.deviceId},"${deviceName}",${r.pressure.toFixed(2)},${r.temperature.toFixed(2)}`
+      `${r.timestamp.toISOString()},${r.device.deviceId},"${csvSafe(deviceName)}",${r.pressure.toFixed(2)},${r.temperature.toFixed(2)}`
     );
   }
 
