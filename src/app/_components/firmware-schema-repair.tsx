@@ -2,17 +2,24 @@
 
 import { useState } from "react";
 
-/** Shown when the FirmwareRelease table doesn't exist in this database yet. */
-export function FirmwareSchemaRepair() {
+/** Shown when the firmware-release queries fail (e.g. table missing). */
+export function FirmwareSchemaRepair({ detail }: { detail: string | null }) {
   const [state, setState] = useState<"idle" | "working" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const run = async () => {
     setState("working");
     try {
       const res = await fetch("/api/admin/firmware/schema", { method: "POST" });
-      if (!res.ok) throw new Error(String(res.status));
+      const body = (await res.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      if (!res.ok) {
+        throw new Error(body?.error ?? `HTTP ${res.status}`);
+      }
       window.location.reload();
-    } catch {
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : String(err));
       setState("error");
     }
   };
@@ -36,9 +43,13 @@ export function FirmwareSchemaRepair() {
         {state === "working" ? "Creating…" : "Create firmware table"}
       </button>
       {state === "error" && (
-        <p className="text-sm text-red-300 mt-3">
-          That didn&apos;t work — refresh and try again, or check the server
-          logs.
+        <p className="text-sm text-red-300 mt-3 break-all">
+          That didn&apos;t work: {errorMsg}
+        </p>
+      )}
+      {detail && (
+        <p className="text-xs text-gray-500 mt-4 font-mono break-all">
+          Underlying error: {detail}
         </p>
       )}
     </div>

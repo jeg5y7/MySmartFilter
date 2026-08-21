@@ -24,7 +24,8 @@ export async function POST() {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await db.$executeRawUnsafe(`
+  try {
+    await db.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "FirmwareRelease" (
       "id" TEXT NOT NULL,
       "version" TEXT NOT NULL,
@@ -43,6 +44,11 @@ export async function POST() {
     `CREATE INDEX IF NOT EXISTS "FirmwareRelease_isActive_idx" ON "FirmwareRelease"("isActive")`
   );
 
-  const count = await db.firmwareRelease.count();
-  return NextResponse.json({ ok: true, releases: count });
+    const count = await db.firmwareRelease.count();
+    return NextResponse.json({ ok: true, releases: count });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[admin/firmware/schema] failed:", err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
