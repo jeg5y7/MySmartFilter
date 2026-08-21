@@ -2,11 +2,11 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.9.0.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.10.1.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.9.0.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.10.1.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
 ## v1.10.1 — fix: BLE scan memory leak (URGENT over v1.10.0)
