@@ -123,7 +123,7 @@ export default async function DevicePage({ params }: DevicePageProps) {
                     className={`font-semibold ${
                       device.status === "active"
                         ? "text-green-400"
-                        : device.status === "error"
+                        : device.status.startsWith("error")
                         ? "text-red-400"
                         : "text-yellow-400"
                     }`}

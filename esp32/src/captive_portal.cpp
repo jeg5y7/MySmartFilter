@@ -196,6 +196,10 @@ const uint8_t MAX_SEND_FAILURES = 5;
 // onboard LED, and retry sensor init — which self-heals a flaky connection.
 uint8_t consecutiveInvalidReads = 0;
 bool sensorFault = false;
+// Why the last read failed — reported in the fault heartbeat so bus
+// corruption (wiring/EMI), a mute sensor, and a dead sensor are
+// distinguishable from the dashboard: "error-crc" / "error-nack" / "error-temp"
+char lastSensorFail[8] = "nack";
 unsigned long lastSensorReinitMs = 0;
 unsigned long lastFaultHeartbeatMs = 0;
 const uint8_t SENSOR_FAULT_AFTER_READS = 3;
@@ -668,8 +672,12 @@ void loop() {
         if (consecutiveInvalidReads < 255) consecutiveInvalidReads++;
         if (!sensorFault && consecutiveInvalidReads >= SENSOR_FAULT_AFTER_READS) {
           sensorFault = true;
-          Serial.println("[sensor-fault] sensor not responding — entering fault mode");
-          sendStatusHeartbeat("error");
+          Serial.printf("[sensor-fault] entering fault mode (reason: %s)\n", lastSensorFail);
+          {
+            char st[16];
+            snprintf(st, sizeof(st), "error-%s", lastSensorFail);
+            sendStatusHeartbeat(st);
+          }
           lastFaultHeartbeatMs = millis();
         }
         if (sensorFault) {
@@ -680,7 +688,9 @@ void loop() {
           }
           if ((unsigned long)(millis() - lastFaultHeartbeatMs) >= FAULT_HEARTBEAT_EVERY_MS) {
             lastFaultHeartbeatMs = millis();
-            sendStatusHeartbeat("error");
+            char st[16];
+            snprintf(st, sizeof(st), "error-%s", lastSensorFail);
+            sendStatusHeartbeat(st);
           }
           readingInterval = 10000;  // probe often while faulted
         }
@@ -1262,6 +1272,7 @@ SensorData readSDP810() {
     if (!crcOk) {
       Serial.printf("[sdp] CRC FAIL raw=%02X %02X %02X | %02X %02X %02X | %02X %02X %02X\n",
                     b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8]);
+      strlcpy(lastSensorFail, "crc", sizeof(lastSensorFail));
       data.valid = false;
       return data;
     }
@@ -1278,12 +1289,27 @@ SensorData readSDP810() {
                     pressureRaw, temperatureRaw, scaleFactor);
     }
 
-    // A rail value is a fault, not a measurement. Reject it BEFORE the
-    // reversed-tube fold below, which would otherwise turn -32768 into a
-    // perfectly plausible +136.5 Pa and publish it as real data.
+    // A rail value has two meanings: a dead sensor (rails constantly,
+    // nonsense temperature) or a HEALTHY sensor pushed past its range —
+    // e.g. a 125 Pa part on a system whose blower-on ΔP exceeds ~136 Pa.
+    // The old code discarded both, which blacked out entire blower cycles
+    // and looked exactly like a wiring fault (field lesson, 2026-08-21).
+    // Now: CRC-valid rail with a sane temperature publishes as a PEGGED
+    // reading at the range limit; nonsense temperature still rejects.
     if (pressureRaw == -32768 || pressureRaw == 32767) {
-      Serial.printf("[sdp] saturated raw dp=%d — treating as invalid\n", pressureRaw);
-      data.valid = false;
+      float tC = temperatureRaw / 200.0f;
+      if (tC < -40 || tC > 85) {
+        Serial.printf("[sdp] rail dp=%d with bad temp %.1f — dead sensor\n",
+                      pressureRaw, tC);
+        strlcpy(lastSensorFail, "temp", sizeof(lastSensorFail));
+        data.valid = false;
+        return data;
+      }
+      data.pressure = 32767.0f / (float)scaleFactor;  // pegged: "at least this"
+      data.temperature = tC;
+      data.valid = true;
+      Serial.printf("[sdp] OVER-RANGE: dp railed at %d, publishing pegged %.1f Pa\n",
+                    pressureRaw, data.pressure);
       return data;
     }
 
@@ -1297,10 +1323,13 @@ SensorData readSDP810() {
     
     // Sanity check
     if (data.temperature < -40 || data.temperature > 85) {
+      strlcpy(lastSensorFail, "temp", sizeof(lastSensorFail));
       data.valid = false;
     }
+  } else {
+    strlcpy(lastSensorFail, "nack", sizeof(lastSensorFail));
   }
-  
+
   return data;
 }
 
