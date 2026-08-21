@@ -9,6 +9,14 @@ Ready-to-flash images, each a single file written at address `0x0`:
 - **`smartfilter-usb-pilot-v1.9.0.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
+## v1.10.1 — fix: BLE scan memory leak (URGENT over v1.10.0)
+
+v1.10.0's continuous BLE scan stored every advertisement it heard; the
+results list grew until the heap was exhausted and the TLS connection to
+the API died — readings silently stopped within minutes to hours. Fixed
+with setMaxResults(0) (callback-only scanning, nothing stored). Do not
+ship v1.10.0.
+
 ## v1.10.0 — presence-aware glow (BLE proximity)
 
 The monitor now listens passively for Bluetooth signals from phones and

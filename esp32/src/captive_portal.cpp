@@ -78,6 +78,10 @@ void startPresenceScan() {
   scan->setDuplicateFilter(false);   // repeated adverts must keep refreshing
   scan->setInterval(320);            // ~10% radio duty — plays nice with WiFi
   scan->setWindow(32);
+  // CRITICAL: never store scan results. A continuous scan that keeps its
+  // results list grows until the heap is gone — the TLS connection to the
+  // API is the first thing that dies (v1.10.0 field bug).
+  scan->setMaxResults(0);
   scan->start(0, nullptr, false);    // forever
   Serial.println("[presence] BLE proximity scan started");
 }
@@ -619,7 +623,7 @@ void loop() {
             (data.pressure >= 5.0f) ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS;
 
         if (sendSensorData(data)) {
-          Serial.println("✓ Data sent successfully");
+          Serial.printf("✓ Data sent (heap %u)\n", ESP.getFreeHeap());
           lastSendOk = true;
           digitalWrite(LED_PIN, HIGH);   // onboard LED mirrors "online"
           glowFromFilterStatus();        // glow shows the server's verdict
