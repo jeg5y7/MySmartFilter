@@ -10,6 +10,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
+  ComposedChart,
+  Bar,
 } from "recharts";
 import { api } from "~/trpc/react";
 import { cToF } from "~/lib/units";
@@ -108,6 +110,10 @@ interface ChartPoint {
   ts: number;
   pressure: number;
   temperature: number;
+  /** Daily mode only: minutes the blower ran that day. */
+  runtimeMin?: number;
+  /** Daily mode only: least-squares trend across the days. */
+  trend?: number;
 }
 
 /** One point per local day. Pressure = average of blower-ON readings only
@@ -115,18 +121,33 @@ interface ChartPoint {
  *  measurements instead of dipping to zero). Temperature = daily average of
  *  all readings. */
 function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
-  const days = new Map<number, { on: number[]; temperature: number[] }>();
+  const days = new Map<
+    number,
+    { on: number[]; temperature: number[]; runtimeSec: number }
+  >();
 
+  let prev: RawReading | null = null;
   for (const r of readings) {
     const d = r.timestamp;
     const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    if (!days.has(key)) days.set(key, { on: [], temperature: [] });
+    if (!days.has(key))
+      days.set(key, { on: [], temperature: [], runtimeSec: 0 });
     const b = days.get(key)!;
-    if (r.pressure >= BLOWER_ON_MIN_PA) b.on.push(r.pressure);
-    b.temperature.push(r.temperature);
+    if (r.pressure >= BLOWER_ON_MIN_PA) {
+      b.on.push(r.pressure);
+      // Runtime: sum the gaps between consecutive blower-on readings.
+      // Samples arrive every ~10-15 s while running; cap the credited gap so
+      // a data outage doesn't count as runtime.
+      if (prev && prev.pressure >= BLOWER_ON_MIN_PA) {
+        const gapSec =
+          (r.timestamp.getTime() - prev.timestamp.getTime()) / 1000;
+        b.runtimeSec += Math.min(Math.max(gapSec, 0), 150);
+      }
+    }
+    prev = r;
   }
 
-  return Array.from(days.entries())
+  const points: ChartPoint[] = Array.from(days.entries())
     .sort(([a], [b]) => a - b)
     .filter(([, b]) => b.on.length > 0)
     .map(([key, b]) => ({
@@ -135,7 +156,31 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
       temperature: cToF(
         b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length
       ),
+      runtimeMin: Math.round(b.runtimeSec / 60),
     }));
+
+  // Least-squares trend across the daily averages — the slow, steady rise
+  // of a loading filter is exactly what this line makes visible.
+  if (points.length >= 2) {
+    const n = points.length;
+    const xs = points.map((_, i) => i);
+    const ys = points.map((pt) => pt.pressure);
+    const xMean = xs.reduce((a, c) => a + c, 0) / n;
+    const yMean = ys.reduce((a, c) => a + c, 0) / n;
+    let num = 0;
+    let den = 0;
+    for (let i = 0; i < n; i++) {
+      num += (xs[i]! - xMean) * (ys[i]! - yMean);
+      den += (xs[i]! - xMean) ** 2;
+    }
+    const slope = den === 0 ? 0 : num / den;
+    const intercept = yMean - slope * xMean;
+    points.forEach((pt, i) => {
+      pt.trend = Math.max(0, intercept + slope * i);
+    });
+  }
+
+  return points;
 }
 
 function toChartPoints(readings: RawReading[], cfg: RangeConfig): ChartPoint[] {
@@ -258,6 +303,7 @@ interface TooltipPayload {
   value: number;
   color: string;
   unit?: string;
+  payload?: { runtimeMin?: number };
 }
 
 interface CustomTooltipProps {
@@ -286,12 +332,23 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
   return (
     <div className="bg-slate-900/95 border border-white/20 rounded-lg px-3 py-2 text-xs shadow-xl backdrop-blur-sm">
       <p className="text-gray-400 mb-1">{dateStr}</p>
-      {payload.map((p) => (
-        <p key={p.name} style={{ color: p.color }} className="font-mono">
-          {p.name}: <span className="font-bold">{p.value.toFixed(1)}</span>{" "}
-          {p.unit}
+      {payload
+        .filter((p) => p.name !== "Trend")
+        .map((p) => (
+          <p key={p.name} style={{ color: p.color }} className="font-mono">
+            {p.name}: <span className="font-bold">{p.value.toFixed(1)}</span>{" "}
+            {p.unit}
+          </p>
+        ))}
+      {payload[0]?.payload?.runtimeMin !== undefined && (
+        <p className="text-gray-300 font-mono mt-1">
+          HVAC ran:{" "}
+          <span className="font-bold">
+            {Math.floor(payload[0].payload.runtimeMin / 60)}h{" "}
+            {payload[0].payload.runtimeMin % 60}m
+          </span>
         </p>
-      ))}
+      )}
     </div>
   );
 }
@@ -315,6 +372,8 @@ interface ChartPanelProps {
    *  essential for temperature, where the interesting detail is a few
    *  degrees of movement around room temperature. */
   autoScaleY?: boolean;
+  /** Render daily points as bars with the trend line across their tops. */
+  bars?: boolean;
   isLoading: boolean;
 }
 
@@ -332,9 +391,12 @@ function ChartPanel({
   referenceColor2,
   referenceLabel2,
   autoScaleY = false,
+  bars = false,
   isLoading,
 }: ChartPanelProps) {
   const cfg = RANGES[rangeKey];
+  const ChartComp = bars ? ComposedChart : LineChart;
+  const hasTrend = bars && data.some((d) => d.trend !== undefined);
 
   return (
     <div className="bg-white/5 rounded-lg p-4 border border-white/10">
@@ -353,12 +415,12 @@ function ChartPanel({
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={160}>
-          <LineChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <ChartComp data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
             <XAxis
               dataKey="ts"
               type="number"
-              domain={["dataMin", "dataMax"]}
+              domain={bars ? ["dataMin - 43200000", "dataMax + 43200000"] : ["dataMin", "dataMax"]}
               scale="time"
               tickFormatter={cfg.tickFormat}
               tick={{ fill: "#6b7280", fontSize: 10 }}
@@ -413,18 +475,45 @@ function ChartPanel({
                 }}
               />
             )}
-            <Line
-              type="monotone"
-              dataKey={dataKey}
-              name={title}
-              unit={` ${unit}`}
-              stroke={color}
-              strokeWidth={1.5}
-              dot={false}
-              activeDot={{ r: 4, fill: color, strokeWidth: 0 }}
-              isAnimationActive={false}
-            />
-          </LineChart>
+            {bars ? (
+              <Bar
+                dataKey={dataKey}
+                name={title}
+                unit={` ${unit}`}
+                fill={color}
+                fillOpacity={0.65}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={26}
+                isAnimationActive={false}
+              />
+            ) : (
+              <Line
+                type="monotone"
+                dataKey={dataKey}
+                name={title}
+                unit={` ${unit}`}
+                stroke={color}
+                strokeWidth={1.5}
+                dot={false}
+                activeDot={{ r: 4, fill: color, strokeWidth: 0 }}
+                isAnimationActive={false}
+              />
+            )}
+            {hasTrend && (
+              <Line
+                type="linear"
+                dataKey="trend"
+                name="Trend"
+                unit={` ${unit}`}
+                stroke="#f8fafc"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                dot={false}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+            )}
+          </ChartComp>
         </ResponsiveContainer>
       )}
     </div>
@@ -522,8 +611,12 @@ export function DeviceReadings({
     );
   }
 
-  const pressures = recentReadings.map((r) => r.pressure);
-  const temperatures = recentReadings.map((r) => r.temperature);
+  // Stat tiles follow the SELECTED RANGE (falling back to the recent list
+  // while the range query loads or returns nothing)
+  const statsReadings =
+    rangeReadings && rangeReadings.length > 0 ? rangeReadings : recentReadings;
+  const pressures = statsReadings.map((r) => r.pressure);
+  const temperatures = statsReadings.map((r) => r.temperature);
   // "Average" means average while the system is RUNNING — near-zero readings
   // from idle periods would drag it down and hide the number that matters
   const runningPressures = pressures.filter((v) => v >= BLOWER_ON_MIN_PA);
@@ -609,6 +702,7 @@ export function DeviceReadings({
           color="#60a5fa"
           data={chartPoints}
           rangeKey={activeRange}
+          bars={rangeCfg.dailyOnAvg}
           referenceLine={alertCeiling}
           referenceColor="#f59e0b"
           referenceLabel="Alert level"
@@ -659,9 +753,9 @@ export function DeviceReadings({
           </p>
         </div>
         <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-          <p className="text-gray-400 text-xs mb-1">Total Readings</p>
+          <p className="text-gray-400 text-xs mb-1">Readings · {rangeCfg.label}</p>
           <p className="text-lg font-bold text-blue-400">
-            {recentReadings.length}
+            {statsReadings.length}
             <span className="text-xs font-normal text-gray-400 ml-1">pts</span>
           </p>
         </div>

@@ -1,10 +1,61 @@
 import { api } from "~/trpc/server";
 import { cToF } from "~/lib/units";
 import { LocalTime } from "~/app/_components/local-time";
+import { auth } from "~/server/auth";
+import { db } from "~/server/db";
+import { computeFilterHealth } from "~/lib/filter-health";
 
 export async function SensorDashboard() {
   const latestReadings = await api.sensor.getLatest({ limit: 20 });
   const stats = await api.sensor.getStats({ hours: 24 });
+
+  // Real filter status across the user's devices (worst one wins)
+  const session = await auth();
+  let filterValue = "No devices";
+  let filterSubtitle = "Add a monitor to begin";
+  let filterIcon = "✅";
+  if (session?.user?.id) {
+    const devices = await db.device.findMany({
+      where: { userId: session.user.id },
+      include: { sensorReadings: { orderBy: { timestamp: "desc" }, take: 1 } },
+    });
+    if (devices.length > 0) {
+      const rank = { ok: 0, replace_soon: 1, replace_now: 2 } as const;
+      let worst: { status: keyof typeof rank; lifePct: number | null } = {
+        status: "ok",
+        lifePct: null,
+      };
+      for (const d of devices) {
+        const health = await computeFilterHealth(
+          d,
+          d.sensorReadings[0]?.pressure ?? null
+        );
+        if (
+          rank[health.status] > rank[worst.status] ||
+          (health.lifePct !== null &&
+            (worst.lifePct === null || health.lifePct < worst.lifePct))
+        ) {
+          worst = { status: health.status, lifePct: health.lifePct };
+        }
+      }
+      filterValue =
+        worst.status === "replace_now"
+          ? "Replace Now"
+          : worst.status === "replace_soon"
+            ? "Replace Soon"
+            : "Good";
+      filterIcon =
+        worst.status === "replace_now"
+          ? "🚨"
+          : worst.status === "replace_soon"
+            ? "⚠️"
+            : "✅";
+      filterSubtitle =
+        worst.lifePct !== null
+          ? `${worst.lifePct}% filter life left`
+          : "Tracking live";
+    }
+  }
 
   return (
     <div className="w-full max-w-6xl space-y-6">
@@ -24,9 +75,17 @@ export async function SensorDashboard() {
             icon="📊"
           />
           <StatCard
-            title="Avg Differential"
-            value={`${stats.pressure.avg.toFixed(1)} Pa`}
-            subtitle={`Range: ${stats.pressure.min.toFixed(1)} - ${stats.pressure.max.toFixed(1)}`}
+            title="Avg Differential Pressure"
+            value={
+              stats.runningPressure
+                ? `${stats.runningPressure.avg.toFixed(1)} Pa`
+                : "—"
+            }
+            subtitle={
+              stats.runningPressure
+                ? `While running · peak ${stats.runningPressure.max.toFixed(1)} Pa`
+                : "No blower runtime in last 24 h"
+            }
             icon="🔄"
           />
           <StatCard
@@ -37,9 +96,9 @@ export async function SensorDashboard() {
           />
           <StatCard
             title="Filter Status"
-            value="Good"
-            subtitle="Est. 30 days remaining"
-            icon="✅"
+            value={filterValue}
+            subtitle={filterSubtitle}
+            icon={filterIcon}
           />
         </div>
       )}
@@ -64,10 +123,10 @@ export async function SensorDashboard() {
             <div className="mt-6 rounded-lg bg-white/5 p-4 text-left">
               <p className="text-sm text-white/70 mb-2">Quick Setup:</p>
               <ol className="text-sm text-white/60 space-y-1">
-                <li>1. Install Smart Filter monitor on your filter housing</li>
-                <li>2. Configure WiFi connection on ESP32</li>
-                <li>3. Connect SDP810 pressure sensor across filter</li>
-                <li>4. Monitor will automatically detect filter condition</li>
+                <li>1. Install the smart filter monitor next to your furnace</li>
+                <li>2. Connect it to your home WiFi from your phone</li>
+                <li>3. Scan the QR label to link it to your account</li>
+                <li>4. It starts tracking your filter automatically</li>
               </ol>
             </div>
           </div>

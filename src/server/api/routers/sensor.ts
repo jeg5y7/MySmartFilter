@@ -150,6 +150,9 @@ export const sensorRouter = createTRPCRouter({
 
       const pressures = readings.map(r => r.pressure);
       const temperatures = readings.map(r => r.temperature);
+      // "While running" = blower-on readings only; idle near-zeros would
+      // drag the average down and hide the number that matters
+      const running = pressures.filter((v) => v >= 5);
 
       return {
         count: readings.length,
@@ -158,6 +161,14 @@ export const sensorRouter = createTRPCRouter({
           max: Math.max(...pressures),
           avg: pressures.reduce((a, b) => a + b, 0) / pressures.length,
         },
+        runningPressure:
+          running.length > 0
+            ? {
+                count: running.length,
+                avg: running.reduce((a, b) => a + b, 0) / running.length,
+                max: Math.max(...running),
+              }
+            : null,
         temperature: {
           min: Math.min(...temperatures),
           max: Math.max(...temperatures),
