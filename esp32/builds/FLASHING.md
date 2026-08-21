@@ -2,14 +2,26 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.10.2.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.10.3.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.10.2.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.10.3.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
-## v1.10.2 — duty-cycled BLE + self-healing watchdog (ship this one)
+## v1.10.3 — presence parked, hardware watchdog added (SHIP THIS ONE)
+
+v1.10.2 still froze solid after ~30-40 min in the field — a hang, not
+failed sends, so the software watchdog never ran. Two decisions:
+- BLE presence is COMPILED OUT until it's bench-debugged over serial
+  (the code remains, off by default). Data reliability beats the glow
+  trick. Flash back to 80% of the OTA slot.
+- The chip's hardware task watchdog now guards the main loop (300 s):
+  any freeze — radio deadlock, heap exhaustion, driver bug — reboots
+  the unit automatically. Combined with the send-failure watchdog and
+  OTA boot validation, silent death is no longer a reachable state.
+
+## v1.10.2 — duty-cycled BLE + self-healing watchdog
 
 v1.10.1's continuous scan still degraded the network over ~40 min in the
 field (heap fragmentation starving TLS). Two structural fixes:
