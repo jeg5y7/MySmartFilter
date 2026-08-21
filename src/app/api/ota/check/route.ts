@@ -13,10 +13,19 @@ function rolloutBucket(deviceId: string): number {
 }
 
 /**
- * Parse a semver string into [major, minor, patch] numbers.
+ * Parse a semver string into [major, minor, patch] numbers. parseInt (not
+ * Number) so suffixed components like the "1-usb" in "1.10.1-usb" parse as
+ * 1 instead of NaN — NaN comparisons silently made patch-level updates
+ * invisible to the fleet.
  */
 function parseSemver(version: string): [number, number, number] {
-  const parts = version.replace(/^v/, "").split(".").map(Number);
+  const parts = version
+    .replace(/^v/, "")
+    .split(".")
+    .map((p) => {
+      const n = parseInt(p, 10);
+      return Number.isNaN(n) ? 0 : n;
+    });
   return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
 }
 
