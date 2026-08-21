@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -531,6 +531,49 @@ const SENSOR_TYPE_LABELS: Record<string, { name: string; unit: string }> = {
   voc: { name: "VOC", unit: "ppb" },
 };
 
+/** "Updated Xs ago" + a tappable refresh — visible proof the data is live. */
+function FreshnessBadge({
+  updatedAt,
+  fetching,
+  onRefresh,
+}: {
+  updatedAt: number;
+  fetching: boolean;
+  onRefresh: () => void;
+}) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  const secs = Math.max(0, Math.round((Date.now() - updatedAt) / 1000));
+  const ago =
+    secs < 5 ? "just now" : secs < 90 ? `${secs}s ago` : `${Math.round(secs / 60)}m ago`;
+
+  return (
+    <button
+      onClick={onRefresh}
+      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+      title="Refresh now"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        className={`h-3.5 w-3.5 ${fetching ? "animate-spin text-blue-400" : ""}`}
+      >
+        <path
+          fillRule="evenodd"
+          d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.22z"
+          clipRule="evenodd"
+        />
+      </svg>
+      {fetching ? "Refreshing…" : `Updated ${ago}`}
+    </button>
+  );
+}
+
 export function DeviceReadings({
   deviceId,
   pressureThreshold,
@@ -560,6 +603,9 @@ export function DeviceReadings({
     data: recentReadings,
     isLoading: recentLoading,
     isError: recentError,
+    isFetching: recentFetching,
+    dataUpdatedAt: recentUpdatedAt,
+    refetch: refetchRecent,
   } = api.sensor.getByDevice.useQuery(
     { deviceId, limit: 50, sensorType: activeSensorType },
     { refetchInterval: 30_000 },
@@ -569,6 +615,7 @@ export function DeviceReadings({
   const {
     data: rangeReadings,
     isLoading: rangeLoading,
+    refetch: refetchRange,
   } = api.sensor.getByTimeRange.useQuery(
     { deviceId, startDate, endDate, sensorType: activeSensorType },
     { refetchInterval: 30_000 },
@@ -633,7 +680,14 @@ export function DeviceReadings({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Sensor Data</h2>
-        <span className="text-xs text-gray-500">Auto-refreshes every 30s</span>
+        <FreshnessBadge
+          updatedAt={recentUpdatedAt}
+          fetching={recentFetching}
+          onRefresh={() => {
+            void refetchRecent();
+            void refetchRange();
+          }}
+        />
       </div>
 
       {/* Sensor Type Tabs — only shown when multiple types are present */}
