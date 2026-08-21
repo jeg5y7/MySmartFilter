@@ -2,14 +2,27 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.10.4.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.10.5.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.10.4.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.10.5.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
-## v1.10.4 — sensor faults are visible + self-healing (SHIP THIS ONE)
+## v1.10.5 — over-range readings pegged, fault reasons (SHIP THIS ONE)
+
+Field finding: rail rejection (v1.8.0) has a second trigger besides a
+dead sensor — a HEALTHY 125 Pa part whose blower-on dP exceeds ~136 Pa
+rails every reading, blacking out entire cycles in a way that mimics a
+wiring fault (instant mute at blower start, hands-free recovery at
+blower stop). Now: a CRC-valid rail with sane temperature publishes as
+a PEGGED 136.5 Pa reading (chart shows a flat ceiling instead of
+silence); rails with nonsense temperature still reject (dead sensor).
+Fault heartbeats carry the reason: error-nack / error-crc / error-temp.
+If a unit pegs, the cure is the SDP810-500Pa part (auto-detected) or
+tap relocation.
+
+## v1.10.4 — sensor faults are visible + self-healing
 
 Field lesson: a mute sensor (loose jumper wire) froze BOTH readings and
 last-seen — indistinguishable from a dead device, and it mimicked the
