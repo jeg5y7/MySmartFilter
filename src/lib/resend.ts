@@ -23,3 +23,12 @@ export const resend: Resend = new Proxy({} as Resend, {
 
 // Default from address — falls back to noreply@mysmartfilter.com
 export const EMAIL_FROM = env.EMAIL_FROM ?? "noreply@mysmartfilter.com";
+
+/** Escape user-controlled text before interpolating it into email HTML. */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}

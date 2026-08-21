@@ -1,6 +1,6 @@
 import type { Device } from "@prisma/client";
 import { db } from "~/server/db";
-import { resend, EMAIL_FROM } from "~/lib/resend";
+import { resend, EMAIL_FROM, escapeHtml } from "~/lib/resend";
 import { BLOWER_ON_MIN_PA } from "~/lib/energy";
 
 /**
@@ -150,7 +150,7 @@ export async function maybeDetectFilterReplacement(
   );
 
   if (device.userId) {
-    void sendReplacementDetectedEmail(device.userId, device.name ?? device.deviceId);
+    void sendReplacementDetectedEmail(device.userId, escapeHtml(device.name ?? device.deviceId));
   }
   return true;
 }

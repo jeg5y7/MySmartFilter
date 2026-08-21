@@ -1,7 +1,7 @@
 import type { Device } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { db } from "~/server/db";
-import { resend, EMAIL_FROM } from "~/lib/resend";
+import { resend, EMAIL_FROM, escapeHtml } from "~/lib/resend";
 import { dispatchWebhook } from "~/lib/webhooks";
 import { getEffectiveFilterPreference } from "~/lib/filter-preference";
 
@@ -72,7 +72,7 @@ export async function maybeTriggerEnergyAlert(
   });
 
   if (user?.email) {
-    const deviceName = device.name ?? device.deviceId;
+    const deviceName = escapeHtml(device.name ?? device.deviceId);
     const autoOrderSection = autoOrderEnabled
       ? `<div style="background:#1e3a2f;border-left:3px solid #22c55e;padding:16px 20px;border-radius:6px;margin:20px 0;">
           <p style="margin:0;color:#86efac;font-size:14px;">

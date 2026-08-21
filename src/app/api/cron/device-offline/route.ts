@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
-import { resend, EMAIL_FROM } from "~/lib/resend";
+import { resend, EMAIL_FROM, escapeHtml } from "~/lib/resend";
 import { dispatchWebhook } from "~/lib/webhooks";
 import { env } from "~/env";
 
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
         data: { status: "offline" },
       });
 
-      const deviceName = device.name ?? device.deviceId;
+      const deviceName = escapeHtml(device.name ?? device.deviceId);
       const userEmail = device.user?.email;
 
       // Dispatch device.offline webhook regardless of email
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
           </tr>
           ${device.location ? `<tr>
             <td style="color:#64748b;font-size:13px;padding:6px 0;">Location</td>
-            <td style="color:#e2e8f0;font-size:13px;text-align:right;">${device.location}</td>
+            <td style="color:#e2e8f0;font-size:13px;text-align:right;">${escapeHtml(device.location)}</td>
           </tr>` : ""}
           <tr>
             <td style="color:#64748b;font-size:13px;padding:6px 0;">Last seen</td>
