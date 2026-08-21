@@ -27,6 +27,7 @@ export default async function AdminFirmwarePage() {
     null;
   let versionCounts: { firmware: string | null; _count: { _all: number } }[] =
     [];
+  let dbError: string | null = null;
   try {
     [releases, versionCounts] = await Promise.all([
       db.firmwareRelease.findMany({ orderBy: { createdAt: "desc" } }),
@@ -35,8 +36,10 @@ export default async function AdminFirmwarePage() {
         _count: { _all: true },
       }),
     ]);
-  } catch {
+  } catch (err) {
     releases = null;
+    dbError = err instanceof Error ? err.message : String(err);
+    console.error("[admin/firmware] query failed:", err);
   }
 
   return (
@@ -60,7 +63,7 @@ export default async function AdminFirmwarePage() {
         </div>
 
         {releases === null ? (
-          <FirmwareSchemaRepair />
+          <FirmwareSchemaRepair detail={dbError} />
         ) : (
         <FirmwareManager
           initialReleases={releases.map((r) => ({
