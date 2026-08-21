@@ -43,6 +43,8 @@ const char* API_BASE_URL_STR = API_BASE_URL;
 const byte DNS_PORT = 53;
 const int CONFIG_VERSION = 1;
 
+#include <esp_task_wdt.h>
+
 // Hardware configuration
 #define SDP810_I2C_ADDRESS 0x25
 #define LED_PIN 2      // Built-in LED (dev board) — mirrors "online"
@@ -590,6 +592,14 @@ void setup() {
   Wire.begin(21, 22);
   
   // Setup LED for status indication
+  // Hardware dead-man timer: if the main loop freezes for any reason
+  // (radio deadlock, heap exhaustion, driver bug), the chip reboots itself.
+  // 300 s leaves room for the slowest OTA download; a hang recovers in
+  // minutes instead of waiting for a human. OTA downloads are safe to
+  // interrupt — they write to the inactive slot.
+  esp_task_wdt_init(300, true);
+  esp_task_wdt_add(NULL);
+
   pinMode(LED_PIN, OUTPUT);
   // Glow-top RGB: 5 kHz PWM, 8-bit, one channel per color leg
   ledcSetup(0, 5000, 8); ledcAttachPin(LED_R_PIN, 0);
@@ -615,6 +625,7 @@ void setup() {
 }
 
 void loop() {
+  esp_task_wdt_reset();  // feed the hardware dead-man timer
   glowTick();
 
   if (WiFi.getMode() == WIFI_AP) {
