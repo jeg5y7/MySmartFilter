@@ -398,6 +398,30 @@ function ChartPanel({
   const ChartComp = bars ? ComposedChart : LineChart;
   const hasTrend = bars && data.some((d) => d.trend !== undefined);
 
+  // Daily-bar mode zooms the Y axis to the data: a fresh filter sits at a
+  // high absolute pressure, and against a zero-based axis the slow loading
+  // slope — the entire point of the long views — is invisible.
+  let yDomain: React.ComponentProps<typeof YAxis>["domain"] = autoScaleY
+    ? [
+        (dataMin: number) => Math.floor(dataMin - 1),
+        (dataMax: number) => Math.ceil(dataMax + 1),
+      ]
+    : [0, "auto"];
+  if (bars) {
+    const vals = data
+      .map((d) => d[dataKey])
+      .filter((v): v is number => typeof v === "number");
+    if (vals.length > 0) {
+      const mn = Math.min(...vals);
+      const mx = Math.max(...vals);
+      const span = Math.max(mx - mn, 4);
+      yDomain = [
+        Math.max(0, Math.floor(mn - span * 0.3)),
+        Math.ceil(mx + span * 0.3),
+      ];
+    }
+  }
+
   return (
     <div className="bg-white/5 rounded-lg p-4 border border-white/10">
       <div className="flex items-center justify-between mb-3">
@@ -429,14 +453,7 @@ function ChartPanel({
               minTickGap={40}
             />
             <YAxis
-              domain={
-                autoScaleY
-                  ? [
-                      (dataMin: number) => Math.floor(dataMin - 1),
-                      (dataMax: number) => Math.ceil(dataMax + 1),
-                    ]
-                  : [0, "auto"]
-              }
+              domain={yDomain}
               tick={{ fill: "#6b7280", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
