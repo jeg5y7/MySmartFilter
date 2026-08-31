@@ -41,6 +41,12 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
 
 ## State (2026-08-31)
 
+- Nordic Arch redesign live in prod: phase 1 marketing surface (PR #55 —
+  brand tokens, Instrument Sans/Serif, pleats logo + icons, landing,
+  header, waitlist) and phase 2 app surface (PR #56 — dashboard, devices,
+  device detail incl. light chart palette, store, install, setup wizard,
+  settings, auth, legal, pull-to-refresh). Phase 3 (admin + emails) in
+  flight this session.
 - Phases 0-3, tier enforcement, smart-home bridge, admin fleet/labels/
   firmware pages, OTA pipeline, security hardening (headers, hashed API
   keys, magic-link rate limit), and the launch waitlist are all live in
@@ -95,7 +101,13 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   (Neon SQL editor) BEFORE merging code that uses them.
 - User is new to dev tooling — give browser-based steps, avoid assuming
   terminal fluency; explain what each step does in plain language.
-- Emails: dark-slate HTML templates, from-address via ~/lib/resend.
+- Emails: Nordic-light HTML templates (paper #faf8f5 bg, white card with
+  #eeebe4 border, ink #1c1b18 headings, sage #3e8a72 CTAs — mirrors the
+  site's Nordic Arch design system), from-address via ~/lib/resend.
+- UI: Nordic Arch design system site-wide — tokens in src/styles/globals.css
+  (@theme); paper shells, bg-card rounded-[24px] bordered cards, font-display
+  (Instrument Serif) page headings, rounded-full sage/ink buttons; status =
+  sage healthy / clay warning / red-600 error; admin accent = clay.
 - Energy model physics in src/lib/energy.ts — ECM: direct extra blower watts.
   PSC: system-runtime penalty (airflow loss → capacity loss → whole system
   incl. compressor runs longer; conservative constants, documented in file).

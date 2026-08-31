@@ -74,37 +74,37 @@ export async function POST(
           html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#1e293b;border-radius:12px;overflow:hidden;border:1px solid #334155;">
-    <div style="background:#0f172a;padding:24px 32px;border-bottom:1px solid #334155;">
-      <p style="margin:0;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
-      <h1 style="margin:8px 0 0;color:#f1f5f9;font-size:22px;font-weight:700;">📦 Your order is on the way</h1>
+<body style="margin:0;padding:0;background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eeebe4;">
+    <div style="background:#faf8f5;padding:24px 32px;border-bottom:1px solid #eeebe4;">
+      <p style="margin:0;color:#3e8a72;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
+      <h1 style="margin:8px 0 0;color:#1c1b18;font-size:22px;font-weight:700;">📦 Your order is on the way</h1>
     </div>
     <div style="padding:28px 32px;">
-      <div style="background:#0f172a;border-radius:8px;padding:20px;margin:0 0 20px;">
+      <div style="background:#faf8f5;border:1px solid #eeebe4;border-radius:12px;padding:20px;margin:0 0 20px;">
         <table style="width:100%;border-collapse:collapse;">
           <tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Order #</td>
-            <td style="color:#e2e8f0;font-size:13px;text-align:right;font-family:monospace;">${order.id.slice(-8).toUpperCase()}</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Order #</td>
+            <td style="color:#1c1b18;font-size:13px;text-align:right;font-family:monospace;">${order.id.slice(-8).toUpperCase()}</td>
           </tr>
           <tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Items</td>
-            <td style="color:#e2e8f0;font-size:13px;text-align:right;">${itemsList}</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Items</td>
+            <td style="color:#1c1b18;font-size:13px;text-align:right;">${itemsList}</td>
           </tr>
           <tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Tracking</td>
-            <td style="color:#60a5fa;font-size:13px;text-align:right;font-family:monospace;">${trackingNumber}</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Tracking</td>
+            <td style="color:#3e8a72;font-size:13px;text-align:right;font-family:monospace;">${trackingNumber}</td>
           </tr>
         </table>
       </div>
-      <p style="color:#64748b;font-size:13px;margin:0;">
+      <p style="color:#8a867c;font-size:13px;margin:0;">
         Track your package with the number above via your carrier.
         Questions? Just reply to this email.
       </p>
     </div>
-    <div style="background:#0f172a;padding:20px 32px;border-top:1px solid #334155;">
-      <p style="margin:0;color:#475569;font-size:12px;text-align:center;">
-        <a href="https://mysmartfilter.com/store/orders" style="color:#64748b;">View your orders</a>
+    <div style="background:#faf8f5;padding:20px 32px;border-top:1px solid #eeebe4;">
+      <p style="margin:0;color:#8a867c;font-size:12px;text-align:center;">
+        <a href="https://mysmartfilter.com/store/orders" style="color:#3e8a72;">View your orders</a>
       </p>
     </div>
   </div>

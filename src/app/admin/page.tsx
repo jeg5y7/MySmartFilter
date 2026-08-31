@@ -133,34 +133,34 @@ export default async function AdminFleetPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
+    <main className="min-h-screen bg-paper">
       <div className="container mx-auto px-4 py-10">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div>
-            <p className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-1">
+            <p className="text-xs font-mono uppercase tracking-widest text-clay mb-1">
               Admin
             </p>
-            <h1 className="text-3xl sm:text-4xl font-bold">Fleet Dashboard</h1>
-            <p className="text-gray-400 mt-1">
+            <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink">Fleet Dashboard</h1>
+            <p className="text-body mt-1">
               Every monitor across every account, and how the fleet is trending.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
               href="/admin/orders"
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+              className="rounded-full border border-mist bg-card px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist/60"
             >
               📦 Order Queue
             </Link>
             <Link
               href="/admin/labels"
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+              className="rounded-full border border-mist bg-card px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist/60"
             >
               🏷️ QR Labels
             </Link>
             <Link
               href="/admin/firmware"
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+              className="rounded-full border border-mist bg-card px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist/60"
             >
               ⬆️ Firmware
             </Link>
@@ -172,10 +172,10 @@ export default async function AdminFleetPage() {
           {stats.map((s) => (
             <div
               key={s.label}
-              className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10"
+              className="rounded-2xl border border-mist bg-card p-4"
             >
-              <div className="text-2xl font-bold text-white">{s.value}</div>
-              <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+              <div className="text-2xl font-bold text-ink">{s.value}</div>
+              <div className="text-xs text-faint mt-1">{s.label}</div>
             </div>
           ))}
         </div>
@@ -183,22 +183,22 @@ export default async function AdminFleetPage() {
         <AdminFleet devices={fleet} trend={trend} />
 
         {/* ── Launch waitlist ─────────────────────────────────────────────── */}
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 mt-8 p-5">
-          <h2 className="text-lg font-semibold text-white mb-1">
+        <div className="rounded-[24px] border border-mist bg-card mt-8 p-5">
+          <h2 className="text-lg font-semibold text-ink mb-1">
             Launch Waitlist{" "}
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-sm font-normal text-faint">
               ({waitlistCount} signups)
             </span>
           </h2>
           {recentSignups.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-faint">
               No signups yet — the form is live on the landing page.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[420px]">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-white/10">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-faint border-b border-mist">
                     <th className="py-2 pr-4 font-medium">Email</th>
                     <th className="py-2 pr-4 font-medium">ZIP</th>
                     <th className="py-2 font-medium">Joined</th>
@@ -206,10 +206,10 @@ export default async function AdminFleetPage() {
                 </thead>
                 <tbody>
                   {recentSignups.map((w) => (
-                    <tr key={w.email} className="border-b border-white/5">
-                      <td className="py-2 pr-4 text-gray-300">{w.email}</td>
-                      <td className="py-2 pr-4 text-gray-400">{w.zip ?? "—"}</td>
-                      <td className="py-2 text-gray-400">
+                    <tr key={w.email} className="border-t border-mist">
+                      <td className="py-2 pr-4 text-body">{w.email}</td>
+                      <td className="py-2 pr-4 text-faint">{w.zip ?? "—"}</td>
+                      <td className="py-2 text-faint">
                         {w.createdAt.toISOString().slice(0, 10)}
                       </td>
                     </tr>

@@ -39,9 +39,9 @@ export interface FleetTrendPoint {
 }
 
 const STATUS_BADGE: Record<FleetDevice["filterStatus"], { label: string; cls: string }> = {
-  ok: { label: "OK", cls: "bg-emerald-500/15 text-emerald-300" },
-  replace_soon: { label: "Soon", cls: "bg-amber-500/15 text-amber-300" },
-  replace_now: { label: "Replace", cls: "bg-red-500/15 text-red-300" },
+  ok: { label: "OK", cls: "bg-sagemist text-sage-deep" },
+  replace_soon: { label: "Soon", cls: "bg-clay/10 text-clay" },
+  replace_now: { label: "Replace", cls: "bg-red-50 text-red-600" },
 };
 
 function timeAgo(iso: string): string {
@@ -74,12 +74,12 @@ export function AdminFleet({
     return true;
   });
 
-  const tick = { fill: "#64748b", fontSize: 11 };
+  const tick = { fill: "#8a867c", fontSize: 11 };
   const tooltipStyle = {
-    backgroundColor: "#1e293b",
-    border: "1px solid rgba(255,255,255,0.15)",
-    borderRadius: 8,
-    color: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    border: "1px solid #eeebe4",
+    borderRadius: 12,
+    color: "#1c1b18",
     fontSize: 12,
   };
 
@@ -87,26 +87,26 @@ export function AdminFleet({
     <>
       {/* ── Fleet trends ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-          <h2 className="text-sm font-semibold text-white mb-1">
+        <div className="rounded-[24px] border border-mist bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">
             Fleet average pressure drop
           </h2>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-faint mb-4">
             Daily average ΔP (Pa) across all reporting monitors — a rising fleet
             average means filters are clogging.
           </p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
                 <XAxis dataKey="day" tick={tick} tickFormatter={(d: string) => d.slice(5)} />
                 <YAxis tick={tick} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "#8a867c" }} />
                 <Line
                   type="monotone"
                   dataKey="avgPressure"
                   name="Avg ΔP (Pa)"
-                  stroke="#38bdf8"
+                  stroke="#3e8a72"
                   strokeWidth={2}
                   dot={false}
                   connectNulls
@@ -116,32 +116,32 @@ export function AdminFleet({
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-          <h2 className="text-sm font-semibold text-white mb-1">Fleet activity</h2>
-          <p className="text-xs text-gray-500 mb-4">
+        <div className="rounded-[24px] border border-mist bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">Fleet activity</h2>
+          <p className="text-xs text-faint mb-4">
             Readings received per day, and how many distinct monitors reported.
           </p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
                 <XAxis dataKey="day" tick={tick} tickFormatter={(d: string) => d.slice(5)} />
                 <YAxis tick={tick} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "#8a867c" }} />
                 <Area
                   type="monotone"
                   dataKey="readings"
                   name="Readings"
-                  stroke="#34d399"
-                  fill="rgba(52,211,153,0.15)"
+                  stroke="#3e8a72"
+                  fill="rgba(62,138,114,0.12)"
                   strokeWidth={2}
                 />
                 <Area
                   type="monotone"
                   dataKey="devices"
                   name="Monitors reporting"
-                  stroke="#a78bfa"
-                  fill="rgba(167,139,250,0.12)"
+                  stroke="#b9652f"
+                  fill="rgba(185,101,47,0.10)"
                   strokeWidth={2}
                 />
               </AreaChart>
@@ -151,11 +151,11 @@ export function AdminFleet({
       </div>
 
       {/* ── All devices ──────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10">
+      <div className="overflow-hidden rounded-[24px] border border-mist bg-card">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 pb-3">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-ink">
             All Devices{" "}
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-sm font-normal text-faint">
               ({shown.length} of {devices.length})
             </span>
           </h2>
@@ -171,10 +171,10 @@ export function AdminFleet({
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   filter === key
-                    ? "bg-blue-600 text-white"
-                    : "bg-white/10 text-gray-300 hover:bg-white/15"
+                    ? "bg-ink text-paper"
+                    : "border border-mist bg-card text-body hover:bg-mist/60"
                 }`}
               >
                 {label}
@@ -187,7 +187,7 @@ export function AdminFleet({
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[860px]">
             <thead>
-              <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-white/10">
+              <tr className="text-left text-xs font-semibold text-faint uppercase tracking-wide border-b border-mist">
                 <th className="px-5 py-3 font-medium">Device</th>
                 <th className="px-3 py-3 font-medium">Owner</th>
                 <th className="px-3 py-3 font-medium">Status</th>
@@ -204,64 +204,64 @@ export function AdminFleet({
               {shown.map((d) => {
                 const badge = STATUS_BADGE[d.filterStatus];
                 return (
-                  <tr key={d.id} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={d.id} className="border-t border-mist hover:bg-paper">
                     <td className="px-5 py-3">
-                      <div className="text-white font-medium">
+                      <div className="text-ink font-medium">
                         {d.name ?? d.deviceId}
                       </div>
-                      <div className="text-xs text-gray-500 font-mono">{d.deviceId}</div>
+                      <span className="inline-block rounded bg-mist px-1.5 py-0.5 text-xs text-faint font-mono">{d.deviceId}</span>
                     </td>
-                    <td className="px-3 py-3 text-gray-300">{d.ownerEmail ?? "—"}</td>
+                    <td className="px-3 py-3 text-body">{d.ownerEmail ?? "—"}</td>
                     <td className="px-3 py-3">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs ${
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${
                           d.online
-                            ? "bg-emerald-500/15 text-emerald-300"
-                            : "bg-gray-500/20 text-gray-400"
+                            ? "bg-sagemist text-sage-deep"
+                            : "bg-mist text-body"
                         }`}
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            d.online ? "bg-emerald-400" : "bg-gray-500"
+                            d.online ? "bg-sage" : "bg-whisper"
                           }`}
                         />
                         {d.online ? "online" : "offline"}
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-xs font-mono text-gray-300">
+                      <span className="inline-block rounded bg-mist px-1.5 py-0.5 text-xs font-mono text-body">
                         {d.firmware ?? "—"}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-gray-400">{timeAgo(d.lastSeen)}</td>
-                    <td className="px-3 py-3 text-gray-300">
+                    <td className="px-3 py-3 text-faint">{timeAgo(d.lastSeen)}</td>
+                    <td className="px-3 py-3 text-body">
                       {d.pressure !== null ? `${d.pressure.toFixed(1)} Pa` : "—"}
                     </td>
-                    <td className="px-3 py-3 text-gray-300">
+                    <td className="px-3 py-3 text-body">
                       {d.temperature !== null ? `${cToF(d.temperature).toFixed(1)} °F` : "—"}
                     </td>
                     <td className="px-3 py-3">
                       {d.batteryPct !== null ? (
                         <span
                           className={
-                            d.batteryPct <= 20 ? "text-amber-300" : "text-gray-300"
+                            d.batteryPct <= 20 ? "text-clay" : "text-body"
                           }
                         >
                           {Math.round(d.batteryPct)}%
                         </span>
                       ) : (
-                        <span className="text-gray-500">wall</span>
+                        <span className="text-faint">wall</span>
                       )}
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${badge.cls}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${badge.cls}`}>
                         {badge.label}
                         {d.filterLifePct !== null
                           ? ` · ${Math.round(d.filterLifePct)}%`
                           : ""}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-gray-300">
+                    <td className="px-5 py-3 text-body">
                       {d.blowerType === "ecm"
                         ? `$${(d.extraCostCents / 100).toFixed(2)}`
                         : "PSC"}
@@ -271,7 +271,7 @@ export function AdminFleet({
               })}
               {shown.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={10} className="px-5 py-10 text-center text-faint">
                     No devices match this filter.
                   </td>
                 </tr>

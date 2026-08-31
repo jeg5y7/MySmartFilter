@@ -75,16 +75,16 @@ export function FirmwareManager({
   return (
     <div className="space-y-6">
       {/* Fleet version spread */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-        <h2 className="text-sm font-semibold text-white mb-3">Fleet versions</h2>
+      <div className="rounded-[24px] border border-mist bg-card p-5">
+        <h2 className="text-sm font-semibold text-ink mb-3">Fleet versions</h2>
         <div className="flex flex-wrap gap-2">
           {fleetVersions.length === 0 ? (
-            <p className="text-sm text-gray-500">No devices yet.</p>
+            <p className="text-sm text-faint">No devices yet.</p>
           ) : (
             fleetVersions.map((v) => (
               <span
                 key={v.version}
-                className="px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs font-mono"
+                className="px-3 py-1 rounded-full bg-mist text-body text-xs font-mono"
               >
                 {v.version} × {v.count}
               </span>
@@ -94,10 +94,10 @@ export function FirmwareManager({
       </div>
 
       {/* Publish */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-        <h2 className="text-sm font-semibold text-white mb-1">Publish a release</h2>
-        <p className="text-xs text-gray-500 mb-4">
-          Put the merged .bin in the repo under <code className="text-gray-400">public/firmware/</code>{" "}
+      <div className="rounded-[24px] border border-mist bg-card p-5">
+        <h2 className="text-sm font-semibold text-ink mb-1">Publish a release</h2>
+        <p className="text-xs text-faint mb-4">
+          Put the merged .bin in the repo under <code className="text-body">public/firmware/</code>{" "}
           (deploys to mysmartfilter.com/firmware/…), then register it here.
           Starts as a 1% canary.
         </p>
@@ -106,13 +106,13 @@ export function FirmwareManager({
             value={version}
             onChange={(e) => setVersion(e.target.value)}
             placeholder="Version, e.g. 1.4.0"
-            className="px-3 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="rounded-full border border-mist bg-card px-4 py-2.5 text-sm text-ink placeholder:text-whisper font-mono focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
           />
           <input
             value={binaryUrl}
             onChange={(e) => setBinaryUrl(e.target.value)}
             placeholder="https://www.mysmartfilter.com/firmware/….bin"
-            className="px-3 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="rounded-full border border-mist bg-card px-4 py-2.5 text-sm text-ink placeholder:text-whisper font-mono focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
           />
         </div>
         <textarea
@@ -120,13 +120,13 @@ export function FirmwareManager({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Release notes (optional)"
           rows={2}
-          className="w-full px-3 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 mb-3"
+          className="w-full rounded-2xl border border-mist bg-card px-4 py-2.5 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 mb-3"
         />
-        {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
+        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
         <button
           onClick={create}
           disabled={busy || !version.trim() || !binaryUrl.trim()}
-          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 text-white rounded-lg font-semibold text-sm transition-all"
+          className="rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper transition hover:bg-ink/85 disabled:opacity-50"
         >
           {busy ? "Publishing…" : "Publish (1% canary)"}
         </button>
@@ -137,51 +137,51 @@ export function FirmwareManager({
         {releases.map((r) => (
           <div
             key={r.id}
-            className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10"
+            className="rounded-[24px] border border-mist bg-card p-5"
           >
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-white font-semibold">{r.version}</span>
+                <span className="rounded-md bg-mist px-2 py-0.5 font-mono text-xs font-semibold text-ink">{r.version}</span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-xs ${
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                     r.isActive
-                      ? "bg-emerald-500/15 text-emerald-300"
-                      : "bg-gray-500/20 text-gray-400"
+                      ? "bg-sagemist text-sage-deep"
+                      : "bg-mist text-body"
                   }`}
                 >
                   {r.isActive ? "active" : "inactive"}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-faint">
                   {new Date(r.createdAt).toLocaleDateString()}
                 </span>
               </div>
               <button
                 onClick={() => patch(r.id, { isActive: !r.isActive })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   r.isActive
-                    ? "bg-red-600/80 hover:bg-red-600 text-white"
-                    : "bg-white/10 hover:bg-white/20 text-gray-300"
+                    ? "border border-red-200 text-red-600 hover:bg-red-50"
+                    : "border border-mist bg-card text-ink hover:bg-mist/60"
                 }`}
               >
                 {r.isActive ? "Deactivate" : "Activate"}
               </button>
             </div>
             {r.releaseNotes && (
-              <p className="text-sm text-gray-400 mb-3">{r.releaseNotes}</p>
+              <p className="text-sm text-body mb-3">{r.releaseNotes}</p>
             )}
-            <p className="text-xs text-gray-500 font-mono truncate mb-3">{r.binaryUrl}</p>
+            <p className="text-xs text-faint font-mono truncate mb-3">{r.binaryUrl}</p>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-400 w-28">
+              <span className="text-xs text-faint w-28">
                 Rollout: {r.rolloutPct}%
               </span>
               {[1, 10, 50, 100].map((pct) => (
                 <button
                   key={pct}
                   onClick={() => patch(r.id, { rolloutPct: pct })}
-                  className={`px-3 py-1 rounded-lg text-xs transition-all ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                     r.rolloutPct === pct
-                      ? "bg-blue-600 text-white"
-                      : "bg-white/10 text-gray-300 hover:bg-white/20"
+                      ? "bg-clay text-white"
+                      : "border border-mist bg-card text-body hover:bg-mist/60"
                   }`}
                 >
                   {pct}%
@@ -191,7 +191,7 @@ export function FirmwareManager({
           </div>
         ))}
         {releases.length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-6">
+          <p className="text-sm text-faint text-center py-6">
             No releases yet — devices stay on their flashed firmware.
           </p>
         )}
