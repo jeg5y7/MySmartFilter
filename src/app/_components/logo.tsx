@@ -30,7 +30,7 @@ export function PleatsMark({
 export function Wordmark({ dark = false }: { dark?: boolean }) {
   return (
     <span
-      className={`font-semibold tracking-tight ${dark ? "text-paper" : "text-ink"}`}
+      className={`text-[17px] font-semibold tracking-[-0.035em] ${dark ? "text-paper" : "text-ink"}`}
     >
       <span className={`font-normal ${dark ? "text-glow" : "text-sage"}`}>
         my
