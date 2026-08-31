@@ -31,16 +31,16 @@ interface DeviceReadingsProps {
 
 function getPressureColor(pressure: number, threshold: number): string {
   const pct = pressure / threshold;
-  if (pct >= 1.0) return "text-red-400";
-  if (pct >= 0.7) return "text-yellow-400";
-  return "text-green-400";
+  if (pct >= 1.0) return "text-red-600";
+  if (pct >= 0.7) return "text-clay";
+  return "text-sage";
 }
 
 function getPressureBg(pressure: number, threshold: number): string {
   const pct = pressure / threshold;
-  if (pct >= 1.0) return "bg-red-400/20 border-red-400/40";
-  if (pct >= 0.7) return "bg-yellow-400/20 border-yellow-400/40";
-  return "bg-green-400/20 border-green-400/40";
+  if (pct >= 1.0) return "bg-red-50 border-red-200";
+  if (pct >= 0.7) return "bg-clay/10 border-clay/30";
+  return "bg-sagemist border-sage/30";
 }
 
 // ─── Time Range Config ───────────────────────────────────────────────────────
@@ -207,7 +207,7 @@ function PressureSparkline({
   const points = [...readings].reverse().slice(-20);
   if (points.length < 2) {
     return (
-      <div className="flex items-center justify-center h-16 text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-16 text-faint text-sm">
         Not enough data for chart
       </div>
     );
@@ -249,8 +249,8 @@ function PressureSparkline({
     >
       <defs>
         <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
+          <stop offset="0%" stopColor="#3e8a72" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#3e8a72" stopOpacity="0.02" />
         </linearGradient>
       </defs>
       <path d={areaPath} fill="url(#sparkGrad)" />
@@ -261,7 +261,7 @@ function PressureSparkline({
             y1={thresholdY}
             x2={W - padX}
             y2={thresholdY}
-            stroke="#f59e0b"
+            stroke="#b9652f"
             strokeWidth="1"
             strokeDasharray="4 3"
             opacity="0.7"
@@ -269,7 +269,7 @@ function PressureSparkline({
           <text
             x={W - padX - 2}
             y={thresholdY - 3}
-            fill="#f59e0b"
+            fill="#b9652f"
             fontSize="9"
             textAnchor="end"
             opacity="0.8"
@@ -281,7 +281,7 @@ function PressureSparkline({
       <polyline
         points={polyPoints}
         fill="none"
-        stroke="#60a5fa"
+        stroke="#3e8a72"
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -290,7 +290,7 @@ function PressureSparkline({
         cx={toX(points.length - 1)}
         cy={toY(points[points.length - 1]!.pressure)}
         r="3"
-        fill="#60a5fa"
+        fill="#3e8a72"
       />
     </svg>
   );
@@ -330,8 +330,8 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
         });
 
   return (
-    <div className="bg-slate-900/95 border border-white/20 rounded-lg px-3 py-2 text-xs shadow-xl backdrop-blur-sm">
-      <p className="text-gray-400 mb-1">{dateStr}</p>
+    <div className="bg-card border border-mist rounded-xl px-3 py-2 text-xs shadow-lg">
+      <p className="text-faint mb-1">{dateStr}</p>
       {payload
         .filter((p) => p.name !== "Trend")
         .map((p) => (
@@ -341,7 +341,7 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
           </p>
         ))}
       {payload[0]?.payload?.runtimeMin !== undefined && (
-        <p className="text-gray-300 font-mono mt-1">
+        <p className="text-body font-mono mt-1">
           HVAC ran:{" "}
           <span className="font-bold">
             {Math.floor(payload[0].payload.runtimeMin / 60)}h{" "}
@@ -423,38 +423,38 @@ function ChartPanel({
   }
 
   return (
-    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+    <div className="rounded-2xl border border-mist bg-paper p-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-medium text-gray-300">{title}</p>
-        <span className="text-xs text-gray-500">{unit}</span>
+        <p className="text-sm font-medium text-body">{title}</p>
+        <span className="text-xs text-faint">{unit}</span>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sage" />
         </div>
       ) : data.length < 2 ? (
-        <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
+        <div className="flex items-center justify-center h-40 text-faint text-sm">
           No data for this time range
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={160}>
           <ChartComp data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
             <XAxis
               dataKey="ts"
               type="number"
               domain={bars ? ["dataMin - 43200000", "dataMax + 43200000"] : ["dataMin", "dataMax"]}
               scale="time"
               tickFormatter={cfg.tickFormat}
-              tick={{ fill: "#6b7280", fontSize: 10 }}
+              tick={{ fill: "#8a867c", fontSize: 10 }}
               tickLine={false}
-              axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+              axisLine={{ stroke: "#eeebe4" }}
               minTickGap={40}
             />
             <YAxis
               domain={yDomain}
-              tick={{ fill: "#6b7280", fontSize: 10 }}
+              tick={{ fill: "#8a867c", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v: number) => v.toFixed(0)}
@@ -467,12 +467,12 @@ function ChartPanel({
             {referenceLine !== undefined && (
               <ReferenceLine
                 y={referenceLine}
-                stroke={referenceColor ?? "#f59e0b"}
+                stroke={referenceColor ?? "#b9652f"}
                 strokeDasharray="4 3"
                 strokeOpacity={0.7}
                 label={{
                   value: referenceLabel ?? "",
-                  fill: referenceColor ?? "#f59e0b",
+                  fill: referenceColor ?? "#b9652f",
                   fontSize: 9,
                   position: "insideTopRight",
                 }}
@@ -481,12 +481,12 @@ function ChartPanel({
             {referenceLine2 !== undefined && (
               <ReferenceLine
                 y={referenceLine2}
-                stroke={referenceColor2 ?? "#34d399"}
+                stroke={referenceColor2 ?? "#3e8a72"}
                 strokeDasharray="4 3"
                 strokeOpacity={0.8}
                 label={{
                   value: referenceLabel2 ?? "",
-                  fill: referenceColor2 ?? "#34d399",
+                  fill: referenceColor2 ?? "#3e8a72",
                   fontSize: 9,
                   position: "insideBottomRight",
                 }}
@@ -522,7 +522,7 @@ function ChartPanel({
                 dataKey="trend"
                 name="Trend"
                 unit={` ${unit}`}
-                stroke="#f8fafc"
+                stroke="#b9652f"
                 strokeWidth={2}
                 strokeDasharray="6 4"
                 dot={false}
@@ -571,14 +571,14 @@ function FreshnessBadge({
   return (
     <button
       onClick={onRefresh}
-      className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+      className="flex items-center gap-1.5 text-xs text-faint hover:text-ink transition-colors"
       title="Refresh now"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
-        className={`h-3.5 w-3.5 ${fetching ? "animate-spin text-blue-400" : ""}`}
+        className={`h-3.5 w-3.5 ${fetching ? "animate-spin text-sage" : ""}`}
       >
         <path
           fillRule="evenodd"
@@ -646,10 +646,10 @@ export function DeviceReadings({
   // ── Loading state ────────────────────────────────────────────────────────
   if (recentLoading) {
     return (
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-4">Sensor Data</h2>
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Sensor Data</h2>
         <div className="flex items-center justify-center py-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage" />
         </div>
       </div>
     );
@@ -657,18 +657,18 @@ export function DeviceReadings({
 
   if (recentError || !recentReadings) {
     return (
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-4">Sensor Data</h2>
-        <p className="text-red-400 text-sm">Failed to load sensor readings.</p>
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Sensor Data</h2>
+        <p className="text-red-600 text-sm">Failed to load sensor readings.</p>
       </div>
     );
   }
 
   if (recentReadings.length === 0) {
     return (
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-4">Sensor Data</h2>
-        <p className="text-gray-400 text-sm">
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Sensor Data</h2>
+        <p className="text-body text-sm">
           No readings yet. Your device will start sending data once it comes online.
         </p>
       </div>
@@ -693,10 +693,10 @@ export function DeviceReadings({
   const recentTen = recentReadings.slice(0, 10);
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 space-y-6">
+    <div className="rounded-[24px] border border-mist bg-card p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-white">Sensor Data</h2>
+        <h2 className="text-lg font-semibold text-ink">Sensor Data</h2>
         <FreshnessBadge
           updatedAt={recentUpdatedAt}
           fetching={recentFetching}
@@ -710,7 +710,7 @@ export function DeviceReadings({
       {/* Sensor Type Tabs — only shown when multiple types are present */}
       {sensorTypes.length > 1 && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-500">Sensor:</span>
+          <span className="text-xs text-faint">Sensor:</span>
           {sensorTypes.map((type) => {
             const label = SENSOR_TYPE_LABELS[type] ?? { name: type, unit: "" };
             return (
@@ -719,8 +719,8 @@ export function DeviceReadings({
                 onClick={() => setActiveSensorType(type)}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
                   activeSensorType === type
-                    ? "bg-purple-500/30 border-purple-400/60 text-purple-300"
-                    : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+                    ? "bg-sagemist border-sage/40 text-sage-deep"
+                    : "bg-card border-mist text-faint hover:bg-mist/60 hover:text-ink"
                 }`}
               >
                 {label.name} {label.unit ? `(${label.unit})` : ""}
@@ -734,7 +734,7 @@ export function DeviceReadings({
       <div className="space-y-4">
         {/* Time Range Selector — history beyond 1h is a Filter AutoShip feature */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs text-gray-500 mr-1">Range:</span>
+          <span className="text-xs text-faint mr-1">Range:</span>
           {RANGE_ORDER.map((key) => {
             const locked = !isAutoShipMember && key !== "1h";
             return (
@@ -745,10 +745,10 @@ export function DeviceReadings({
                 title={locked ? "Historical trending is included with Filter AutoShip" : undefined}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
                   activeRange === key
-                    ? "bg-blue-500/30 border-blue-400/60 text-blue-300"
+                    ? "bg-sagemist border-sage/40 text-sage-deep"
                     : locked
-                      ? "bg-white/5 border-white/10 text-gray-600 cursor-not-allowed"
-                      : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200"
+                      ? "bg-card border-mist text-whisper cursor-not-allowed"
+                      : "bg-card border-mist text-faint hover:bg-mist/60 hover:text-ink"
                 }`}
               >
                 {locked ? "🔒 " : ""}
@@ -758,7 +758,7 @@ export function DeviceReadings({
           })}
         </div>
         {!isAutoShipMember && (
-          <p className="text-xs text-amber-300/80">
+          <p className="text-xs text-clay">
             You&apos;re seeing live data. Historical trending is included with
             Filter AutoShip — enable Auto-Order in this device&apos;s Filter
             Settings to unlock it.
@@ -770,15 +770,15 @@ export function DeviceReadings({
           title="Pressure Drop Across Filter"
           unit="Pa"
           dataKey="pressure"
-          color="#60a5fa"
+          color="#3e8a72"
           data={chartPoints}
           rangeKey={activeRange}
           bars={rangeCfg.dailyOnAvg}
           referenceLine={alertCeiling}
-          referenceColor="#f59e0b"
+          referenceColor="#dc2626"
           referenceLabel="Alert level"
           referenceLine2={avgRunning ?? undefined}
-          referenceColor2="#34d399"
+          referenceColor2="#3e8a72"
           referenceLabel2="Average while running"
           isLoading={rangeLoading}
         />
@@ -788,7 +788,7 @@ export function DeviceReadings({
           title="Temperature"
           unit="°F"
           dataKey="temperature"
-          color="#34d399"
+          color="#b9652f"
           data={chartPoints}
           rangeKey={activeRange}
           autoScaleY
@@ -798,76 +798,76 @@ export function DeviceReadings({
 
       {/* ── Stats Bar ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-          <p className="text-gray-400 text-xs mb-1">Avg While Running</p>
+        <div className="rounded-2xl border border-mist bg-paper p-3 text-center">
+          <p className="text-faint text-xs mb-1">Avg While Running</p>
           {avgRunning !== null ? (
             <p className={`text-lg font-bold ${getPressureColor(avgRunning, alertCeiling)}`}>
               {avgRunning.toFixed(1)}
-              <span className="text-xs font-normal text-gray-400 ml-1">Pa</span>
+              <span className="text-xs font-normal text-faint ml-1">Pa</span>
             </p>
           ) : (
-            <p className="text-lg font-bold text-gray-500">—</p>
+            <p className="text-lg font-bold text-whisper">—</p>
           )}
         </div>
-        <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-          <p className="text-gray-400 text-xs mb-1">Peak Pressure</p>
+        <div className="rounded-2xl border border-mist bg-paper p-3 text-center">
+          <p className="text-faint text-xs mb-1">Peak Pressure</p>
           <p className={`text-lg font-bold ${getPressureColor(maxPressure, alertCeiling)}`}>
             {maxPressure.toFixed(1)}
-            <span className="text-xs font-normal text-gray-400 ml-1">Pa</span>
+            <span className="text-xs font-normal text-faint ml-1">Pa</span>
           </p>
         </div>
-        <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-          <p className="text-gray-400 text-xs mb-1">Avg Temp</p>
-          <p className="text-lg font-bold text-emerald-400">
+        <div className="rounded-2xl border border-mist bg-paper p-3 text-center">
+          <p className="text-faint text-xs mb-1">Avg Temp</p>
+          <p className="text-lg font-bold text-clay">
             {cToF(avgTemp).toFixed(1)}
-            <span className="text-xs font-normal text-gray-400 ml-1">°F</span>
+            <span className="text-xs font-normal text-faint ml-1">°F</span>
           </p>
         </div>
-        <div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-          <p className="text-gray-400 text-xs mb-1">Readings · {rangeCfg.label}</p>
-          <p className="text-lg font-bold text-blue-400">
+        <div className="rounded-2xl border border-mist bg-paper p-3 text-center">
+          <p className="text-faint text-xs mb-1">Readings · {rangeCfg.label}</p>
+          <p className="text-lg font-bold text-ink">
             {statsReadings.length}
-            <span className="text-xs font-normal text-gray-400 ml-1">pts</span>
+            <span className="text-xs font-normal text-faint ml-1">pts</span>
           </p>
         </div>
       </div>
 
       {/* ── Sparkline (legacy) ──────────────────────────────────────────── */}
-      <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-        <p className="text-xs text-gray-400 mb-2">Pressure trend — last 20 readings</p>
+      <div className="rounded-2xl border border-mist bg-paper p-4">
+        <p className="text-xs text-faint mb-2">Pressure trend — last 20 readings</p>
         <PressureSparkline readings={recentReadings} threshold={alertCeiling} />
         <div className="flex items-center gap-4 mt-2">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-0.5 bg-blue-400 rounded" />
-            <span className="text-xs text-gray-400">Pressure (Pa)</span>
+            <div className="w-3 h-0.5 bg-sage rounded" />
+            <span className="text-xs text-faint">Pressure (Pa)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-0.5 bg-yellow-400 rounded" />
-            <span className="text-xs text-gray-400">Alert level ({Math.round(alertCeiling)} Pa)</span>
+            <div className="w-3 h-0.5 bg-clay rounded" />
+            <span className="text-xs text-faint">Alert level ({Math.round(alertCeiling)} Pa)</span>
           </div>
         </div>
       </div>
 
       {/* ── Readings Table ──────────────────────────────────────────────── */}
       <div>
-        <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider">Last 10 Readings</p>
-        <div className="overflow-x-auto rounded-lg border border-white/10">
+        <p className="text-xs text-faint mb-3 uppercase tracking-wider">Last 10 Readings</p>
+        <div className="overflow-x-auto rounded-2xl border border-mist">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 bg-white/5">
-                <th className="text-left px-4 py-2 text-gray-400 font-medium">Time</th>
-                <th className="text-right px-4 py-2 text-gray-400 font-medium">Pressure (Pa)</th>
-                <th className="text-right px-4 py-2 text-gray-400 font-medium">Temp (°F)</th>
+              <tr className="border-b border-mist bg-paper">
+                <th className="text-left px-4 py-2 text-faint font-medium">Time</th>
+                <th className="text-right px-4 py-2 text-faint font-medium">Pressure (Pa)</th>
+                <th className="text-right px-4 py-2 text-faint font-medium">Temp (°F)</th>
                 {(recentReadings.some((r) => r.humidity != null)) && (
-                  <th className="text-right px-4 py-2 text-gray-400 font-medium">Humidity (%)</th>
+                  <th className="text-right px-4 py-2 text-faint font-medium">Humidity (%)</th>
                 )}
                 {(recentReadings.some((r) => r.co2 != null)) && (
-                  <th className="text-right px-4 py-2 text-gray-400 font-medium">CO₂ (ppm)</th>
+                  <th className="text-right px-4 py-2 text-faint font-medium">CO₂ (ppm)</th>
                 )}
                 {(recentReadings.some((r) => r.voc != null)) && (
-                  <th className="text-right px-4 py-2 text-gray-400 font-medium">VOC (ppb)</th>
+                  <th className="text-right px-4 py-2 text-faint font-medium">VOC (ppb)</th>
                 )}
-                <th className="text-center px-4 py-2 text-gray-400 font-medium">Status</th>
+                <th className="text-center px-4 py-2 text-faint font-medium">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -878,11 +878,11 @@ export function DeviceReadings({
                 return (
                   <tr
                     key={reading.id}
-                    className={`border-b border-white/5 transition-colors ${
-                      i % 2 === 0 ? "bg-white/2" : ""
-                    } hover:bg-white/5`}
+                    className={`border-b border-mist transition-colors ${
+                      i % 2 === 0 ? "bg-paper/60" : ""
+                    } hover:bg-mist/40`}
                   >
-                    <td className="px-4 py-2.5 text-gray-300 tabular-nums">
+                    <td className="px-4 py-2.5 text-body tabular-nums">
                       {new Date(reading.timestamp).toLocaleString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -896,21 +896,21 @@ export function DeviceReadings({
                     >
                       {reading.pressure.toFixed(1)} Pa
                     </td>
-                    <td className="px-4 py-2.5 text-right font-mono text-gray-300">
+                    <td className="px-4 py-2.5 text-right font-mono text-body">
                       {cToF(reading.temperature).toFixed(1)} °F
                     </td>
                     {recentReadings.some((r) => r.humidity != null) && (
-                      <td className="px-4 py-2.5 text-right font-mono text-cyan-300">
+                      <td className="px-4 py-2.5 text-right font-mono text-body">
                         {reading.humidity != null ? `${reading.humidity.toFixed(1)}%` : "—"}
                       </td>
                     )}
                     {recentReadings.some((r) => r.co2 != null) && (
-                      <td className="px-4 py-2.5 text-right font-mono text-orange-300">
+                      <td className="px-4 py-2.5 text-right font-mono text-body">
                         {reading.co2 != null ? `${reading.co2.toFixed(0)} ppm` : "—"}
                       </td>
                     )}
                     {recentReadings.some((r) => r.voc != null) && (
-                      <td className="px-4 py-2.5 text-right font-mono text-pink-300">
+                      <td className="px-4 py-2.5 text-right font-mono text-body">
                         {reading.voc != null ? `${reading.voc.toFixed(0)} ppb` : "—"}
                       </td>
                     )}

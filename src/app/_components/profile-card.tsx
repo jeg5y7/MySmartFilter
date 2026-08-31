@@ -11,15 +11,15 @@ export function ProfileCard() {
   const shippingReady = !!data; // billing lives on /profile; this card links there
 
   return (
-    <div className="rounded-xl bg-white/10 p-6">
+    <div className="rounded-[24px] border border-mist bg-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-white">My Profile</h3>
+        <h3 className="text-xl font-semibold text-ink">My Profile</h3>
         {data && data.autoOrderCount > 0 ? (
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-xs">
+          <span className="rounded-full bg-sagemist px-2.5 py-0.5 text-xs font-semibold text-sage-deep">
             Filter AutoShip
           </span>
         ) : (
-          <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-gray-300 text-xs">
+          <span className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-semibold text-body">
             Free monitoring
           </span>
         )}
@@ -27,35 +27,35 @@ export function ProfileCard() {
 
       <div className="space-y-3 mb-5">
         <div>
-          <p className="text-xs text-white/50 uppercase tracking-wide">Name</p>
-          <p className="text-white">
-            {user?.name ?? <span className="text-white/40">Not set</span>}
+          <p className="text-xs font-semibold uppercase tracking-wide text-faint">Name</p>
+          <p className="text-ink">
+            {user?.name ?? <span className="text-whisper">Not set</span>}
           </p>
         </div>
         <div>
-          <p className="text-xs text-white/50 uppercase tracking-wide">Email</p>
-          <p className="text-white truncate">{user?.email ?? "…"}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-faint">Email</p>
+          <p className="text-ink truncate">{user?.email ?? "…"}</p>
         </div>
         <div>
-          <p className="text-xs text-white/50 uppercase tracking-wide">Default filter</p>
-          <p className="text-white">
+          <p className="text-xs font-semibold uppercase tracking-wide text-faint">Default filter</p>
+          <p className="text-ink">
             {data?.defaultPref ? (
               `${data.defaultPref.filterProduct.size} — ${data.defaultPref.filterProduct.name}`
             ) : (
-              <span className="text-amber-300/80">Not chosen yet</span>
+              <span className="text-clay">Not chosen yet</span>
             )}
           </p>
         </div>
         <div>
-          <p className="text-xs text-white/50 uppercase tracking-wide">Auto-order</p>
-          <p className="text-white">
+          <p className="text-xs font-semibold uppercase tracking-wide text-faint">Auto-order</p>
+          <p className="text-ink">
             {data ? (
               data.autoOrderCount > 0 ? (
-                <span className="text-emerald-300">
+                <span className="text-sage">
                   Active ({data.autoOrderCount})
                 </span>
               ) : (
-                <span className="text-white/60">Off</span>
+                <span className="text-faint">Off</span>
               )
             ) : (
               "…"
@@ -66,7 +66,7 @@ export function ProfileCard() {
 
       <Link
         href="/profile"
-        className="block w-full text-center py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+        className="block w-full rounded-full bg-ink py-2.5 text-center text-sm font-semibold text-paper transition-colors hover:bg-ink/85"
       >
         {shippingReady ? "Manage Profile" : "Open Profile"}
       </Link>

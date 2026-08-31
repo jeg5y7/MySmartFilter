@@ -234,30 +234,30 @@ export function DeviceSettings({
   return (
     <div className="space-y-6">
       {/* ── Filter Settings ─────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-4">Filter Settings</h2>
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Filter Settings</h2>
 
         {/* Filter Size Selection */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-body mb-2">
             Your Filter Size
           </label>
           <select
             value={selectedFilterId}
             onChange={(e) => setSelectedFilterId(e.target.value)}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-2xl border border-mist bg-card px-4 py-3 text-sm text-ink focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
           >
-            <option value="" className="bg-slate-800">
+            <option value="">
               Select filter size...
             </option>
             {filterProducts.map((product) => (
-              <option key={product.id} value={product.id} className="bg-slate-800">
+              <option key={product.id} value={product.id}>
                 {product.size} - {product.name} ({formatPrice(product.price)})
               </option>
             ))}
           </select>
           {selectedFilter && (
-            <p className="mt-2 text-sm text-gray-400">
+            <p className="mt-2 text-sm text-body">
               {selectedFilter.merv ? `MERV ${selectedFilter.merv} • ` : ""}
               {selectedFilter.description}
             </p>
@@ -267,23 +267,23 @@ export function DeviceSettings({
         {/* Auto-Order Toggle */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-gray-300">
+            <label className="text-sm font-medium text-body">
               Auto-Order Replacement
             </label>
             <button
               onClick={() => setAutoOrderEnabled(!autoOrderEnabled)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                autoOrderEnabled ? "bg-blue-600" : "bg-gray-600"
+                autoOrderEnabled ? "bg-sage" : "bg-mist"
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
                   autoOrderEnabled ? "translate-x-6" : "translate-x-1"
                 }`}
               />
             </button>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-faint">
             {autoOrderEnabled
               ? "When this device detects a clogged filter, we'll email you and automatically order a replacement after 24 hours unless you cancel."
               : "Enable to automatically order replacement filters when needed."}
@@ -292,9 +292,9 @@ export function DeviceSettings({
 
         {/* Auto-Order Info */}
         {autoOrderEnabled && (
-          <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-300 mb-2">How Auto-Order Works</h3>
-            <ol className="text-xs text-blue-200/70 space-y-1 list-decimal list-inside">
+          <div className="mb-6 p-4 bg-sagemist border border-sage/30 rounded-2xl">
+            <h3 className="text-sm font-medium text-sage-deep mb-2">How Auto-Order Works</h3>
+            <ol className="text-xs text-sage-deep/80 space-y-1 list-decimal list-inside">
               <li>Device detects filter needs replacement</li>
               <li>You receive an email notification</li>
               <li>24-hour grace period to cancel</li>
@@ -307,7 +307,7 @@ export function DeviceSettings({
         <button
           onClick={handleSave}
           disabled={saving || !selectedFilterId}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg font-semibold transition-all"
+          className="w-full rounded-full bg-sage py-3 text-sm font-semibold text-white transition hover:bg-sage-deep disabled:bg-sage/50"
         >
           {saving ? "Saving..." : "Save Settings"}
         </button>
@@ -316,7 +316,7 @@ export function DeviceSettings({
         {message && (
           <p
             className={`mt-3 text-sm text-center ${
-              message.type === "success" ? "text-green-400" : "text-red-400"
+              message.type === "success" ? "text-sage" : "text-red-600"
             }`}
           >
             {message.text}
@@ -324,10 +324,10 @@ export function DeviceSettings({
         )}
 
         {/* Shop Link */}
-        <div className="mt-6 pt-6 border-t border-white/10">
+        <div className="mt-6 pt-6 border-t border-mist">
           <Link
             href="/store"
-            className="flex items-center justify-center gap-2 text-blue-400 hover:text-blue-300 text-sm"
+            className="flex items-center justify-center gap-2 text-sage hover:text-sage-deep text-sm"
           >
             <span>🛒</span>
             Browse Filter Store
@@ -336,9 +336,9 @@ export function DeviceSettings({
       </div>
 
       {/* ── HVAC System (energy model inputs) ───────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-1">HVAC System</h2>
-        <p className="text-sm text-gray-400 mb-5">
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-1">HVAC System</h2>
+        <p className="text-sm text-body mb-5">
           These power the energy-cost model that decides when a new filter pays
           for itself.
         </p>
@@ -346,9 +346,9 @@ export function DeviceSettings({
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-body mb-2">
                 Furnace Make{" "}
-                <span className="text-gray-500 font-normal">(optional)</span>
+                <span className="text-whisper font-normal">(optional)</span>
               </label>
               <input
                 type="text"
@@ -356,13 +356,13 @@ export function DeviceSettings({
                 onChange={(e) => setFurnaceMake(e.target.value)}
                 placeholder="e.g. Carrier"
                 maxLength={80}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full rounded-full border border-mist bg-card px-4 py-3 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-body mb-2">
                 Furnace Model{" "}
-                <span className="text-gray-500 font-normal">(optional)</span>
+                <span className="text-whisper font-normal">(optional)</span>
               </label>
               <input
                 type="text"
@@ -370,28 +370,28 @@ export function DeviceSettings({
                 onChange={(e) => setFurnaceModel(e.target.value)}
                 placeholder="e.g. 59TP6B080V17"
                 maxLength={80}
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full rounded-full border border-mist bg-card px-4 py-3 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               Blower Motor Type
             </label>
             <select
               value={blowerType}
               onChange={(e) => setBlowerType(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-2xl border border-mist bg-card px-4 py-3 text-sm text-ink focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
             >
-              <option value="ecm" className="bg-slate-800">
+              <option value="ecm">
                 Variable-speed (ECM) — most systems after ~2019
               </option>
-              <option value="psc" className="bg-slate-800">
+              <option value="psc">
                 Fixed-speed (PSC) — most older systems
               </option>
             </select>
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-faint">
               {blowerType === "ecm"
                 ? "ECM blowers work harder as the filter clogs, so we track the extra electricity cost."
                 : "PSC blowers lose airflow as the filter clogs, so your whole system runs longer to heat or cool the house — we track that added runtime cost."}
@@ -399,7 +399,7 @@ export function DeviceSettings({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               System Airflow
             </label>
             <div className="relative">
@@ -410,19 +410,19 @@ export function DeviceSettings({
                 min={100}
                 max={5000}
                 step={100}
-                className="w-full px-4 py-3 pr-14 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full rounded-full border border-mist bg-card px-4 py-3 pr-14 text-sm text-ink focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-faint text-sm pointer-events-none">
                 CFM
               </span>
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-faint">
               Rule of thumb: ~400 CFM per ton of cooling (3-ton system ≈ 1200 CFM).
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               Electricity Rate
             </label>
             <div className="relative">
@@ -433,13 +433,13 @@ export function DeviceSettings({
                 min={1}
                 max={100}
                 step={1}
-                className="w-full px-4 py-3 pr-16 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full rounded-full border border-mist bg-card px-4 py-3 pr-16 text-sm text-ink focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-faint text-sm pointer-events-none">
                 ¢/kWh
               </span>
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-faint">
               Find it on your utility bill — US average is about 15¢/kWh.
               {stateAvgRateCents !== null && (
                 <>
@@ -448,7 +448,7 @@ export function DeviceSettings({
                   <button
                     type="button"
                     onClick={() => setElectricityRate(stateAvgRateCents)}
-                    className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                    className="text-sage hover:text-sage-deep underline underline-offset-2"
                   >
                     Use {stateAvgRateCents}¢
                   </button>
@@ -461,7 +461,7 @@ export function DeviceSettings({
         <button
           onClick={handleHvacSave}
           disabled={hvacSaving}
-          className="mt-5 w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+          className="mt-5 w-full rounded-full bg-sage py-3 text-sm font-semibold text-white transition hover:bg-sage-deep disabled:bg-sage/50 disabled:cursor-not-allowed"
         >
           {hvacSaving ? "Saving…" : "Save HVAC Settings"}
         </button>
@@ -469,7 +469,7 @@ export function DeviceSettings({
         {hvacMessage && (
           <p
             className={`mt-3 text-sm text-center ${
-              hvacMessage.type === "success" ? "text-green-400" : "text-red-400"
+              hvacMessage.type === "success" ? "text-sage" : "text-red-600"
             }`}
           >
             {hvacMessage.text}
@@ -478,15 +478,15 @@ export function DeviceSettings({
       </div>
 
       {/* ── Device Info (Rename) ────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-1">Device Info</h2>
-        <p className="text-sm text-gray-400 mb-5">
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-1">Device Info</h2>
+        <p className="text-sm text-body mb-5">
           Update the name or location shown in your dashboard.
         </p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               Device Name
             </label>
             <input
@@ -498,14 +498,14 @@ export function DeviceSettings({
               }}
               placeholder="e.g. Living Room Filter"
               maxLength={50}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              className="w-full rounded-full border border-mist bg-card px-4 py-3 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               Location{" "}
-              <span className="text-gray-500 font-normal">(optional)</span>
+              <span className="text-whisper font-normal">(optional)</span>
             </label>
             <input
               type="text"
@@ -513,12 +513,12 @@ export function DeviceSettings({
               onChange={(e) => setRenameLocation(e.target.value)}
               placeholder="e.g. Basement HVAC"
               maxLength={50}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+              className="w-full rounded-full border border-mist bg-card px-4 py-3 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-body mb-2">
               Alert Threshold
             </label>
             <div className="relative">
@@ -529,13 +529,13 @@ export function DeviceSettings({
                 min={10}
                 max={500}
                 step={5}
-                className="w-full px-4 py-3 pr-12 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                className="w-full rounded-full border border-mist bg-card px-4 py-3 pr-12 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-faint text-sm pointer-events-none">
                 Pa
               </span>
             </div>
-            <p className="mt-1.5 text-xs text-gray-500">
+            <p className="mt-1.5 text-xs text-faint">
               Alerts when the pressure rises this much above your fresh-filter baseline
             </p>
           </div>
@@ -544,7 +544,7 @@ export function DeviceSettings({
         <button
           onClick={handleRenameSave}
           disabled={renameSaving || !renameName.trim()}
-          className="mt-5 w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+          className="mt-5 w-full rounded-full bg-sage py-3 text-sm font-semibold text-white transition hover:bg-sage-deep disabled:bg-sage/50 disabled:cursor-not-allowed"
         >
           {renameSaving ? "Saving…" : "Save Changes"}
         </button>
@@ -552,7 +552,7 @@ export function DeviceSettings({
         {renameMessage && (
           <p
             className={`mt-3 text-sm text-center ${
-              renameMessage.type === "success" ? "text-green-400" : "text-red-400"
+              renameMessage.type === "success" ? "text-sage" : "text-red-600"
             }`}
           >
             {renameMessage.text}
@@ -561,27 +561,27 @@ export function DeviceSettings({
       </div>
 
       {/* ── Danger Zone ─────────────────────────────────────────────────── */}
-      <div className="bg-red-500/10 backdrop-blur-lg rounded-xl p-6 border border-red-500/30">
+      <div className="rounded-[24px] border border-red-200 bg-red-50 p-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-red-400 text-lg">⚠️</span>
-          <h2 className="text-lg font-semibold text-red-400">Danger Zone</h2>
+          <span className="text-red-600 text-lg">⚠️</span>
+          <h2 className="text-lg font-semibold text-red-700">Danger Zone</h2>
         </div>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-body mb-5">
           Permanent actions that cannot be undone.
         </p>
 
-        <div className="border border-red-500/20 rounded-lg p-4">
+        <div className="rounded-2xl border border-red-200 bg-card p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-white">Remove this device</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-sm font-medium text-ink">Remove this device</p>
+              <p className="text-xs text-faint mt-0.5">
                 Removes the device and all associated readings permanently.
               </p>
             </div>
             {!showDeleteConfirm && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="shrink-0 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all"
+                className="shrink-0 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
               >
                 Remove Device
               </button>
@@ -590,13 +590,13 @@ export function DeviceSettings({
 
           {/* Inline confirmation */}
           {showDeleteConfirm && (
-            <div className="mt-4 pt-4 border-t border-red-500/20">
-              <p className="text-sm text-gray-300 mb-3">
+            <div className="mt-4 pt-4 border-t border-red-200">
+              <p className="text-sm text-body mb-3">
                 Type the device name to confirm deletion:
               </p>
-              <p className="text-sm text-gray-400 mb-2">
+              <p className="text-sm text-body mb-2">
                 Type{" "}
-                <code className="bg-white/10 px-1.5 py-0.5 rounded text-white text-xs">
+                <code className="bg-mist/60 px-1.5 py-0.5 rounded text-ink font-mono text-xs">
                   {deviceDisplayName}
                 </code>{" "}
                 to confirm:
@@ -609,11 +609,11 @@ export function DeviceSettings({
                   setDeleteError("");
                 }}
                 placeholder={deviceDisplayName}
-                className="w-full px-4 py-2.5 bg-white/10 border border-red-500/30 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-sm mb-3 transition-all"
+                className="w-full rounded-full border border-red-200 bg-card px-4 py-2.5 text-sm text-ink placeholder:text-whisper focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 mb-3 transition-all"
               />
 
               {deleteError && (
-                <p className="text-red-400 text-sm mb-3">⚠️ {deleteError}</p>
+                <p className="text-red-600 text-sm mb-3">⚠️ {deleteError}</p>
               )}
 
               <div className="flex gap-3">
@@ -624,14 +624,14 @@ export function DeviceSettings({
                     setDeleteError("");
                   }}
                   disabled={deleting}
-                  className="flex-1 py-2 bg-white/10 hover:bg-white/15 text-gray-300 text-sm font-medium rounded-lg transition-all disabled:opacity-50"
+                  className="flex-1 rounded-full border border-mist bg-card py-2 text-sm font-medium text-ink transition hover:bg-mist/60 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleting || deleteConfirmText !== deviceDisplayName}
-                  className="flex-1 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-600/30 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-all"
+                  className="flex-1 rounded-full bg-red-600 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:bg-red-600/30 disabled:cursor-not-allowed"
                 >
                   {deleting ? (
                     <span className="flex items-center justify-center gap-2">

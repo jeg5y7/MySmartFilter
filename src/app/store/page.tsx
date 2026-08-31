@@ -14,22 +14,22 @@ export default async function StorePage() {
   const products = allProducts.filter((p) => p.productType !== "monitor");
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-10">
+    <main className="min-h-screen bg-paper">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
+          <div className="flex items-center gap-2 text-sm text-faint mb-4">
+            <Link href="/dashboard" className="hover:text-ink transition-colors">
               Dashboard
             </Link>
             <span>/</span>
-            <span className="text-white">Filter Store</span>
+            <span className="text-ink">Filter Store</span>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Store</h1>
-              <p className="text-gray-400">
+              <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink mb-2">Store</h1>
+              <p className="text-body">
                 The smart filter monitor, and the filters it reorders for you
               </p>
             </div>
@@ -38,14 +38,14 @@ export default async function StorePage() {
               {session?.user && (
                 <Link
                   href="/store/orders"
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+                  className="rounded-full border border-mist bg-card px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-mist/60"
                 >
                   Order History
                 </Link>
               )}
               <Link
                 href="/dashboard"
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-sm"
+                className="rounded-full border border-mist bg-card px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-mist/60"
               >
                 Back to Dashboard
               </Link>
@@ -59,14 +59,14 @@ export default async function StorePage() {
         )}
 
         {/* Replacement filters */}
-        <h2 className="text-2xl font-bold text-white mb-4">Replacement Filters</h2>
+        <h2 className="font-display text-2xl font-normal tracking-tight text-ink mb-4">Replacement Filters</h2>
 
         {/* Filter Size Guide */}
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 mb-8">
-          <h3 className="text-lg font-semibold text-blue-300 mb-2">
+        <div className="rounded-[24px] border border-sage/30 bg-sagemist p-6 mb-8">
+          <h3 className="text-lg font-semibold text-sage-deep mb-2">
             📏 How to Find Your Filter Size
           </h3>
-          <p className="text-gray-300 text-sm">
+          <p className="text-body text-sm">
             Check the side of your current filter for dimensions (e.g., 20x20x1). The format is
             Width × Height × Depth in inches. If you&apos;ve set up a Smart Filter device, we can
             remember your preferred size for automatic reorders.
@@ -75,10 +75,10 @@ export default async function StorePage() {
 
         {/* Products Grid */}
         {products.length === 0 ? (
-          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-12 border border-white/10 text-center">
+          <div className="rounded-[24px] border border-mist bg-card p-12 text-center">
             <div className="text-6xl mb-4">📦</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Coming Soon</h2>
-            <p className="text-gray-400">
+            <h2 className="text-2xl font-semibold text-ink mb-2">Coming Soon</h2>
+            <p className="text-body">
               We&apos;re stocking up on filters. Check back soon!
             </p>
           </div>
@@ -96,18 +96,18 @@ export default async function StorePage() {
 
         {/* Auto-Order Info */}
         {session?.user && (
-          <div className="mt-12 bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-            <h3 className="text-lg font-semibold text-white mb-3">
+          <div className="mt-12 rounded-[24px] border border-mist bg-card p-6">
+            <h3 className="text-lg font-semibold text-ink mb-3">
               🔄 Auto-Order Feature
             </h3>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-body text-sm mb-4">
               Enable auto-order on your devices and we&apos;ll automatically order a replacement
               filter when your Smart Filter detects reduced airflow. You&apos;ll receive an email
               notification before any order is placed, giving you time to cancel if needed.
             </p>
             <Link
               href="/devices"
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm"
+              className="inline-flex items-center gap-2 text-sage hover:text-sage-deep text-sm underline-offset-2 hover:underline"
             >
               Configure auto-order in Device Settings →
             </Link>
@@ -116,16 +116,16 @@ export default async function StorePage() {
 
         {/* Not logged in prompt */}
         {!session?.user && (
-          <div className="mt-12 bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 text-center">
-            <h3 className="text-lg font-semibold text-white mb-3">
+          <div className="mt-12 rounded-[24px] border border-mist bg-card p-6 text-center">
+            <h3 className="text-lg font-semibold text-ink mb-3">
               Sign in to Purchase
             </h3>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-body text-sm mb-4">
               Create an account or sign in to purchase filters and enable automatic reordering.
             </p>
             <Link
               href="/api/auth/signin"
-              className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+              className="inline-block rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-ink/85"
             >
               Sign In
             </Link>

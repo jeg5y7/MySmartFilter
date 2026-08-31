@@ -66,28 +66,28 @@ export function FilterHealthCard({
     : null;
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+    <div className="rounded-[24px] border border-mist bg-card p-6">
       <div className="flex items-center justify-between mb-1">
-        <h2 className="text-lg font-semibold text-white">Filter Health</h2>
+        <h2 className="text-lg font-semibold text-ink">Filter Health</h2>
         {installedLabel && (
-          <span className="text-xs text-gray-500">Installed {installedLabel}</span>
+          <span className="text-xs text-faint">Installed {installedLabel}</span>
         )}
       </div>
 
       {blowerType === "ecm" ? (
         <>
-          <p className="text-sm text-gray-400 mb-5">
+          <p className="text-sm text-body mb-5">
             Extra electricity spent pushing air through this filter vs. when it
             was clean. When it reaches the price of a new filter, replacing
             saves you money.
           </p>
 
           <div className="flex items-end justify-between mb-2">
-            <span className="text-3xl font-bold text-white">
+            <span className="font-display text-3xl text-ink">
               {fmtUsd(extraEnergyCostCents)}
             </span>
             {filterPriceCents !== null && (
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-faint">
                 of {fmtUsd(filterPriceCents)}
                 {filterName ? ` — ${filterName}` : ""}
               </span>
@@ -95,26 +95,26 @@ export function FilterHealthCard({
           </div>
 
           {pct !== null ? (
-            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-2">
+            <div className="w-full h-3 bg-mist rounded-full overflow-hidden mb-2">
               <div
                 className={`h-full rounded-full transition-all ${
                   pct >= 100
                     ? "bg-red-500"
                     : pct >= 75
-                      ? "bg-amber-400"
-                      : "bg-emerald-500"
+                      ? "bg-clay"
+                      : "bg-sage"
                 }`}
                 style={{ width: `${pct}%` }}
               />
             </div>
           ) : (
-            <p className="text-xs text-amber-300/80 mb-2">
+            <p className="text-xs text-clay mb-2">
               Select a preferred filter in Filter Settings to set the replacement
               price target.
             </p>
           )}
 
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-faint">
             <span>
               {baselineDeltaP !== null
                 ? `Clean-filter baseline: ${baselineDeltaP.toFixed(1)} Pa`
@@ -124,46 +124,46 @@ export function FilterHealthCard({
           </div>
         </>
       ) : (
-        <p className="text-sm text-gray-400 mb-3">
+        <p className="text-sm text-body mb-3">
           This system has a fixed-speed (PSC) blower — a clogged filter reduces
           airflow rather than raising your electric bill, so replacement alerts
           are based on the pressure threshold instead of energy cost.{" "}
-          <span className="text-gray-500">
+          <span className="text-faint">
             {Math.round(runtimeHours)} h blower runtime on this filter.
           </span>
         </p>
       )}
 
-      <div className="mt-5 pt-4 border-t border-white/10">
+      <div className="mt-5 pt-4 border-t border-mist">
         {!confirming ? (
           <button
             onClick={() => setConfirming(true)}
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-sm text-sage hover:text-sage-deep transition-colors"
           >
             ✓ I just replaced this filter
           </button>
         ) : (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-300">
+            <span className="text-sm text-body">
               Reset tracking for a fresh filter?
             </span>
             <button
               onClick={handleReplaced}
               disabled={resetting}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-all"
+              className="rounded-full bg-sage px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-sage-deep disabled:opacity-50"
             >
               {resetting ? "Resetting…" : "Yes, reset"}
             </button>
             <button
               onClick={() => setConfirming(false)}
               disabled={resetting}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/15 text-gray-300 text-sm rounded-lg transition-all"
+              className="rounded-full border border-mist bg-card px-3 py-1.5 text-sm text-ink transition hover:bg-mist/60"
             >
               Cancel
             </button>
           </div>
         )}
-        {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
     </div>
   );

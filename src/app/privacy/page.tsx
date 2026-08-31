@@ -9,26 +9,26 @@ const EFFECTIVE_DATE = "July 30, 2026";
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-16 max-w-3xl">
-        <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
+    <main className="min-h-screen bg-paper text-ink">
+      <div className="mx-auto w-full max-w-3xl px-4 py-16">
+        <Link href="/" className="text-sm text-faint hover:text-ink transition-colors">
           ← MySmartFilter
         </Link>
-        <h1 className="text-4xl font-bold mt-4 mb-2">Privacy Policy</h1>
-        <p className="text-gray-400 mb-10">Effective {EFFECTIVE_DATE}</p>
+        <h1 className="font-display text-4xl font-normal tracking-tight mt-4 mb-2">Privacy Policy</h1>
+        <p className="text-faint mb-10">Effective {EFFECTIVE_DATE}</p>
 
-        <div className="space-y-8 text-gray-300 leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-white [&_h2]:mb-3">
+        <div className="space-y-8 text-body leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink [&_h2]:mb-3">
           <section>
             <h2>What we collect</h2>
             <p>
-              <strong className="text-white">Account:</strong> your email address and name (if
+              <strong className="text-ink">Account:</strong> your email address and name (if
               you provide one).{" "}
-              <strong className="text-white">Sensor data:</strong> pressure, temperature, and
+              <strong className="text-ink">Sensor data:</strong> pressure, temperature, and
               optional air-quality readings from your device, with timestamps and a device
               identifier.{" "}
-              <strong className="text-white">System details you enter:</strong> airflow,
+              <strong className="text-ink">System details you enter:</strong> airflow,
               blower type, electricity rate, device location label.{" "}
-              <strong className="text-white">Orders:</strong> what you bought, shipping
+              <strong className="text-ink">Orders:</strong> what you bought, shipping
               address, and payment status. Card numbers go directly to Stripe and never touch
               our servers.
             </p>
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
               You can export your readings (CSV, per device), edit or remove your card and
               address, disable any notification, and delete devices or your whole account —
               all from Settings. For anything else, email{" "}
-              <a href="mailto:support@mysmartfilter.com" className="text-blue-400 hover:text-blue-300">
+              <a href="mailto:support@mysmartfilter.com" className="text-sage underline-offset-2 hover:underline hover:text-sage-deep">
                 support@mysmartfilter.com
               </a>
               .
