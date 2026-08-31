@@ -184,9 +184,9 @@ export function OrdersQueue({ orders }: { orders: QueueOrder[] }) {
 
       {shipped.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-white mb-3">
+          <h2 className="text-lg font-semibold text-ink mb-3">
             Recently shipped{" "}
-            <span className="text-gray-500 font-normal">({shipped.length})</span>
+            <span className="text-faint font-normal">({shipped.length})</span>
           </h2>
           <div className="space-y-4">
             {shipped.map((o) => (

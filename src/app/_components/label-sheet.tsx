@@ -49,16 +49,16 @@ export function LabelSheet({ knownDeviceIds }: { knownDeviceIds: string[] }) {
   return (
     <>
       <div className="print:hidden grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-          <h2 className="text-sm font-semibold text-white mb-3">
+        <div className="rounded-[24px] border border-mist bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-3">
             Registered devices
           </h2>
           {knownDeviceIds.length === 0 ? (
-            <p className="text-sm text-gray-500">None yet.</p>
+            <p className="text-sm text-faint">None yet.</p>
           ) : (
             <div className="space-y-2 max-h-56 overflow-y-auto">
               {knownDeviceIds.map((id) => (
-                <label key={id} className="flex items-center gap-2 text-sm text-gray-300">
+                <label key={id} className="flex items-center gap-2 text-sm text-body">
                   <input
                     type="checkbox"
                     checked={selected.includes(id)}
@@ -75,11 +75,11 @@ export function LabelSheet({ knownDeviceIds }: { knownDeviceIds: string[] }) {
           )}
         </div>
 
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-          <h2 className="text-sm font-semibold text-white mb-1">
+        <div className="rounded-[24px] border border-mist bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">
             Add device IDs
           </h2>
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-faint mb-3">
             One per line (e.g. from the flashing station) — SF followed by
             letters/numbers.
           </p>
@@ -88,19 +88,19 @@ export function LabelSheet({ knownDeviceIds }: { knownDeviceIds: string[] }) {
             onChange={(e) => setExtraText(e.target.value)}
             rows={5}
             placeholder={"SF1A2B3C4D5E6F\nSF0F9E8D7C6B5A"}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-600 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="w-full rounded-2xl border border-mist bg-card px-4 py-2.5 text-ink placeholder:text-whisper font-mono text-xs focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
           />
         </div>
       </div>
 
       <div className="print:hidden flex items-center justify-between mb-6">
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-body">
           {all.length} label{all.length === 1 ? "" : "s"} ready
         </p>
         <button
           onClick={() => window.print()}
           disabled={all.length === 0}
-          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 text-white rounded-lg font-semibold transition-all"
+          className="rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-paper transition hover:bg-ink/85 disabled:opacity-50"
         >
           🖨️ Print labels
         </button>
