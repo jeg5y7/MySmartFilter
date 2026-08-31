@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-serif), Georgia, ui-serif, serif;
+
+  /* Nordic Arch palette */
+  --color-paper: #faf8f5;
+  --color-card: #ffffff;
+  --color-ink: #1c1b18;
+  --color-body: #55524a;
+  --color-faint: #8a867c;
+  --color-whisper: #a5a198;
+  --color-mist: #eeebe4;
+  --color-sagemist: #e7efe9;
+  --color-sage: #3e8a72;
+  --color-sage-deep: #2e6c59;
+  --color-glow: #60c7a0;
+  --color-leaf: #5f8a54;
+  --color-clay: #b9652f;
 }

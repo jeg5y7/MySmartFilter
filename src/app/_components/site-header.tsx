@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { SignOutButton } from "./sign-out-button";
+import { PleatsMark, Wordmark } from "./logo";
 
 /** Global navigation: wordmark → home, section links, session controls. */
 export async function SiteHeader() {
@@ -16,16 +17,14 @@ export async function SiteHeader() {
     : false;
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0f172a]/90 backdrop-blur-lg border-b border-white/10">
+    <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur-lg border-b border-mist">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between gap-3">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 text-white font-semibold tracking-tight hover:opacity-90 transition-opacity"
+          className="flex shrink-0 items-center gap-2.5 hover:opacity-85 transition-opacity"
         >
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 border border-blue-500/40">
-            <span className="block h-2.5 w-4 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400" />
-          </span>
-          <span className="hidden min-[400px]:inline">MySmartFilter</span>
+          <PleatsMark size={22} />
+          <Wordmark />
         </Link>
 
         {/* Every link stays visible at every width; the row scrolls sideways
@@ -35,38 +34,38 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/dashboard"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Dashboard
               </Link>
               <Link
                 href="/devices"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Devices
               </Link>
               <Link
                 href="/store"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Store
               </Link>
               <Link
                 href="/install"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Install
               </Link>
               <Link
                 href="/profile"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Profile
               </Link>
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="px-2.5 sm:px-3 py-1.5 text-sm text-amber-300 hover:text-amber-200 hover:bg-white/5 rounded-lg transition-all"
+                  className="px-2.5 sm:px-3 py-1.5 text-sm text-clay hover:opacity-80 hover:bg-mist/60 rounded-full transition-all"
                 >
                   Admin
                 </Link>
@@ -77,19 +76,19 @@ export async function SiteHeader() {
             <>
               <Link
                 href="/store"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Store
               </Link>
               <Link
                 href="/install"
-                className="px-2.5 sm:px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-2.5 sm:px-3 py-1.5 text-sm text-body hover:text-ink hover:bg-mist/60 rounded-full transition-all"
               >
                 Installation
               </Link>
               <Link
                 href="/signin"
-                className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-all"
+                className="px-4 py-1.5 text-sm text-paper bg-ink hover:bg-ink/85 rounded-full font-medium transition-all"
               >
                 Sign In
               </Link>
