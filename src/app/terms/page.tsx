@@ -9,15 +9,15 @@ const EFFECTIVE_DATE = "July 30, 2026";
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-16 max-w-3xl">
-        <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">
+    <main className="min-h-screen bg-paper text-ink">
+      <div className="mx-auto w-full max-w-3xl px-4 py-16">
+        <Link href="/" className="text-sm text-faint hover:text-ink transition-colors">
           ← MySmartFilter
         </Link>
-        <h1 className="text-4xl font-bold mt-4 mb-2">Terms of Service</h1>
-        <p className="text-gray-400 mb-10">Effective {EFFECTIVE_DATE}</p>
+        <h1 className="font-display text-4xl font-normal tracking-tight mt-4 mb-2">Terms of Service</h1>
+        <p className="text-faint mb-10">Effective {EFFECTIVE_DATE}</p>
 
-        <div className="space-y-8 text-gray-300 leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-white [&_h2]:mb-3">
+        <div className="space-y-8 text-body leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink [&_h2]:mb-3">
           <section>
             <h2>1. What we provide</h2>
 
@@ -108,7 +108,7 @@ export default function TermsPage() {
             <h2>9. Contact</h2>
             <p>
               Questions? Email{" "}
-              <a href="mailto:support@mysmartfilter.com" className="text-blue-400 hover:text-blue-300">
+              <a href="mailto:support@mysmartfilter.com" className="text-sage underline-offset-2 hover:underline hover:text-sage-deep">
                 support@mysmartfilter.com
               </a>
               .

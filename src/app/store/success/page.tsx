@@ -36,14 +36,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-16">
+    <main className="min-h-screen bg-paper">
+      <div className="mx-auto w-full px-4 py-16">
         <div className="max-w-2xl mx-auto">
           {/* Success Icon */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/20 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-sagemist rounded-full mb-4">
               <svg
-                className="w-10 h-10 text-green-400"
+                className="w-10 h-10 text-sage"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -56,55 +56,55 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                 />
               </svg>
             </div>
-            <h1 className="text-4xl font-bold text-white mb-2">Order Confirmed!</h1>
-            <p className="text-gray-400">
+            <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink mb-2">Order Confirmed!</h1>
+            <p className="text-body">
               Thank you for your purchase. Your filter is on its way!
             </p>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Order Summary</h2>
+          <div className="rounded-[24px] border border-mist bg-card p-6 mb-6">
+            <h2 className="text-lg font-semibold text-ink mb-4">Order Summary</h2>
 
             {/* Items */}
             <div className="space-y-3 mb-4">
               {session.line_items?.data.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-gray-300">
+                  <span className="text-body">
                     {item.description} × {item.quantity}
                   </span>
-                  <span className="text-white">{formatPrice(item.amount_total)}</span>
+                  <span className="text-ink">{formatPrice(item.amount_total)}</span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-white/10 pt-4 space-y-2">
+            <div className="border-t border-mist pt-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Subtotal</span>
-                <span className="text-white">
+                <span className="text-faint">Subtotal</span>
+                <span className="text-ink">
                   {formatPrice(session.amount_subtotal)}
                 </span>
               </div>
               {session.shipping_cost && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Shipping</span>
-                  <span className="text-white">
+                  <span className="text-faint">Shipping</span>
+                  <span className="text-ink">
                     {formatPrice(session.shipping_cost.amount_total)}
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-lg font-semibold pt-2 border-t border-white/10">
-                <span className="text-white">Total</span>
-                <span className="text-green-400">{formatPrice(session.amount_total)}</span>
+              <div className="flex justify-between text-lg font-semibold pt-2 border-t border-mist">
+                <span className="text-ink">Total</span>
+                <span className="text-sage">{formatPrice(session.amount_total)}</span>
               </div>
             </div>
           </div>
 
           {/* Shipping Address */}
           {shippingDetails && (
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 mb-6">
-              <h2 className="text-lg font-semibold text-white mb-3">Shipping To</h2>
-              <div className="text-gray-300 text-sm">
+            <div className="rounded-[24px] border border-mist bg-card p-6 mb-6">
+              <h2 className="text-lg font-semibold text-ink mb-3">Shipping To</h2>
+              <div className="text-body text-sm">
                 <p>{shippingDetails.name}</p>
                 <p>{shippingDetails.address?.line1}</p>
                 {shippingDetails.address?.line2 && (
@@ -123,20 +123,20 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/store/orders"
-              className="flex-1 text-center py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+              className="flex-1 text-center rounded-full border border-mist bg-card py-3 text-sm font-semibold text-ink transition hover:bg-mist/60"
             >
               View Order History
             </Link>
             <Link
               href="/store"
-              className="flex-1 text-center py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+              className="flex-1 text-center rounded-full bg-sage py-3 text-sm font-semibold text-white transition hover:bg-sage-deep"
             >
               Continue Shopping
             </Link>
           </div>
 
           {/* Help Text */}
-          <p className="text-center text-gray-500 text-sm mt-6">
+          <p className="text-center text-faint text-sm mt-6">
             A confirmation email has been sent to your email address.
           </p>
         </div>

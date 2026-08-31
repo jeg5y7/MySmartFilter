@@ -67,28 +67,28 @@ export default async function DevicePage({ params }: DevicePageProps) {
   const stateRate = suggestedRateForState(me?.shippingState);
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
+    <main className="flex min-h-screen flex-col bg-paper">
       <div className="container mx-auto px-4 py-10">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
+          <div className="flex items-center gap-2 text-sm text-faint mb-4">
+            <Link href="/dashboard" className="hover:text-ink transition-colors">
               Dashboard
             </Link>
             <span>/</span>
-            <Link href="/devices" className="hover:text-white transition-colors">
+            <Link href="/devices" className="hover:text-ink transition-colors">
               Devices
             </Link>
             <span>/</span>
-            <span className="text-white">{device.name ?? device.deviceId}</span>
+            <span className="text-ink">{device.name ?? device.deviceId}</span>
           </div>
 
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">
+              <h1 className="font-display text-3xl font-normal tracking-tight text-ink sm:text-4xl mb-2">
                 {device.name ?? "Smart Filter Device"}
               </h1>
-              <p className="text-gray-400">
+              <p className="text-faint">
                 {device.location ?? "No location set"} • {device.deviceId}
               </p>
             </div>
@@ -102,7 +102,7 @@ export default async function DevicePage({ params }: DevicePageProps) {
               )}
               <Link
                 href="/devices"
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all"
+                className="rounded-full border border-mist bg-card px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist/60"
               >
                 Back to Devices
               </Link>
@@ -114,26 +114,26 @@ export default async function DevicePage({ params }: DevicePageProps) {
           {/* Device Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Status Card */}
-            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-              <h2 className="text-lg font-semibold text-white mb-4">Device Status</h2>
+            <div className="rounded-[24px] border border-mist bg-card p-6">
+              <h2 className="text-lg font-semibold text-ink mb-4">Device Status</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-gray-400 text-sm">Status</p>
+                  <p className="text-faint text-sm">Status</p>
                   <p
                     className={`font-semibold ${
                       device.status === "active"
-                        ? "text-green-400"
+                        ? "text-sage"
                         : device.status.startsWith("error")
-                        ? "text-red-400"
-                        : "text-yellow-400"
+                        ? "text-red-600"
+                        : "text-clay"
                     }`}
                   >
                     {device.status.charAt(0).toUpperCase() + device.status.slice(1)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Last Seen</p>
-                  <p className="text-white font-medium">
+                  <p className="text-faint text-sm">Last Seen</p>
+                  <p className="text-ink font-medium">
                     {device.lastSeen ? (
                       <LocalTime iso={device.lastSeen.toISOString()} />
                     ) : (
@@ -142,29 +142,29 @@ export default async function DevicePage({ params }: DevicePageProps) {
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Firmware</p>
-                  <p className="text-white font-medium">{device.firmware ?? "Unknown"}</p>
+                  <p className="text-faint text-sm">Firmware</p>
+                  <p className="text-ink font-medium">{device.firmware ?? "Unknown"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-faint text-sm">
                     {device.batteryPct !== null ? "Battery" : "Alert Threshold"}
                   </p>
                   {device.batteryPct !== null ? (
                     <p
                       className={`font-medium ${
                         device.batteryPct <= 20
-                          ? "text-red-400"
+                          ? "text-red-600"
                           : device.batteryPct <= 40
-                            ? "text-amber-300"
-                            : "text-green-400"
+                            ? "text-clay"
+                            : "text-sage"
                       }`}
                     >
                       🔋 {Math.round(device.batteryPct)}%
                     </p>
                   ) : (
-                    <p className="text-white font-medium">
+                    <p className="text-ink font-medium">
                       +{device.pressureThreshold} Pa
-                      <span className="text-gray-500 text-xs font-normal"> over baseline</span>
+                      <span className="text-faint text-xs font-normal"> over baseline</span>
                     </p>
                   )}
                 </div>
@@ -190,24 +190,24 @@ export default async function DevicePage({ params }: DevicePageProps) {
                 }
               />
             ) : (
-              <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-blue-500/30">
+              <div className="rounded-[24px] border border-sage/30 bg-card p-6">
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-lg font-semibold text-white">Filter Health</h2>
-                  <span className="px-3 py-1 rounded-full bg-blue-500/15 text-blue-300 text-xs font-medium">
+                  <h2 className="text-lg font-semibold text-ink">Filter Health</h2>
+                  <span className="px-3 py-1 rounded-full bg-sagemist text-sage-deep text-xs font-semibold">
                     Filter AutoShip feature
                   </span>
                 </div>
-                <p className="text-sm text-gray-400 mb-4">
+                <p className="text-sm text-body mb-4">
                   See exactly how much extra electricity this filter is costing
                   you — and let a replacement ship itself the moment a new one
                   is cheaper. Included when you get your filters through us:
                   pick a filter and enable Auto-Order in Filter Settings. No
                   monthly fee.
                 </p>
-                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-2 opacity-40">
-                  <div className="h-full w-2/5 rounded-full bg-gradient-to-r from-emerald-500 to-amber-400" />
+                <div className="w-full h-3 bg-mist rounded-full overflow-hidden mb-2 opacity-60">
+                  <div className="h-full w-2/5 rounded-full bg-gradient-to-r from-sage to-clay" />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-faint">
                   🔒 Energy-savings calculation, historical trending &amp; upcoming
                   HVAC diagnostics unlock with AutoShip.
                 </p>
@@ -216,32 +216,32 @@ export default async function DevicePage({ params }: DevicePageProps) {
 
             {/* Active Alerts */}
             {device.filterAlerts.length > 0 && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-red-300 mb-4 flex items-center gap-2">
+              <div className="rounded-[24px] border border-red-200 bg-red-50 p-6">
+                <h2 className="text-lg font-semibold text-red-700 mb-4 flex items-center gap-2">
                   <span>⚠️</span> Active Filter Alerts
                 </h2>
                 <div className="space-y-3">
                   {device.filterAlerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className="bg-red-500/10 rounded-lg p-4 border border-red-500/20"
+                      className="rounded-2xl border border-red-200 bg-card p-4"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="text-red-200 font-medium">
+                          <p className="text-ink font-medium">
                             Filter replacement needed
                           </p>
-                          <p className="text-red-300/70 text-sm">
+                          <p className="text-body text-sm">
                             Pressure: {alert.pressure.toFixed(1)} Pa (threshold:{" "}
                             {alert.threshold} Pa)
                           </p>
                         </div>
-                        <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-full">
+                        <span className="px-2 py-1 bg-red-50 text-red-600 text-xs font-semibold rounded-full">
                           {alert.status}
                         </span>
                       </div>
                       {alert.autoOrderAt && (
-                        <p className="text-yellow-300 text-sm">
+                        <p className="text-clay text-sm">
                           Auto-order scheduled for:{" "}
                           <LocalTime iso={new Date(alert.autoOrderAt).toISOString()} />
                         </p>
@@ -249,7 +249,7 @@ export default async function DevicePage({ params }: DevicePageProps) {
                       <div className="flex flex-wrap items-center gap-2 mt-3">
                         <Link
                           href="/store"
-                          className="inline-block px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-all"
+                          className="inline-block rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
                         >
                           Order Replacement Filter
                         </Link>
@@ -267,10 +267,10 @@ export default async function DevicePage({ params }: DevicePageProps) {
             {/* Recent Readings — live sensor data */}
             <Suspense
               fallback={
-                <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-                  <h2 className="text-lg font-semibold text-white mb-4">Recent Readings</h2>
+                <div className="rounded-[24px] border border-mist bg-card p-6">
+                  <h2 className="text-lg font-semibold text-ink mb-4">Recent Readings</h2>
                   <div className="flex items-center justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage" />
                   </div>
                 </div>
               }

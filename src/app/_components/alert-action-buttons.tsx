@@ -42,10 +42,10 @@ export function AlertActionButtons({ alertId }: AlertActionButtonsProps) {
       <button
         onClick={() => void handleAction("dismiss")}
         disabled={loading !== null}
-        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-gray-300 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5"
+        className="rounded-full border border-mist bg-card px-3 py-1.5 text-xs font-medium text-body transition hover:bg-mist/60 disabled:opacity-50 flex items-center gap-1.5"
       >
         {loading === "dismiss" ? (
-          <span className="inline-block w-3 h-3 border-2 border-gray-400/30 border-t-gray-300 rounded-full animate-spin" />
+          <span className="inline-block w-3 h-3 border-2 border-mist border-t-faint rounded-full animate-spin" />
         ) : (
           <span>✕</span>
         )}
@@ -55,10 +55,10 @@ export function AlertActionButtons({ alertId }: AlertActionButtonsProps) {
       <button
         onClick={() => void handleAction("manual_ordered")}
         disabled={loading !== null}
-        className="px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 disabled:opacity-50 text-green-300 text-xs font-medium rounded-lg border border-green-500/30 transition-all flex items-center gap-1.5"
+        className="rounded-full border border-sage/30 bg-sagemist px-3 py-1.5 text-xs font-medium text-sage-deep transition hover:bg-sagemist/70 disabled:opacity-50 flex items-center gap-1.5"
       >
         {loading === "manual_ordered" ? (
-          <span className="inline-block w-3 h-3 border-2 border-green-400/30 border-t-green-300 rounded-full animate-spin" />
+          <span className="inline-block w-3 h-3 border-2 border-sage/30 border-t-sage rounded-full animate-spin" />
         ) : (
           <span>✓</span>
         )}
@@ -66,7 +66,7 @@ export function AlertActionButtons({ alertId }: AlertActionButtonsProps) {
       </button>
 
       {error && (
-        <span className="text-red-400 text-xs">{error}</span>
+        <span className="text-red-600 text-xs">{error}</span>
       )}
     </div>
   );

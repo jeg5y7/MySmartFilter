@@ -13,17 +13,17 @@ export const metadata = {
  * US homes.
  */
 
-// Shared SVG palette (fixed dark theme to match the site)
+// Shared SVG palette (fixed Nordic Arch light theme to match the site)
 const C = {
-  duct: "#223050",
-  ductLine: "#35507e",
-  metal: "#1a2438",
-  surface: "#131c2e",
-  muted: "#8a97b0",
-  faint: "#5b6880",
-  accent: "#4d9fff",
-  warn: "#fbbf24",
-  ok: "#34d399",
+  duct: "#eae6dd",
+  ductLine: "#b8b2a4",
+  metal: "#dfdacf",
+  surface: "#ffffff",
+  muted: "#55524a",
+  faint: "#8a867c",
+  accent: "#1c1b18",
+  warn: "#b9652f",
+  ok: "#3e8a72",
 };
 
 function MonitorBox({ x, y }: { x: number; y: number }) {
@@ -42,7 +42,7 @@ function MonitorBox({ x, y }: { x: number; y: number }) {
 function UpflowDiagram() {
   return (
     <svg
-      className="w-full h-auto block rounded-lg border border-white/10 bg-[#0d1526]"
+      className="w-full h-auto block rounded-2xl border border-mist bg-paper"
       viewBox="0 0 460 300"
       role="img"
       aria-label="Upflow furnace: return duct enters low on the side, filter sits in a slot at the cabinet base, taps on each side of the filter slot"
@@ -79,7 +79,7 @@ function UpflowDiagram() {
 function MediaCabinetDiagram() {
   return (
     <svg
-      className="w-full h-auto block rounded-lg border border-white/10 bg-[#0d1526]"
+      className="w-full h-auto block rounded-2xl border border-mist bg-paper"
       viewBox="0 0 460 300"
       role="img"
       aria-label="External filter cabinet mounted between the vertical return drop and the furnace, taps on the duct above and below the cabinet"
@@ -115,7 +115,7 @@ function MediaCabinetDiagram() {
 function HorizontalDiagram() {
   return (
     <svg
-      className="w-full h-auto block rounded-lg border border-white/10 bg-[#0d1526]"
+      className="w-full h-auto block rounded-2xl border border-mist bg-paper"
       viewBox="0 0 460 300"
       role="img"
       aria-label="Horizontal furnace lying on its side: return duct on the left, filter slot where the return meets the unit, supply on the right, taps on each side of the slot"
@@ -151,7 +151,7 @@ function HorizontalDiagram() {
 function GrilleDiagram() {
   return (
     <svg
-      className="w-full h-auto block rounded-lg border border-white/10 bg-[#0d1526]"
+      className="w-full h-auto block rounded-2xl border border-mist bg-paper"
       viewBox="0 0 460 300"
       role="img"
       aria-label="Return grille in a wall with the filter directly behind it: Tap A senses room air at the grille, Tap B taps the duct behind the filter"
@@ -205,17 +205,17 @@ function SetupCard({
   steps: React.ReactNode[];
 }) {
   return (
-    <section className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+    <section className="rounded-[24px] border border-mist bg-card p-6">
       <p
-        className={`text-[10px] font-mono uppercase tracking-widest mb-1 ${
-          freqCommon ? "text-emerald-400" : "text-gray-500"
+        className={`text-[10px] font-semibold uppercase tracking-widest mb-1 ${
+          freqCommon ? "text-sage" : "text-faint"
         }`}
       >
         {freq}
       </p>
-      <h2 className="text-xl font-semibold text-white mb-4">{title}</h2>
+      <h2 className="text-xl font-semibold text-ink mb-4">{title}</h2>
       {diagram}
-      <ol className="mt-4 space-y-1.5 text-sm text-gray-400 list-decimal list-inside">
+      <ol className="mt-4 space-y-1.5 text-sm text-body list-decimal list-inside">
         {steps.map((s, i) => (
           <li key={i}>{s}</li>
         ))}
@@ -226,17 +226,17 @@ function SetupCard({
 
 export default function InstallPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
+    <main className="min-h-screen bg-paper text-ink">
+      <div className="mx-auto w-full px-4 py-12 max-w-5xl">
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <header className="mb-10">
-          <p className="text-xs font-mono uppercase tracking-widest text-blue-400 mb-2">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-sage mb-2">
             Installation Guide
           </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+          <h1 className="font-display text-4xl md:text-5xl font-normal mb-4 tracking-tight">
             How the monitor installs on any furnace
           </h1>
-          <p className="text-gray-400 text-lg max-w-3xl">
+          <p className="text-body text-lg max-w-3xl">
             One principle covers every system: the smart filter monitor measures
             the pressure <em>difference</em> across your filter, so it needs one
             tube tapped on each side of it — one where air enters the filter
@@ -246,26 +246,26 @@ export default function InstallPage() {
         </header>
 
         {/* ── Universal recipe ───────────────────────────────────────────── */}
-        <section className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-1">
+        <section className="rounded-[24px] border border-sage/30 bg-sagemist p-6 mb-8">
+          <h2 className="text-lg font-semibold text-ink mb-1">
             The universal recipe
           </h2>
-          <p className="text-gray-300 text-sm mb-4">
+          <p className="text-body text-sm mb-4">
             Find the filter → drill a ¼″ hole on each side of it → push a tube
             into each hole → connect both tubes to the monitor → plug in.
             About 15 minutes with a drill; everything else is in the kit.
           </p>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-400">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-body">
             <span className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-amber-400 shrink-0" />
+              <span className="h-3 w-3 rounded-full bg-clay shrink-0" />
               Tap A — before the filter (return / dusty side)
             </span>
             <span className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-emerald-400 shrink-0" />
+              <span className="h-3 w-3 rounded-full bg-sage shrink-0" />
               Tap B — after the filter (blower / clean side)
             </span>
             <span className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-blue-400 shrink-0" />
+              <span className="h-3 w-3 rounded-full bg-ink shrink-0" />
               Monitor — mounts to the cabinet, tubes ≤ 24″
             </span>
           </div>
@@ -279,9 +279,9 @@ export default function InstallPage() {
             title="Upflow furnace, side return"
             diagram={<UpflowDiagram />}
             steps={[
-              <>Your filter sits in a slot where the return duct meets the <strong className="text-white">bottom of the cabinet</strong>.</>,
-              <><strong className="text-white">Tap A:</strong> drill into the return duct 2–6″ before the filter slot.</>,
-              <><strong className="text-white">Tap B:</strong> drill into the blower compartment just past the slot.</>,
+              <>Your filter sits in a slot where the return duct meets the <strong className="text-ink">bottom of the cabinet</strong>.</>,
+              <><strong className="text-ink">Tap A:</strong> drill into the return duct 2–6″ before the filter slot.</>,
+              <><strong className="text-ink">Tap B:</strong> drill into the blower compartment just past the slot.</>,
               <>Mount the monitor on the cabinet side, out of the way of the access panels.</>,
             ]}
           />
@@ -291,9 +291,9 @@ export default function InstallPage() {
             title="Filter cabinet in the return drop"
             diagram={<MediaCabinetDiagram />}
             steps={[
-              <>A separate <strong className="text-white">filter cabinet</strong> sits between the return duct and the furnace.</>,
-              <><strong className="text-white">Tap A:</strong> drill the return duct just <strong className="text-white">above</strong> (upstream of) the cabinet.</>,
-              <><strong className="text-white">Tap B:</strong> drill the duct or cabinet just <strong className="text-white">below</strong> (downstream of) the filter.</>,
+              <>A separate <strong className="text-ink">filter cabinet</strong> sits between the return duct and the furnace.</>,
+              <><strong className="text-ink">Tap A:</strong> drill the return duct just <strong className="text-ink">above</strong> (upstream of) the cabinet.</>,
+              <><strong className="text-ink">Tap B:</strong> drill the duct or cabinet just <strong className="text-ink">below</strong> (downstream of) the filter.</>,
               <>Works identically for 1″ slots and 4–5″ media filters.</>,
             ]}
           />
@@ -302,9 +302,9 @@ export default function InstallPage() {
             title="Horizontal unit"
             diagram={<HorizontalDiagram />}
             steps={[
-              <>The unit lies on its side; the filter slot is at the <strong className="text-white">end where the return duct connects</strong>.</>,
-              <><strong className="text-white">Tap A:</strong> drill the return duct a few inches before the slot.</>,
-              <><strong className="text-white">Tap B:</strong> drill the cabinet just past the slot.</>,
+              <>The unit lies on its side; the filter slot is at the <strong className="text-ink">end where the return duct connects</strong>.</>,
+              <><strong className="text-ink">Tap A:</strong> drill the return duct a few inches before the slot.</>,
+              <><strong className="text-ink">Tap B:</strong> drill the cabinet just past the slot.</>,
               <>Strap or screw the monitor to the top of the unit — keep it clear of the condensate pan.</>,
             ]}
           />
@@ -313,52 +313,52 @@ export default function InstallPage() {
             title="Filter behind a wall / ceiling grille"
             diagram={<GrilleDiagram />}
             steps={[
-              <>The filter sits <strong className="text-white">directly behind the return grille</strong> in a wall or ceiling.</>,
-              <><strong className="text-white">Tap A</strong> simply senses room air — the tube tucks behind the grille frame, <strong className="text-white">no drilling</strong>.</>,
-              <><strong className="text-white">Tap B:</strong> one small hole into the duct wall <strong className="text-white">behind</strong> the filter.</>,
+              <>The filter sits <strong className="text-ink">directly behind the return grille</strong> in a wall or ceiling.</>,
+              <><strong className="text-ink">Tap A</strong> simply senses room air — the tube tucks behind the grille frame, <strong className="text-ink">no drilling</strong>.</>,
+              <><strong className="text-ink">Tap B:</strong> one small hole into the duct wall <strong className="text-ink">behind</strong> the filter.</>,
               <>Monitor mounts beside the grille; needs an outlet within reach of the power cord.</>,
             ]}
           />
         </div>
 
         {/* ── Universal rules ────────────────────────────────────────────── */}
-        <section className="mt-8 bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-          <h2 className="text-lg font-semibold text-white mb-3">
+        <section className="mt-8 rounded-[24px] border border-mist bg-card p-6">
+          <h2 className="text-lg font-semibold text-ink mb-3">
             Rules that apply to every setup
           </h2>
-          <ul className="space-y-2.5 text-sm text-gray-400 list-disc list-inside">
+          <ul className="space-y-2.5 text-sm text-body list-disc list-inside">
             <li>
-              <strong className="text-white">Tap placement:</strong> 2–6″ from
+              <strong className="text-ink">Tap placement:</strong> 2–6″ from
               the filter on each side, in a flat section of sheet metal — never
               in a seam or corner.
             </li>
             <li>
-              <strong className="text-white">Drilling:</strong> ¼″ bit, sheet
+              <strong className="text-ink">Drilling:</strong> ¼″ bit, sheet
               metal only. The kit&apos;s grommets seal each hole around the tube
               — no air leaks, and the hole is invisible if you ever remove the
               monitor.
             </li>
             <li>
-              <strong className="text-white">Tube routing:</strong> keep tubes
+              <strong className="text-ink">Tube routing:</strong> keep tubes
               short (≤ 24″), without kinks or sags. Either tube can be A or B —
               the app figures out flow direction from the readings.
             </li>
             <li>
-              <strong className="text-white">Mounting:</strong> the monitor
+              <strong className="text-ink">Mounting:</strong> the monitor
               sticks to the cabinet with the included adhesive pad or two
               screws. Keep it clear of access panels you open to change the
               filter.
             </li>
             <li>
-              <strong className="text-white">Power:</strong> standard wall
+              <strong className="text-ink">Power:</strong> standard wall
               adapter — most furnaces have a service outlet within a few feet.
             </li>
           </ul>
-          <div className="mt-5 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-amber-400 mb-1">
+          <div className="mt-5 rounded-2xl border border-clay/30 bg-clay/10 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-clay mb-1">
               Don&apos;t drill here
             </p>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-body">
               Never drill into the supply side near the indoor AC coil
               (refrigerant lines), through anything with wiring or gas lines
               behind it, or into the heat-exchanger section of the furnace body.
@@ -369,11 +369,11 @@ export default function InstallPage() {
         </section>
 
         {/* ── After the drill ────────────────────────────────────────────── */}
-        <section className="mt-8 bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-          <h2 className="text-lg font-semibold text-white mb-3">
+        <section className="mt-8 rounded-[24px] border border-mist bg-card p-6">
+          <h2 className="text-lg font-semibold text-ink mb-3">
             After the tubes are in: connect it to your WiFi
           </h2>
-          <ol className="space-y-2 text-sm text-gray-400 list-decimal list-inside">
+          <ol className="space-y-2 text-sm text-body list-decimal list-inside">
             <li>Plug in the power adapter — the monitor starts a temporary WiFi network.</li>
             <li>Join that network from your phone and enter your home WiFi when asked.</li>
             <li>
@@ -388,13 +388,13 @@ export default function InstallPage() {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/store"
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+            className="px-8 py-3 bg-sage hover:bg-sage-deep text-white rounded-full font-semibold transition-all"
           >
             Get your monitor
           </Link>
           <Link
             href="/setup"
-            className="px-8 py-3 bg-white/10 hover:bg-white/15 text-white rounded-lg font-semibold transition-all"
+            className="px-8 py-3 border border-mist bg-card hover:bg-mist/60 text-ink rounded-full font-semibold transition-all"
           >
             Already have one? Set it up →
           </Link>

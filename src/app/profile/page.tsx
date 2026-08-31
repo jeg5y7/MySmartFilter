@@ -15,18 +15,20 @@ export default async function ProfilePage() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-10 max-w-3xl">
+    <main className="min-h-screen bg-paper">
+      <div className="mx-auto w-full max-w-3xl px-4 py-10">
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
+          <div className="flex items-center gap-2 text-sm text-faint mb-4">
+            <Link href="/dashboard" className="hover:text-ink transition-colors">
               Dashboard
             </Link>
             <span>/</span>
-            <span className="text-white">My Profile</span>
+            <span className="text-ink">My Profile</span>
           </div>
-          <h1 className="text-4xl font-bold mb-2">My Profile</h1>
-          <p className="text-gray-400">
+          <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink mb-2">
+            My Profile
+          </h1>
+          <p className="text-body">
             Your account, filter preferences, and payment details in one place.
           </p>
         </div>

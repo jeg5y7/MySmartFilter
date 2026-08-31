@@ -31,17 +31,17 @@ function StepProgress({ current }: { current: Step }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
                   current > s.n
-                    ? "bg-green-500 text-white"
+                    ? "bg-sage text-white"
                     : current === s.n
-                    ? "bg-blue-600 text-white ring-2 ring-blue-400/50"
-                    : "bg-white/10 text-gray-400"
+                    ? "bg-sagemist text-sage-deep ring-2 ring-sage/40"
+                    : "bg-mist text-faint"
                 }`}
               >
                 {current > s.n ? "✓" : s.n}
               </div>
               <span
                 className={`mt-1 text-xs whitespace-nowrap ${
-                  current === s.n ? "text-blue-400" : "text-gray-500"
+                  current === s.n ? "text-sage-deep" : "text-faint"
                 }`}
               >
                 {s.label}
@@ -50,14 +50,14 @@ function StepProgress({ current }: { current: Step }) {
             {i < steps.length - 1 && (
               <div
                 className={`flex-1 h-0.5 mx-2 mb-4 transition-all ${
-                  current > s.n ? "bg-green-500" : "bg-white/10"
+                  current > s.n ? "bg-sage" : "bg-mist"
                 }`}
               />
             )}
           </div>
         ))}
       </div>
-      <p className="text-center text-xs text-gray-500">Step {current} of 4</p>
+      <p className="text-center text-xs text-faint">Step {current} of 4</p>
     </div>
   );
 }
@@ -67,10 +67,10 @@ function StepProgress({ current }: { current: Step }) {
 function Step1PowerOn({ onNext }: { onNext: () => void }) {
   return (
     <div className="text-center">
-      <h1 className="text-2xl font-bold text-white mb-2">
+      <h1 className="text-2xl font-semibold text-ink mb-2">
         Power On Your Device
       </h1>
-      <p className="text-gray-400 mb-8">
+      <p className="text-body mb-8">
         Plug in your smart filter monitor. Its light will pulse blue when
         it&apos;s ready to set up.
       </p>
@@ -86,7 +86,7 @@ function Step1PowerOn({ onNext }: { onNext: () => void }) {
 
       <button
         onClick={onNext}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all active:scale-95"
+        className="w-full py-3 bg-ink hover:bg-ink/85 text-paper font-semibold rounded-full transition-all active:scale-95"
       >
         Next →
       </button>
@@ -185,13 +185,13 @@ function QRScanner({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="relative w-48 h-48">
           {/* Top-left */}
-          <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] border-blue-400 rounded-tl" />
+          <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] border-glow rounded-tl" />
           {/* Top-right */}
-          <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] border-blue-400 rounded-tr" />
+          <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] border-glow rounded-tr" />
           {/* Bottom-left */}
-          <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] border-blue-400 rounded-bl" />
+          <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] border-glow rounded-bl" />
           {/* Bottom-right */}
-          <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] border-blue-400 rounded-br" />
+          <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] border-glow rounded-br" />
         </div>
       </div>
       <p className="absolute bottom-3 left-0 right-0 text-center text-xs text-white/60 px-4">
@@ -305,15 +305,15 @@ function Step2IdentifyDevice({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-2">
+      <h1 className="text-2xl font-semibold text-ink mb-2">
         Identify Your Device
       </h1>
-      <p className="text-gray-400 mb-5 text-sm">
+      <p className="text-body mb-5 text-sm">
         Scan the QR code on your device or enter the Device ID manually.
       </p>
 
       {/* Mode toggle */}
-      <div className="flex rounded-xl overflow-hidden border border-white/10 mb-5">
+      <div className="flex rounded-full overflow-hidden border border-mist mb-5">
         <button
           onClick={() => {
             setMode("qr");
@@ -322,8 +322,8 @@ function Step2IdentifyDevice({
           }}
           className={`flex-1 py-2 text-sm font-medium transition-all ${
             mode === "qr"
-              ? "bg-blue-600 text-white"
-              : "bg-white/5 text-gray-400 hover:text-white"
+              ? "bg-ink text-paper"
+              : "bg-card text-faint hover:text-ink"
           }`}
         >
           📷 Scan QR Code
@@ -335,8 +335,8 @@ function Step2IdentifyDevice({
           }}
           className={`flex-1 py-2 text-sm font-medium transition-all ${
             mode === "manual"
-              ? "bg-blue-600 text-white"
-              : "bg-white/5 text-gray-400 hover:text-white"
+              ? "bg-ink text-paper"
+              : "bg-card text-faint hover:text-ink"
           }`}
         >
           ✏️ Enter Manually
@@ -345,7 +345,7 @@ function Step2IdentifyDevice({
 
       {/* Camera error banner */}
       {cameraError && (
-        <div className="mb-4 p-3 bg-yellow-500/15 border border-yellow-500/40 rounded-lg text-yellow-300 text-sm">
+        <div className="mb-4 p-3 bg-clay/10 border border-clay/30 rounded-2xl text-clay text-sm">
           📵 {cameraError}
         </div>
       )}
@@ -355,10 +355,10 @@ function Step2IdentifyDevice({
         <div className="mb-5">
           {loading && scanned ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <span className="inline-block w-8 h-8 border-2 border-white/30 border-t-blue-400 rounded-full animate-spin" />
-              <p className="text-gray-400 text-sm">Connecting to device…</p>
+              <span className="inline-block w-8 h-8 border-2 border-mist border-t-sage rounded-full animate-spin" />
+              <p className="text-faint text-sm animate-pulse">Connecting to device…</p>
               {deviceId && (
-                <p className="text-gray-500 text-xs font-mono">{deviceId}</p>
+                <p className="text-faint text-xs font-mono">{deviceId}</p>
               )}
             </div>
           ) : (
@@ -370,7 +370,7 @@ function Step2IdentifyDevice({
       {/* Manual entry */}
       {mode === "manual" && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-faint mb-2">
             Device ID
           </label>
           <input
@@ -385,24 +385,24 @@ function Step2IdentifyDevice({
             }
             placeholder="SF1234567890ABCD"
             maxLength={16}
-            className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-gray-500 font-mono tracking-wider focus:outline-none focus:ring-2 transition-all ${
+            className={`w-full px-4 py-3 bg-card border rounded-full text-sm text-ink placeholder:text-whisper font-mono tracking-wider focus:outline-none focus:ring-2 transition-all ${
               error
-                ? "border-red-500/60 focus:ring-red-500/50"
+                ? "border-red-200 focus:border-red-400 focus:ring-red-500/20"
                 : isValidFormat
-                  ? "border-green-500/60 focus:ring-green-500/50"
-                  : "border-white/20 focus:ring-blue-500/50"
+                  ? "border-sage focus:ring-sage/20"
+                  : "border-mist focus:border-sage focus:ring-sage/20"
             }`}
           />
-          <p className="mt-1.5 text-xs text-gray-500">
+          <p className="mt-1.5 text-xs text-faint">
             Format: SF + 12 characters, as shown on your monitor (e.g.{" "}
-            <span className="text-gray-400 font-mono">SF44B176A13484</span>)
+            <span className="text-body font-mono">SF44B176A13484</span>)
           </p>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="mb-4 p-3 bg-red-500/15 border border-red-500/40 rounded-lg text-red-300 text-sm">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm">
           ⚠️ {error}
         </div>
       )}
@@ -412,7 +412,7 @@ function Step2IdentifyDevice({
         <button
           onClick={() => void handleManualConnect()}
           disabled={loading || !deviceId.trim()}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all active:scale-95 mb-3"
+          className="w-full py-3 bg-sage hover:bg-sage-deep disabled:bg-sage/40 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all active:scale-95 mb-3"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -429,7 +429,7 @@ function Step2IdentifyDevice({
       <button
         onClick={onBack}
         disabled={loading}
-        className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
+        className="w-full py-2.5 bg-card hover:bg-mist/60 border border-mist text-body hover:text-ink text-sm font-medium rounded-full transition-all disabled:opacity-50"
       >
         ← Back
       </button>
@@ -528,19 +528,19 @@ function Step3ConnectWifi({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-2">
+      <h1 className="text-2xl font-semibold text-ink mb-2">
         Connect to Your Device
       </h1>
-      <p className="text-gray-400 mb-5 text-sm">
+      <p className="text-body mb-5 text-sm">
         Follow these steps to get your SmartFilter on your home WiFi.
       </p>
 
       {/* Pulsing green LED animation */}
       <div className="flex justify-center mb-6">
         <div className="relative w-16 h-16 flex items-center justify-center">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-green-400/20 animate-pulse" />
-          <span className="absolute inline-flex h-10 w-10 rounded-full bg-green-400/30 animate-pulse" />
-          <span className="relative inline-flex rounded-full h-6 w-6 bg-green-400 animate-pulse" />
+          <span className="absolute inline-flex h-full w-full rounded-full bg-sage/20 animate-pulse" />
+          <span className="absolute inline-flex h-10 w-10 rounded-full bg-sage/30 animate-pulse" />
+          <span className="relative inline-flex rounded-full h-6 w-6 bg-sage animate-pulse" />
         </div>
       </div>
 
@@ -550,7 +550,7 @@ function Step3ConnectWifi({
           <>Go to your phone or computer&apos;s WiFi settings</>,
           <>
             Connect to the network named{" "}
-            <span className="font-mono font-bold text-white bg-white/10 px-1.5 py-0.5 rounded text-xs">
+            <span className="font-mono font-bold text-ink bg-mist px-1.5 py-0.5 rounded text-xs">
               SmartFilter-{wifiSuffix}
             </span>
           </>,
@@ -560,28 +560,28 @@ function Step3ConnectWifi({
           </>,
           <>
             Come back here when you see the LED turn{" "}
-            <span className="text-green-400 font-medium">solid green</span>
+            <span className="text-sage font-medium">solid green</span>
           </>,
         ].map((instruction, i) => (
           <li key={i} className="flex items-start gap-3">
-            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600/30 border border-blue-500/50 text-blue-300 text-xs font-bold flex items-center justify-center mt-0.5">
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-sagemist text-sage-deep text-xs font-bold flex items-center justify-center mt-0.5">
               {i + 1}
             </span>
-            <span className="text-gray-300 text-sm">{instruction}</span>
+            <span className="text-body text-sm">{instruction}</span>
           </li>
         ))}
       </ol>
 
       {/* Auto-poll status */}
       {checking && (
-        <div className="mb-4 flex items-center gap-2 text-sm text-gray-400">
-          <span className="inline-block w-4 h-4 border-2 border-white/20 border-t-green-400 rounded-full animate-spin" />
+        <div className="mb-4 flex items-center gap-2 text-sm text-faint animate-pulse">
+          <span className="inline-block w-4 h-4 border-2 border-mist border-t-sage rounded-full animate-spin" />
           Waiting for device to come online…
         </div>
       )}
 
       {timedOut && (
-        <div className="mb-4 p-3 bg-yellow-500/15 border border-yellow-500/40 rounded-lg text-yellow-300 text-sm">
+        <div className="mb-4 p-3 bg-clay/10 border border-clay/30 rounded-2xl text-clay text-sm">
           ⏱ Still waiting — press the button below once your LED is solid green.
         </div>
       )}
@@ -590,7 +590,7 @@ function Step3ConnectWifi({
       <button
         onClick={() => void handleManualCheck()}
         disabled={checking}
-        className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-600/40 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all active:scale-95 mb-3"
+        className="w-full py-3 bg-sage hover:bg-sage-deep disabled:bg-sage/40 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all active:scale-95 mb-3"
       >
         {checking ? (
           <span className="flex items-center justify-center gap-2">
@@ -603,43 +603,43 @@ function Step3ConnectWifi({
       </button>
 
       {/* Having trouble? accordion */}
-      <div className="mb-3 border border-white/10 rounded-xl overflow-hidden">
+      <div className="mb-3 border border-mist rounded-2xl overflow-hidden">
         <button
           onClick={() => setTroubleshootOpen((o) => !o)}
-          className="w-full px-4 py-3 flex items-center justify-between text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          className="w-full px-4 py-3 flex items-center justify-between text-sm text-body hover:text-ink hover:bg-mist/40 transition-all"
         >
           <span>Having trouble?</span>
           <span className="text-xs">{troubleshootOpen ? "▲" : "▼"}</span>
         </button>
         {troubleshootOpen && (
-          <div className="px-4 pb-4 border-t border-white/10 bg-white/[0.03]">
-            <p className="text-gray-400 text-sm pt-3 font-medium mb-2">
+          <div className="px-4 pb-4 border-t border-mist bg-paper">
+            <p className="text-body text-sm pt-3 font-medium mb-2">
               Common fixes:
             </p>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2 text-sm text-body">
               <li className="flex items-start gap-2">
-                <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+                <span className="text-sage mt-0.5 flex-shrink-0">•</span>
                 Make sure you&apos;re connected to{" "}
-                <span className="font-mono text-gray-300 ml-1">
+                <span className="font-mono text-ink ml-1">
                   SmartFilter-{wifiSuffix}
                 </span>
                 , not your home network.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+                <span className="text-sage mt-0.5 flex-shrink-0">•</span>
                 No captive portal popup? Try navigating to{" "}
-                <span className="font-mono text-blue-400">192.168.4.1</span> in
+                <span className="font-mono text-sage">192.168.4.1</span> in
                 your browser manually.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+                <span className="text-sage mt-0.5 flex-shrink-0">•</span>
                 LED not blinking? Hold the button for 5 seconds to reset the
                 device.
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-400 mt-0.5 flex-shrink-0">•</span>
+                <span className="text-sage mt-0.5 flex-shrink-0">•</span>
                 Entered the wrong WiFi password? Reconnect to{" "}
-                <span className="font-mono text-gray-300">
+                <span className="font-mono text-ink">
                   SmartFilter-{wifiSuffix}
                 </span>{" "}
                 and try again.
@@ -655,7 +655,7 @@ function Step3ConnectWifi({
           stopPolling();
           onBack();
         }}
-        className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-sm font-medium rounded-xl transition-all"
+        className="w-full py-2.5 bg-card hover:bg-mist/60 border border-mist text-body hover:text-ink text-sm font-medium rounded-full transition-all"
       >
         ← Back
       </button>
@@ -718,18 +718,18 @@ function Step4NameDevice({
     <div>
       <div className="text-center mb-6">
         <div className="text-4xl mb-3">🏷️</div>
-        <h1 className="text-2xl font-bold text-white mb-2">
+        <h1 className="text-2xl font-semibold text-ink mb-2">
           Name Your Device
         </h1>
-        <p className="text-gray-400 text-sm">
+        <p className="text-body text-sm">
           Give it a friendly name so you can find it easily later.
         </p>
       </div>
 
       <div className="space-y-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Device Name <span className="text-red-400">*</span>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-faint mb-2">
+            Device Name <span className="text-red-600">*</span>
           </label>
           <input
             type="text"
@@ -740,14 +740,14 @@ function Step4NameDevice({
             }}
             placeholder="Living Room Filter"
             maxLength={50}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+            className="w-full px-4 py-3 bg-card border border-mist rounded-full text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-faint mb-2">
             Location{" "}
-            <span className="text-gray-500 font-normal">(optional)</span>
+            <span className="text-whisper font-normal">(optional)</span>
           </label>
           <input
             type="text"
@@ -755,13 +755,13 @@ function Step4NameDevice({
             onChange={(e) => setLocation(e.target.value)}
             placeholder="Basement HVAC"
             maxLength={50}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+            className="w-full px-4 py-3 bg-card border border-mist rounded-full text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 transition-all"
           />
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/15 border border-red-500/40 rounded-lg text-red-300 text-sm">
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm">
           ⚠️ {error}
         </div>
       )}
@@ -769,7 +769,7 @@ function Step4NameDevice({
       <button
         onClick={() => void handleFinish()}
         disabled={loading || !name.trim()}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all active:scale-95 mb-3"
+        className="w-full py-3 bg-sage hover:bg-sage-deep disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-all active:scale-95 mb-3"
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
@@ -784,7 +784,7 @@ function Step4NameDevice({
       <button
         onClick={onBack}
         disabled={loading}
-        className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
+        className="w-full py-2.5 bg-card hover:bg-mist/60 border border-mist text-body hover:text-ink text-sm font-medium rounded-full transition-all disabled:opacity-50"
       >
         ← Back
       </button>
@@ -806,19 +806,19 @@ export default function DeviceSetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] flex items-start justify-center p-4 pt-12">
+    <div className="min-h-screen bg-paper flex items-start justify-center p-4 pt-12">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/devices"
-            className="text-gray-400 hover:text-white text-sm flex items-center gap-1 transition-colors"
+            className="text-faint hover:text-ink text-sm flex items-center gap-1 transition-colors"
           >
             ← Back
           </Link>
           <div className="flex items-center gap-2">
             <span className="text-lg">⚡</span>
-            <span className="text-white font-semibold text-sm">
+            <span className="text-ink font-semibold text-sm">
               Add Smart Filter
             </span>
           </div>
@@ -826,7 +826,7 @@ export default function DeviceSetupPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-7 border border-white/10">
+        <div className="rounded-[24px] border border-mist bg-card p-7">
           <StepProgress current={step} />
 
           {step === 1 && <Step1PowerOn onNext={() => setStep(2)} />}
@@ -854,11 +854,11 @@ export default function DeviceSetupPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-600 mt-4">
+        <p className="text-center text-xs text-faint mt-4">
           Need help?{" "}
           <a
             href="mailto:support@mysmartfilter.com"
-            className="text-gray-500 hover:text-gray-300 underline"
+            className="text-sage underline underline-offset-2 hover:text-sage-deep"
           >
             Contact support
           </a>

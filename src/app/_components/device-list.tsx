@@ -26,14 +26,14 @@ function ConnectivityDot({ status }: { status: ConnectivityStatus }) {
   if (status === "online") {
     return (
       <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60" />
-        <span className={`${base} bg-green-400`} />
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sage opacity-50" />
+        <span className={`${base} bg-sage`} />
       </span>
     );
   }
-  if (status === "degraded") return <span className={`${base} bg-yellow-400`} />;
-  if (status === "error")    return <span className={`${base} bg-red-400`} />;
-  return <span className={`${base} bg-gray-500`} />;
+  if (status === "degraded") return <span className={`${base} bg-clay`} />;
+  if (status === "error")    return <span className={`${base} bg-red-500`} />;
+  return <span className={`${base} bg-whisper`} />;
 }
 
 function connectivityLabel(status: ConnectivityStatus): string {
@@ -47,10 +47,10 @@ function connectivityLabel(status: ConnectivityStatus): string {
 
 function connectivityColor(status: ConnectivityStatus): string {
   switch (status) {
-    case "online":   return "text-green-400";
-    case "degraded": return "text-yellow-400";
-    case "error":    return "text-red-400";
-    default:         return "text-gray-400";
+    case "online":   return "text-sage";
+    case "degraded": return "text-clay";
+    case "error":    return "text-red-600";
+    default:         return "text-faint";
   }
 }
 
@@ -105,7 +105,7 @@ export function DeviceList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage" />
       </div>
     );
   }
@@ -113,10 +113,10 @@ export function DeviceList() {
   if (isError) {
     return (
       <div className="text-center p-12">
-        <p className="text-red-400 mb-4">Failed to load devices</p>
+        <p className="text-red-600 mb-4">Failed to load devices</p>
         <button
           onClick={() => void refetch()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-ink/85"
         >
           Try Again
         </button>
@@ -128,20 +128,20 @@ export function DeviceList() {
     return (
       <div className="text-center p-12">
         <div className="text-6xl mb-4">📡</div>
-        <h3 className="text-2xl font-bold text-white mb-2">No Devices Yet</h3>
-        <p className="text-gray-400 mb-6">
+        <h3 className="text-2xl font-semibold text-ink mb-2">No Devices Yet</h3>
+        <p className="text-body mb-6">
           Connect your first Smart Filter device to start monitoring
         </p>
         <div className="inline-flex flex-col items-center gap-4">
-          <div className="bg-white/5 rounded-lg p-4">
-            <p className="text-sm text-gray-300 mb-2">Have a device ready?</p>
-            <p className="text-xs text-gray-400">
+          <div className="rounded-2xl border border-mist bg-paper p-4">
+            <p className="text-sm text-body mb-2">Have a device ready?</p>
+            <p className="text-xs text-faint">
               Power on your Smart Filter and it will display a QR code or setup link
             </p>
           </div>
           <Link
             href="/setup/device"
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium rounded-lg transition-all"
+            className="rounded-full bg-sage px-6 py-3 text-sm font-semibold text-white transition hover:bg-sage-deep"
           >
             Add Your First Device
           </Link>
@@ -153,10 +153,10 @@ export function DeviceList() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">My Devices</h2>
+        <h2 className="text-2xl font-semibold text-ink">My Devices</h2>
         <Link
           href="/setup/device"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+          className="flex items-center gap-2 rounded-full bg-sage px-4 py-2 text-sm font-semibold text-white transition hover:bg-sage-deep"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -188,13 +188,13 @@ export function DeviceList() {
           return (
             <div
               key={device.id}
-              className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all flex flex-col"
+              className="rounded-[24px] border border-mist bg-paper p-6 hover:border-sage/40 transition-all flex flex-col"
             >
               {/* Offline banner */}
               {connectivity === "offline" && (
-                <div className="mb-3 -mx-0 flex items-center gap-2 px-3 py-2 bg-amber-500/15 border border-amber-500/30 rounded-lg">
-                  <span className="text-amber-400 text-xs">⚠</span>
-                  <span className="text-amber-300 text-xs font-medium">
+                <div className="mb-3 -mx-0 flex items-center gap-2 px-3 py-2 bg-clay/10 border border-clay/30 rounded-xl">
+                  <span className="text-clay text-xs">⚠</span>
+                  <span className="text-clay text-xs font-medium">
                     Device offline · Last seen {lastSeenText(device.lastSeen)}
                   </span>
                 </div>
@@ -203,11 +203,11 @@ export function DeviceList() {
               {/* Header */}
               <div className="flex justify-between items-start mb-4">
                 <div className="min-w-0 flex-1 mr-3">
-                  <h3 className="text-lg font-semibold text-white truncate">
+                  <h3 className="text-lg font-semibold text-ink truncate">
                     {device.name ?? "Smart Filter"}
                   </h3>
                   {device.location && (
-                    <p className="text-sm text-gray-400 truncate">{device.location}</p>
+                    <p className="text-sm text-faint truncate">{device.location}</p>
                   )}
                 </div>
 
@@ -219,7 +219,7 @@ export function DeviceList() {
                       {connectivityLabel(connectivity)}
                     </span>
                   </div>
-                  <span className="text-[10px] text-gray-500 leading-none">
+                  <span className="text-[10px] text-faint leading-none">
                     {lastSeenText(device.lastSeen)}
                   </span>
                 </div>
@@ -229,32 +229,32 @@ export function DeviceList() {
               {latestPressure !== undefined && pressurePct !== null && (
                 <div className="mb-4">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-400">Filter pressure</span>
+                    <span className="text-faint">Filter pressure</span>
                     <span
                       className={
                         pressurePct >= 1
-                          ? "text-red-400"
+                          ? "text-red-600"
                           : pressurePct >= 0.7
-                          ? "text-yellow-400"
-                          : "text-green-400"
+                          ? "text-clay"
+                          : "text-sage"
                       }
                     >
                       {latestPressure.toFixed(1)} Pa
                     </span>
                   </div>
-                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-mist rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
                         pressurePct >= 1
-                          ? "bg-red-400"
+                          ? "bg-red-500"
                           : pressurePct >= 0.7
-                          ? "bg-yellow-400"
-                          : "bg-green-400"
+                          ? "bg-clay"
+                          : "bg-sage"
                       }`}
                       style={{ width: `${Math.min(pressurePct * 100, 100)}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-faint mt-1">
                     alert at {Math.round(alertCeiling)} Pa
                   </p>
                 </div>
@@ -263,19 +263,19 @@ export function DeviceList() {
               {/* Meta */}
               <div className="space-y-2 mb-4 flex-1">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Device ID</span>
-                  <span className="font-mono text-gray-300 text-xs truncate max-w-[120px]">
+                  <span className="text-faint">Device ID</span>
+                  <span className="font-mono text-body text-xs truncate max-w-[120px]">
                     {device.deviceId}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Type</span>
-                  <span className="text-gray-300">{device.type}</span>
+                  <span className="text-faint">Type</span>
+                  <span className="text-body">{device.type}</span>
                 </div>
                 {device.firmware && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Firmware</span>
-                    <span className="text-gray-300">v{device.firmware}</span>
+                    <span className="text-faint">Firmware</span>
+                    <span className="text-body">v{device.firmware}</span>
                   </div>
                 )}
               </div>
@@ -284,18 +284,18 @@ export function DeviceList() {
               <div className="flex gap-2 mt-auto">
                 <Link
                   href={`/devices/${device.id}`}
-                  className="flex-1 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium text-center rounded-lg transition-all"
+                  className="flex-1 rounded-full bg-ink px-3 py-2 text-sm font-semibold text-paper text-center transition hover:bg-ink/85"
                 >
                   View Details
                 </Link>
                 <button
                   onClick={() => void handleDeleteDevice(device.id)}
                   disabled={deletingDevice === device.id}
-                  className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-sm font-medium rounded-lg transition-all disabled:opacity-50"
+                  className="rounded-full border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
                   title="Remove Device"
                 >
                   {deletingDevice === device.id ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-400" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500" />
                   ) : (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

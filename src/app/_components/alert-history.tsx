@@ -16,17 +16,17 @@ type AlertStatus =
 function statusBadge(status: string) {
   switch (status as AlertStatus) {
     case "pending":
-      return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+      return "bg-clay/10 text-clay border-clay/30";
     case "notified":
-      return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+      return "bg-sagemist text-sage-deep border-sage/30";
     case "auto_ordered":
-      return "bg-green-500/20 text-green-300 border-green-500/30";
+      return "bg-sagemist text-sage-deep border-sage/30";
     case "manual_ordered":
-      return "bg-green-500/20 text-green-300 border-green-500/30";
+      return "bg-sagemist text-sage-deep border-sage/30";
     case "dismissed":
-      return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+      return "bg-mist text-faint border-mist";
     default:
-      return "bg-white/10 text-gray-300 border-white/20";
+      return "bg-mist text-body border-mist";
   }
 }
 
@@ -63,10 +63,10 @@ export function AlertHistory({ deviceId }: AlertHistoryProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-4">Alert History</h2>
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Alert History</h2>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sage" />
         </div>
       </div>
     );
@@ -74,16 +74,16 @@ export function AlertHistory({ deviceId }: AlertHistoryProps) {
 
   if (!alerts || alerts.length === 0) {
     return (
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-2">Alert History</h2>
-        <p className="text-gray-400 text-sm">No alerts recorded yet.</p>
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-2">Alert History</h2>
+        <p className="text-body text-sm">No alerts recorded yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-      <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+    <div className="rounded-[24px] border border-mist bg-card p-6">
+      <h2 className="text-lg font-semibold text-ink mb-4 flex items-center gap-2">
         <span>🕐</span> Alert History
       </h2>
 
@@ -91,7 +91,7 @@ export function AlertHistory({ deviceId }: AlertHistoryProps) {
         {alerts.map((alert) => (
           <div
             key={alert.id}
-            className="flex items-start justify-between gap-3 py-3 border-b border-white/5 last:border-0"
+            className="flex items-start justify-between gap-3 py-3 border-b border-mist last:border-0"
           >
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -100,14 +100,14 @@ export function AlertHistory({ deviceId }: AlertHistoryProps) {
                 >
                   {statusLabel(alert.status)}
                 </span>
-                <span className="text-gray-500 text-xs">{timeAgo(alert.createdAt)}</span>
+                <span className="text-faint text-xs">{timeAgo(alert.createdAt)}</span>
               </div>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-body">
                 {alert.pressure.toFixed(1)} Pa
-                <span className="text-gray-500 mx-1">vs</span>
+                <span className="text-faint mx-1">vs</span>
                 {alert.threshold.toFixed(0)} Pa threshold
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">
+              <p className="text-xs text-faint mt-0.5">
                 {new Date(alert.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",

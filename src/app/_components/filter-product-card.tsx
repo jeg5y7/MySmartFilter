@@ -57,15 +57,15 @@ export function FilterProductCard({ product, isLoggedIn }: FilterProductCardProp
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10 flex flex-col">
+    <div className="rounded-[24px] border border-mist bg-card p-6 flex flex-col">
       {/* Product Image Placeholder */}
-      <div className="bg-white/10 rounded-lg h-40 mb-4 flex items-center justify-center">
+      <div className="bg-mist rounded-2xl h-40 mb-4 flex items-center justify-center">
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="h-full w-full object-cover rounded-lg"
+            className="h-full w-full object-cover rounded-2xl"
           />
         ) : (
           <div className="text-4xl">🔲</div>
@@ -74,37 +74,37 @@ export function FilterProductCard({ product, isLoggedIn }: FilterProductCardProp
 
       {/* Product Info */}
       <div className="flex-grow">
-        <h3 className="text-lg font-semibold text-white mb-1">{product.name}</h3>
-        <p className="text-2xl font-bold text-blue-400 mb-2">
+        <h3 className="text-lg font-semibold text-ink mb-1">{product.name}</h3>
+        <p className="text-2xl font-semibold text-body mb-2">
           {product.size}
         </p>
         {product.merv && (
-          <span className="inline-block px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full mb-2">
+          <span className="inline-block rounded-full bg-sagemist px-3 py-1 text-xs font-semibold text-sage-deep mb-2">
             MERV {product.merv}
           </span>
         )}
         {product.description && (
-          <p className="text-gray-400 text-sm mb-4">{product.description}</p>
+          <p className="text-faint text-sm mb-4">{product.description}</p>
         )}
       </div>
 
       {/* Price and Actions */}
-      <div className="mt-auto pt-4 border-t border-white/10">
+      <div className="mt-auto pt-4 border-t border-mist">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-2xl font-bold text-white">
+          <span className="font-display text-3xl text-ink">
             {formatPrice(product.price)}
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
+              className="w-8 h-8 rounded-full border border-mist bg-card text-ink transition hover:bg-mist/60"
             >
               -
             </button>
-            <span className="text-white w-8 text-center">{quantity}</span>
+            <span className="text-ink w-8 text-center">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="w-8 h-8 rounded bg-white/10 hover:bg-white/20 text-white"
+              className="w-8 h-8 rounded-full border border-mist bg-card text-ink transition hover:bg-mist/60"
             >
               +
             </button>
@@ -113,7 +113,7 @@ export function FilterProductCard({ product, isLoggedIn }: FilterProductCardProp
         <button
           onClick={handleCheckout}
           disabled={isLoading}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg font-semibold transition-all"
+          className="w-full rounded-full bg-sage py-3 text-sm font-semibold text-white transition hover:bg-sage-deep disabled:bg-sage/50"
         >
           {isLoading ? "Processing..." : isLoggedIn ? "Buy Now" : "Sign in to Buy"}
         </button>

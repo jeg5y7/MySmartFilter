@@ -7,11 +7,13 @@ export default async function IntegrationsPage() {
   if (!session?.user?.id) redirect("/api/auth/signin");
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
-      <div className="container mx-auto px-4 py-10 max-w-4xl">
+    <main className="min-h-screen bg-paper">
+      <div className="mx-auto w-full max-w-4xl px-4 py-10">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Integrations</h1>
-          <p className="text-gray-400">
+          <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink mb-2">
+            Integrations
+          </h1>
+          <p className="text-body">
             Manage API keys and webhooks to connect SmartFilter with external services.
           </p>
         </div>

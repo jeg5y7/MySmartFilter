@@ -24,7 +24,7 @@ export default function SetupPasswordPage() {
   });
 
   if (status === "loading") {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-paper text-body">Loading...</div>;
   }
 
   if (status === "unauthenticated") {
@@ -53,24 +53,24 @@ export default function SetupPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#0f172a] to-[#1e293b]">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white/10 backdrop-blur-lg p-8 border border-white/10">
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4">
+      <div className="w-full max-w-md space-y-8 rounded-[24px] border border-mist bg-card p-8">
         <div>
-          <h2 className="text-center text-3xl font-bold text-white">
+          <h2 className="text-center font-display text-3xl font-normal tracking-tight text-ink">
             Set Up Your Password
           </h2>
-          <p className="mt-2 text-center text-gray-400">
+          <p className="mt-2 text-center text-body">
             Create a password to make future logins easier
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-500/20 border border-red-500/50 px-4 py-3">
-              <p className="text-sm text-red-300">{error}</p>
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
               <label htmlFor="password" className="sr-only">
@@ -81,14 +81,14 @@ export default function SetupPasswordPage() {
                 name="password"
                 type="password"
                 required
-                className="relative block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="relative block w-full rounded-full border border-mist bg-card px-4 py-3 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
                 placeholder="New password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={8}
               />
             </div>
-            
+
             <div>
               <label htmlFor="confirmPassword" className="sr-only">
                 Confirm Password
@@ -98,7 +98,7 @@ export default function SetupPasswordPage() {
                 name="confirmPassword"
                 type="password"
                 required
-                className="relative block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="relative block w-full rounded-full border border-mist bg-card px-4 py-3 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -111,17 +111,17 @@ export default function SetupPasswordPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 py-3 px-4 text-sm font-medium text-white hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="group relative flex w-full justify-center rounded-full bg-sage py-3 px-4 text-sm font-semibold text-white transition-all hover:bg-sage-deep focus:outline-none focus:ring-2 focus:ring-sage/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Setting up password..." : "Set Password"}
             </button>
           </div>
-          
+
           <div className="text-center">
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="text-sm text-faint hover:text-ink transition-colors"
             >
               Skip for now
             </button>

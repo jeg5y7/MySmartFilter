@@ -67,9 +67,9 @@ export function PullToRefresh() {
       className="fixed left-1/2 z-50 -translate-x-1/2 transition-transform"
       style={{ top: -44, transform: `translate(-50%, ${pull}px)` }}
     >
-      <div className="h-10 w-10 rounded-full bg-slate-800 border border-white/20 shadow-xl flex items-center justify-center">
+      <div className="h-10 w-10 rounded-full bg-card border border-mist shadow-xl flex items-center justify-center">
         <div
-          className={`h-5 w-5 rounded-full border-2 border-blue-400 border-t-transparent ${
+          className={`h-5 w-5 rounded-full border-2 border-sage border-t-transparent ${
             refreshing || pull >= 31 ? "animate-spin" : ""
           }`}
           style={

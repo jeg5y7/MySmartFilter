@@ -43,7 +43,7 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
   if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage" />
       </div>
     );
   }
@@ -61,15 +61,15 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
   return (
     <>
       {/* ── Account ─────────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-4">Account</h2>
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-4">Account</h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Name</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-faint mb-1">Name</p>
               {!editingName ? (
-                <p className="text-white truncate">
-                  {user?.name ?? <span className="text-gray-500">Not set</span>}
+                <p className="text-ink truncate">
+                  {user?.name ?? <span className="text-whisper">Not set</span>}
                 </p>
               ) : (
                 <input
@@ -78,7 +78,7 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
                   onChange={(e) => setNameInput(e.target.value)}
                   placeholder="Your name"
                   maxLength={100}
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  className="w-full rounded-full border border-mist bg-card px-3 py-2 text-sm text-ink placeholder:text-whisper focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20"
                 />
               )}
             </div>
@@ -88,7 +88,7 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
                   setNameInput(user?.name ?? "");
                   setEditingName(true);
                 }}
-                className="shrink-0 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                className="shrink-0 text-sm text-sage hover:text-sage-deep transition-colors"
               >
                 Edit
               </button>
@@ -97,13 +97,13 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
                 <button
                   onClick={() => updateProfile.mutate({ name: nameInput })}
                   disabled={updateProfile.isPending || !nameInput.trim()}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 text-white text-sm rounded-lg transition-all"
+                  className="rounded-full bg-sage px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-sage-deep disabled:bg-sage/40"
                 >
                   {updateProfile.isPending ? "Saving…" : "Save"}
                 </button>
                 <button
                   onClick={() => setEditingName(false)}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/15 text-gray-300 text-sm rounded-lg transition-all"
+                  className="rounded-full border border-mist bg-card px-3 py-1.5 text-sm font-semibold text-ink transition-all hover:bg-mist/60"
                 >
                   Cancel
                 </button>
@@ -112,35 +112,35 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
           </div>
 
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Email</p>
-            <p className="text-white">{user?.email}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-faint mb-1">Email</p>
+            <p className="text-ink">{user?.email}</p>
           </div>
 
           {memberSince && (
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Member since</p>
-              <p className="text-gray-300">{memberSince}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-faint mb-1">Member since</p>
+              <p className="text-body">{memberSince}</p>
             </div>
           )}
         </div>
       </div>
 
       {/* ── Plan ─────────────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
+      <div className="rounded-[24px] border border-mist bg-card p-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-lg font-semibold text-white">Plan</h2>
+          <h2 className="text-lg font-semibold text-ink">Plan</h2>
           {autoOrderCount > 0 ? (
-            <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-medium">
+            <span className="rounded-full bg-sagemist px-3 py-1 text-xs font-semibold text-sage-deep">
               Filter AutoShip
             </span>
           ) : (
-            <span className="px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs font-medium">
+            <span className="rounded-full bg-mist px-3 py-1 text-xs font-semibold text-body">
               Free monitoring
             </span>
           )}
         </div>
         {autoOrderCount > 0 ? (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-body">
             You&apos;re an AutoShip member — filters ship automatically when
             replacing saves you money, and your plan includes the
             energy-savings calculation, historical trending, and upcoming
@@ -148,9 +148,9 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
             through us.
           </p>
         ) : (
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-body">
             You have live readings on your dashboard and smart home.{" "}
-            <span className="text-amber-300/80">
+            <span className="text-clay">
               Choose a filter below and turn on Auto-Order to join Filter
               AutoShip
             </span>{" "}
@@ -162,9 +162,9 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
       </div>
 
       {/* ── Default filter preference ────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-1">Default Filter</h2>
-        <p className="text-sm text-gray-400 mb-5">
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-1">Default Filter</h2>
+        <p className="text-sm text-faint mb-5">
           Used for any device that doesn&apos;t have its own filter choice. A
           device&apos;s own setting always wins.
         </p>
@@ -172,13 +172,13 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
         <select
           value={selectedProduct}
           onChange={(e) => setPrefProduct(e.target.value)}
-          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          className="w-full rounded-full border border-mist bg-card px-4 py-2.5 text-sm text-ink focus:border-sage focus:outline-none focus:ring-2 focus:ring-sage/20 mb-4"
         >
-          <option value="" className="bg-slate-800">
+          <option value="">
             Select filter size…
           </option>
           {filterProducts.map((p) => (
-            <option key={p.id} value={p.id} className="bg-slate-800">
+            <option key={p.id} value={p.id}>
               {p.size} — {p.name}
               {p.merv ? ` (MERV ${p.merv})` : ""} — {fmtUsd(p.price)}
             </option>
@@ -187,19 +187,19 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
 
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="text-sm font-medium text-gray-300">Auto-Order by default</p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-medium text-ink">Auto-Order by default</p>
+            <p className="text-xs text-faint">
               Ship a replacement automatically when it saves money
             </p>
           </div>
           <button
             onClick={() => setPrefAutoOrder(!autoOrderOn)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              autoOrderOn ? "bg-blue-600" : "bg-gray-600"
+              autoOrderOn ? "bg-sage" : "bg-mist"
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
                 autoOrderOn ? "translate-x-6" : "translate-x-1"
               }`}
             />
@@ -215,21 +215,21 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
             })
           }
           disabled={setDefaultPref.isPending || !selectedProduct}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/40 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all"
+          className="w-full rounded-full bg-sage py-3 font-semibold text-white transition-all hover:bg-sage-deep disabled:bg-sage/40 disabled:cursor-not-allowed"
         >
           {setDefaultPref.isPending ? "Saving…" : prefSaved ? "✓ Saved!" : "Save Default Filter"}
         </button>
         {setDefaultPref.error && (
-          <p className="mt-3 text-sm text-red-400 text-center">
+          <p className="mt-3 text-sm text-red-600 text-center">
             {setDefaultPref.error.message}
           </p>
         )}
       </div>
 
       {/* ── HVAC systems ─────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/10">
-        <h2 className="text-lg font-semibold text-white mb-1">My HVAC Systems</h2>
-        <p className="text-sm text-gray-400 mb-5">
+      <div className="rounded-[24px] border border-mist bg-card p-6">
+        <h2 className="text-lg font-semibold text-ink mb-1">My HVAC Systems</h2>
+        <p className="text-sm text-faint mb-5">
           Blower type, airflow, and electricity rate are set per device — they
           power each monitor&apos;s savings math.
         </p>
@@ -239,16 +239,16 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
               <Link
                 key={d.id}
                 href={`/devices/${d.id}`}
-                className="flex items-center justify-between gap-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg px-4 py-3 transition-all"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-mist bg-mist/30 px-4 py-3 transition-all hover:bg-mist/60"
               >
                 <div className="min-w-0">
-                  <p className="text-white font-medium truncate">
+                  <p className="text-ink font-medium truncate">
                     {d.name ?? d.deviceId}
                     {d.location ? (
-                      <span className="text-gray-500 font-normal"> · {d.location}</span>
+                      <span className="text-faint font-normal"> · {d.location}</span>
                     ) : null}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-faint">
                     {d.furnaceMake || d.furnaceModel ? (
                       <>
                         {[d.furnaceMake, d.furnaceModel].filter(Boolean).join(" ")}
@@ -260,10 +260,10 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
                   </p>
                 </div>
                 <span
-                  className={`shrink-0 px-2 py-0.5 rounded-full text-xs ${
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
                     d.status === "active"
-                      ? "bg-emerald-500/15 text-emerald-300"
-                      : "bg-amber-500/15 text-amber-300"
+                      ? "bg-sagemist text-sage-deep"
+                      : "bg-clay/10 text-clay"
                   }`}
                 >
                   {d.status}
@@ -272,7 +272,7 @@ export function ProfileSettings({ filterProducts }: { filterProducts: ProductOpt
             ))}
           </div>
         ) : (
-          <Link href="/setup" className="text-sm text-blue-400 hover:text-blue-300">
+          <Link href="/setup" className="text-sm text-sage hover:text-sage-deep">
             No devices yet — set up your smart filter monitor →
           </Link>
         )}
