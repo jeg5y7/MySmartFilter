@@ -39,9 +39,9 @@ export interface FleetTrendPoint {
 }
 
 const STATUS_BADGE: Record<FleetDevice["filterStatus"], { label: string; cls: string }> = {
-  ok: { label: "OK", cls: "bg-emerald-500/15 text-emerald-300" },
-  replace_soon: { label: "Soon", cls: "bg-amber-500/15 text-amber-300" },
-  replace_now: { label: "Replace", cls: "bg-red-500/15 text-red-300" },
+  ok: { label: "OK", cls: "bg-sagemist text-sage-deep" },
+  replace_soon: { label: "Soon", cls: "bg-clay/10 text-clay" },
+  replace_now: { label: "Replace", cls: "bg-red-50 text-red-600" },
 };
 
 function timeAgo(iso: string): string {
@@ -74,12 +74,12 @@ export function AdminFleet({
     return true;
   });
 
-  const tick = { fill: "#64748b", fontSize: 11 };
+  const tick = { fill: "#8a867c", fontSize: 11 };
   const tooltipStyle = {
-    backgroundColor: "#1e293b",
-    border: "1px solid rgba(255,255,255,0.15)",
-    borderRadius: 8,
-    color: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    border: "1px solid #eeebe4",
+    borderRadius: 12,
+    color: "#1c1b18",
     fontSize: 12,
   };
 
@@ -87,26 +87,26 @@ export function AdminFleet({
     <>
       {/* ── Fleet trends ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-          <h2 className="text-sm font-semibold text-white mb-1">
+        <div className="rounded-[24px] border border-mist bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">
             Fleet average pressure drop
           </h2>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-faint mb-4">
             Daily average ΔP (Pa) across all reporting monitors — a rising fleet
             average means filters are clogging.
           </p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
                 <XAxis dataKey="day" tick={tick} tickFormatter={(d: string) => d.slice(5)} />
                 <YAxis tick={tick} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "#8a867c" }} />
                 <Line
                   type="monotone"
                   dataKey="avgPressure"
                   name="Avg ΔP (Pa)"
-                  stroke="#38bdf8"
+                  stroke="#3e8a72"
                   strokeWidth={2}
                   dot={false}
                   connectNulls
@@ -116,32 +116,32 @@ export function AdminFleet({
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-lg rounded-xl p-5 border border-white/10">
-          <h2 className="text-sm font-semibold text-white mb-1">Fleet activity</h2>
-          <p className="text-xs text-gray-500 mb-4">
+        <div className="rounded-[24px] border border-mist bg-card p-5">
+          <h2 className="text-sm font-semibold text-ink mb-1">Fleet activity</h2>
+          <p className="text-xs text-faint mb-4">
             Readings received per day, and how many distinct monitors reported.
           </p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
                 <XAxis dataKey="day" tick={tick} tickFormatter={(d: string) => d.slice(5)} />
                 <YAxis tick={tick} />
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "#8a867c" }} />
                 <Area
                   type="monotone"
                   dataKey="readings"
                   name="Readings"
-                  stroke="#34d399"
-                  fill="rgba(52,211,153,0.15)"
+                  stroke="#3e8a72"
+                  fill="rgba(62,138,114,0.12)"
                   strokeWidth={2}
                 />
                 <Area
                   type="monotone"
                   dataKey="devices"
                   name="Monitors reporting"
-                  stroke="#a78bfa"
-                  fill="rgba(167,139,250,0.12)"
+                  stroke="#b9652f"
+                  fill="rgba(185,101,47,0.10)"
                   strokeWidth={2}
                 />
               </AreaChart>

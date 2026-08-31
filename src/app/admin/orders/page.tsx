@@ -54,18 +54,18 @@ export default async function AdminOrdersPage() {
   }));
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white">
+    <main className="flex min-h-screen flex-col bg-paper">
       <div className="container mx-auto px-4 py-10 max-w-4xl">
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Link href="/admin" className="hover:text-white transition-colors">
+          <div className="flex items-center gap-2 text-sm text-faint mb-4">
+            <Link href="/admin" className="hover:text-ink transition-colors">
               Admin
             </Link>
             <span>/</span>
-            <span className="text-white">Order Queue</span>
+            <span className="text-ink">Order Queue</span>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Order Queue</h1>
-          <p className="text-gray-400">
+          <h1 className="font-display text-4xl font-normal tracking-tight text-ink mb-2">Order Queue</h1>
+          <p className="text-body">
             Paid orders ready to dropship. Mark shipped with a tracking number
             to notify the customer.
           </p>
