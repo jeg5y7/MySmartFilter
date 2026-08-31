@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { api, HydrateClient } from "~/trpc/server";
 import { auth } from "~/server/auth";
+import { WaitlistForm } from "~/app/_components/waitlist-form";
 
 export default async function Home() {
   const session = await auth();
@@ -87,6 +88,13 @@ export default async function Home() {
                     Learn More
                   </a>
                 </div>
+
+                <a
+                  href="#waitlist"
+                  className="inline-block text-sm text-cyan-300 hover:text-cyan-200 underline underline-offset-4"
+                >
+                  🚀 Launching soon — join the list for first dibs
+                </a>
                 
                 {session?.user && (
                   <p className="text-gray-400">
@@ -568,6 +576,26 @@ export default async function Home() {
                 </ul>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Launch Waitlist */}
+        <section id="waitlist" className="py-24 bg-gradient-to-b from-[#0f172a] to-[#1e293b]">
+          <div className="container mx-auto px-4">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <span className="inline-block px-4 py-2 rounded-full bg-cyan-500/20 text-cyan-300 text-sm font-semibold mb-6">
+                Launching soon
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Be first in line for a smart filter monitor
+              </h2>
+              <p className="text-lg text-gray-400">
+                We&apos;re hand-building the first batch now. Join the launch list
+                and you&apos;ll get one email the moment monitors are available —
+                launch-list members get first dibs.
+              </p>
+            </div>
+            <WaitlistForm />
           </div>
         </section>
 
