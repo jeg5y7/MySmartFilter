@@ -39,29 +39,44 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   filter, the app computes wasted-energy cost vs a new filter's price, emails
   before any auto-order (one-click cancel, 24 h grace), and ships the filter.
 
-## State (2026-08-05)
+## State (2026-08-31)
 
-- Phases 0–3 + tier enforcement all shipped to production (PRs #2–#12).
-  Earlier open issues are RESOLVED: prod deploy green, SSL fixed (stale A
-  record deleted), magic-link login working (DKIM + EMAIL_FROM + prod DB
-  migration all fixed). Live prod DB is the us-west-2 Neon project
-  (`ep-small-surf-afmlmskv`); the old us-east-1 project is stale — retire it.
-- PR #13 merged: /install guide + furnace make/model live in prod (columns
-  applied by user in Neon). The 📷 photo auto-identify feature was built
-  then parked by founder decision — restore pointer in ROADMAP "Later /
-  ideas" (commit b278ec4).
-- PR #14 merged + verified live: smart-home bridge (OAuth account-linking
-  server + Google/Alexa/SmartThings connectors), monitor product in the
-  store ($99 placeholder price — founder to set), nav/mobile fixes. OAuth
-  tables + productType column applied to prod by user in Neon.
-- ⚠️ Wrong-database trap (bit us twice): Neon console often opens the STALE
-  us-east-1 project. Prod SQL must run in us-west-2 (`ep-small-surf…`) —
-  reach it via Vercel → Storage → Open in Neon. Founder should DELETE the
-  us-east-1 project. Note: preview deployments point at a different/empty
-  DB, so preview 500s on DB pages prove nothing about prod.
-- Founder-side: smart-home platform accounts (docs/smart-home-bridge.md),
-  monitor price, Vercel Pro decision, hardware bench test, supplier
-  outreach, pilot batch.
+- Phases 0-3, tier enforcement, smart-home bridge, admin fleet/labels/
+  firmware pages, OTA pipeline, security hardening (headers, hashed API
+  keys, magic-link rate limit), and the launch waitlist are all live in
+  prod (PRs #2-#53). Landing leads with "we turn every filter into a
+  smart filter" + waitlist capture.
+- Firmware v1.10.5-usb on the pilot unit. Hard-won field architecture:
+  outage auto-recovery, hardware task watchdog + send-failure watchdog
+  (silent death unreachable), sensor faults visible (error-nack/crc/temp
+  heartbeats, blinking onboard LED) and self-healing (30s re-init),
+  over-range readings publish PEGGED at the sensor ceiling instead of
+  blacking out cycles. BLE presence glow is built but COMPILED OUT
+  pending bench debug (heap/coexistence freezes). OTA semver now handles
+  patch releases ("1.10.1-usb"). esp32/builds/FLASHING.md is the
+  changelog of record.
+- Field lessons (2026-08-21): loose jumper connectors mimic firmware
+  bugs (solder the loom, no push-fit on sensor pins); a filter's max
+  rated airflow matters more than MERV (an 819-CFM MERV13 pegged a
+  ~1170 CFM system that runs ~120 Pa across a fresh 1389-CFM MERV11);
+  visually dirty filters can be aerodynamically clean. Sensor plan:
+  SDP810-500Pa standard (auto-detected scale), SDP800 manifold + cheap
+  XGZP + RH chip are Rev B candidates.
+- Web data lessons live in-product: baseline-relative alert threshold
+  (alertCeilingPa), downward re-baseline detection, 7d/30d daily
+  average-while-running bars with trend line and zoomed Y axis,
+  range-scoped stats, local-timezone rendering (LocalTime), app-mode
+  pull-to-refresh + freshness badge.
+- New prod tables self-provision through the app (FirmwareRelease
+  repair button, Waitlist auto-create) — never hand-run SQL in the Neon
+  console again. Neon upgraded to Launch (~$19/mo compute floor,
+  $0.106/CU-h + $0.35/GB-mo); us-east-1 project deleted, CVE bot branch
+  deleted, founder 2FA done.
+- Founder-side open: monitor price ($99 placeholder), Vercel Pro,
+  UptimeRobot on /api/health, Stripe Tax, smart-home platform accounts,
+  autoscaling cap in Neon, solder pilot unit's loom + 500Pa sensor
+  swap, pilot batch build (loom + 500Pa + hot glue), MERV-right filter
+  exchange, first build-in-public reel -> waitlist funnel.
 
 ## Commands
 
