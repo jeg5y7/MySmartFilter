@@ -24,9 +24,7 @@ export async function SiteHeader() {
           className="flex shrink-0 items-center gap-2.5 hover:opacity-85 transition-opacity"
         >
           <PleatsMark size={22} />
-          <span className="hidden min-[400px]:inline">
-            <Wordmark />
-          </span>
+          <Wordmark />
         </Link>
 
         {/* Every link stays visible at every width; the row scrolls sideways
