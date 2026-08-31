@@ -103,6 +103,23 @@ export default async function AdminFleetPage() {
   ).length;
   const needReplace = fleet.filter((d) => d.filterStatus === "replace_now").length;
 
+  // Waitlist signups (table self-creates on first signup — may not exist yet)
+  let waitlistCount = 0;
+  let recentSignups: { email: string; zip: string | null; createdAt: Date }[] =
+    [];
+  try {
+    [waitlistCount, recentSignups] = await Promise.all([
+      db.waitlist.count(),
+      db.waitlist.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 12,
+        select: { email: true, zip: true, createdAt: true },
+      }),
+    ]);
+  } catch {
+    // no signups yet
+  }
+
   const stats = [
     { label: "Devices", value: String(fleet.length) },
     { label: "Online", value: `${online} / ${fleet.length}` },
@@ -112,6 +129,7 @@ export default async function AdminFleetPage() {
     { label: "Readings · 24 h", value: readings24h.toLocaleString() },
     { label: "Low battery", value: String(lowBattery) },
     { label: "Filters due", value: String(needReplace) },
+    { label: "Waitlist", value: String(waitlistCount) },
   ];
 
   return (
@@ -163,6 +181,44 @@ export default async function AdminFleetPage() {
         </div>
 
         <AdminFleet devices={fleet} trend={trend} />
+
+        {/* ── Launch waitlist ─────────────────────────────────────────────── */}
+        <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10 mt-8 p-5">
+          <h2 className="text-lg font-semibold text-white mb-1">
+            Launch Waitlist{" "}
+            <span className="text-sm font-normal text-gray-500">
+              ({waitlistCount} signups)
+            </span>
+          </h2>
+          {recentSignups.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No signups yet — the form is live on the landing page.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[420px]">
+                <thead>
+                  <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-white/10">
+                    <th className="py-2 pr-4 font-medium">Email</th>
+                    <th className="py-2 pr-4 font-medium">ZIP</th>
+                    <th className="py-2 font-medium">Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentSignups.map((w) => (
+                    <tr key={w.email} className="border-b border-white/5">
+                      <td className="py-2 pr-4 text-gray-300">{w.email}</td>
+                      <td className="py-2 pr-4 text-gray-400">{w.zip ?? "—"}</td>
+                      <td className="py-2 text-gray-400">
+                        {w.createdAt.toISOString().slice(0, 10)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

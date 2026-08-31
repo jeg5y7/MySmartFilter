@@ -397,3 +397,13 @@ model FilterAlert {
   @@index([deviceId])
   @@index([status])
 }
+
+// Launch waitlist — email capture from the landing page (pre-launch funnel)
+model Waitlist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  zip       String?
+  source    String?
+  createdAt DateTime @default(now())
+}
