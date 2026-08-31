@@ -151,11 +151,11 @@ export function AdminFleet({
       </div>
 
       {/* ── All devices ──────────────────────────────────────────────────── */}
-      <div className="bg-white/5 backdrop-blur-lg rounded-xl border border-white/10">
+      <div className="overflow-hidden rounded-[24px] border border-mist bg-card">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 pb-3">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-ink">
             All Devices{" "}
-            <span className="text-sm font-normal text-gray-500">
+            <span className="text-sm font-normal text-faint">
               ({shown.length} of {devices.length})
             </span>
           </h2>
@@ -171,10 +171,10 @@ export function AdminFleet({
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   filter === key
-                    ? "bg-blue-600 text-white"
-                    : "bg-white/10 text-gray-300 hover:bg-white/15"
+                    ? "bg-ink text-paper"
+                    : "border border-mist bg-card text-body hover:bg-mist/60"
                 }`}
               >
                 {label}
@@ -187,7 +187,7 @@ export function AdminFleet({
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[860px]">
             <thead>
-              <tr className="text-left text-xs text-gray-500 uppercase tracking-wide border-b border-white/10">
+              <tr className="text-left text-xs font-semibold text-faint uppercase tracking-wide border-b border-mist">
                 <th className="px-5 py-3 font-medium">Device</th>
                 <th className="px-3 py-3 font-medium">Owner</th>
                 <th className="px-3 py-3 font-medium">Status</th>
@@ -204,64 +204,64 @@ export function AdminFleet({
               {shown.map((d) => {
                 const badge = STATUS_BADGE[d.filterStatus];
                 return (
-                  <tr key={d.id} className="border-b border-white/5 hover:bg-white/5">
+                  <tr key={d.id} className="border-t border-mist hover:bg-paper">
                     <td className="px-5 py-3">
-                      <div className="text-white font-medium">
+                      <div className="text-ink font-medium">
                         {d.name ?? d.deviceId}
                       </div>
-                      <div className="text-xs text-gray-500 font-mono">{d.deviceId}</div>
+                      <span className="inline-block rounded bg-mist px-1.5 py-0.5 text-xs text-faint font-mono">{d.deviceId}</span>
                     </td>
-                    <td className="px-3 py-3 text-gray-300">{d.ownerEmail ?? "—"}</td>
+                    <td className="px-3 py-3 text-body">{d.ownerEmail ?? "—"}</td>
                     <td className="px-3 py-3">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs ${
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${
                           d.online
-                            ? "bg-emerald-500/15 text-emerald-300"
-                            : "bg-gray-500/20 text-gray-400"
+                            ? "bg-sagemist text-sage-deep"
+                            : "bg-mist text-body"
                         }`}
                       >
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            d.online ? "bg-emerald-400" : "bg-gray-500"
+                            d.online ? "bg-sage" : "bg-whisper"
                           }`}
                         />
                         {d.online ? "online" : "offline"}
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-xs font-mono text-gray-300">
+                      <span className="inline-block rounded bg-mist px-1.5 py-0.5 text-xs font-mono text-body">
                         {d.firmware ?? "—"}
                       </span>
                     </td>
-                    <td className="px-3 py-3 text-gray-400">{timeAgo(d.lastSeen)}</td>
-                    <td className="px-3 py-3 text-gray-300">
+                    <td className="px-3 py-3 text-faint">{timeAgo(d.lastSeen)}</td>
+                    <td className="px-3 py-3 text-body">
                       {d.pressure !== null ? `${d.pressure.toFixed(1)} Pa` : "—"}
                     </td>
-                    <td className="px-3 py-3 text-gray-300">
+                    <td className="px-3 py-3 text-body">
                       {d.temperature !== null ? `${cToF(d.temperature).toFixed(1)} °F` : "—"}
                     </td>
                     <td className="px-3 py-3">
                       {d.batteryPct !== null ? (
                         <span
                           className={
-                            d.batteryPct <= 20 ? "text-amber-300" : "text-gray-300"
+                            d.batteryPct <= 20 ? "text-clay" : "text-body"
                           }
                         >
                           {Math.round(d.batteryPct)}%
                         </span>
                       ) : (
-                        <span className="text-gray-500">wall</span>
+                        <span className="text-faint">wall</span>
                       )}
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${badge.cls}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${badge.cls}`}>
                         {badge.label}
                         {d.filterLifePct !== null
                           ? ` · ${Math.round(d.filterLifePct)}%`
                           : ""}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-gray-300">
+                    <td className="px-5 py-3 text-body">
                       {d.blowerType === "ecm"
                         ? `$${(d.extraCostCents / 100).toFixed(2)}`
                         : "PSC"}
@@ -271,7 +271,7 @@ export function AdminFleet({
               })}
               {shown.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={10} className="px-5 py-10 text-center text-faint">
                     No devices match this filter.
                   </td>
                 </tr>

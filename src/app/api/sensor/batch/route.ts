@@ -202,20 +202,20 @@ async function sendLowBatteryEmail(userId: string, deviceName: string, pct: numb
       html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#1e293b;border-radius:12px;overflow:hidden;border:1px solid #334155;">
-    <div style="background:#0f172a;padding:24px 32px;border-bottom:1px solid #334155;">
-      <p style="margin:0;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
-      <h1 style="margin:8px 0 0;color:#f1f5f9;font-size:22px;font-weight:700;">🔋 Time for fresh batteries</h1>
+<body style="margin:0;padding:0;background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eeebe4;">
+    <div style="background:#faf8f5;padding:24px 32px;border-bottom:1px solid #eeebe4;">
+      <p style="margin:0;color:#3e8a72;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
+      <h1 style="margin:8px 0 0;color:#1c1b18;font-size:22px;font-weight:700;">🔋 Time for fresh batteries</h1>
     </div>
     <div style="padding:28px 32px;">
-      <p style="color:#94a3b8;font-size:15px;margin-top:0;">
-        The batteries in <strong style="color:#e2e8f0;">${deviceName}</strong> are at
-        <strong style="color:#fbbf24;">${Math.round(pct)}%</strong>. Swap in 3 fresh AA
+      <p style="color:#55524a;font-size:15px;margin-top:0;">
+        The batteries in <strong style="color:#1c1b18;">${deviceName}</strong> are at
+        <strong style="color:#b9652f;">${Math.round(pct)}%</strong>. Swap in 3 fresh AA
         batteries in the next couple of weeks to keep monitoring uninterrupted — the
         battery door is on the back, no tools needed.
       </p>
-      <p style="color:#64748b;font-size:13px;margin-bottom:0;">
+      <p style="color:#8a867c;font-size:13px;margin-bottom:0;">
         Your settings and WiFi connection are kept during battery changes.
       </p>
     </div>
