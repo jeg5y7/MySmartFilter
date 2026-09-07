@@ -142,6 +142,27 @@ Software side can spec; physical work is on the founder:
   days are the dominant confounder; naive trending false-alarms every heat
   wave). Cross-validates the PSC runtime-penalty model with measured data.
   Plan: per-cycle summary extraction server-side once pilot data exists.
+- **Weather + runtime correlation (data groundwork):** geocode each device's
+  shipping address once (US Census Geocoder, free) → nightly Open-Meteo pull
+  of daily temp / apparent temp / cloud cover / shortwave radiation per grid
+  cell → join against runtime-per-day. Unlocks weather-normalized filter
+  trending and the four derived diagnostics: ΔP plateau (runtime-normalized),
+  runtime vs degree-days, within-run ΔP sag (coil wetness — measured at
+  ~1.3 Pa on the pilot; extreme sag = icing early-warning), and pull-down
+  rate (°F/hr while running = delivered capacity).
+- **Google Nest sandbox integration (pilot instrument):** SDM API exposes
+  indoor humidity (Humidity trait) + thermostat state. Sandbox tier = $5
+  one-time, 25 users / 5 homes cap — perfect for validating the sag↔indoor-RH
+  correlation on the pilot before Rev B ships its own RH chip. Commercial
+  tier needs Google certification (security assessment) — NOT a launch
+  dependency; revisit only if diagnostics headline demands it. App-side
+  integration built (see docs/NEST_SANDBOX.md); founder does the $5
+  Device Access registration + OAuth client.
+- **RH chip on Rev B — PROMOTED from candidate to planned:** a ~$2 humidity
+  sensor measuring the actual return-air stream (better placement than any
+  wall thermostat) on every unit, no third-party OAuth, no user caps. The
+  coil-wetness / latent-load science the Nest pilot validates runs fleet-wide
+  on this.
 - **Acoustic anomaly detection (Rev B hardware):** ~$0.50 MEMS mic on the
   monitor. On-device feature extraction only (band energies/levels — NEVER
   raw audio off the device; privacy stance worth advertising). Learn each
