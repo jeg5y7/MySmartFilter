@@ -28,18 +28,18 @@ export default async function AdminLabelsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white print:bg-white">
+    <main className="min-h-screen bg-paper print:bg-white">
       <div className="container mx-auto px-4 py-10">
         <div className="print:hidden mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
-            <Link href="/admin" className="hover:text-white transition-colors">
+          <div className="flex items-center gap-2 text-sm text-faint mb-4">
+            <Link href="/admin" className="hover:text-ink transition-colors">
               Admin
             </Link>
             <span>/</span>
-            <span className="text-white">QR Labels</span>
+            <span className="text-ink">QR Labels</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Device QR Labels</h1>
-          <p className="text-gray-400 max-w-2xl">
+          <h1 className="font-display text-3xl sm:text-4xl font-normal tracking-tight text-ink mb-2">Device QR Labels</h1>
+          <p className="text-body max-w-2xl">
             Each label&apos;s QR opens the setup page with that monitor&apos;s ID
             prefilled. Pick registered devices or paste new IDs (one per line),
             then print onto sticker paper.

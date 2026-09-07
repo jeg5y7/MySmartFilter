@@ -18,11 +18,11 @@ function firstParam(v: string | string[] | undefined): string {
 
 function ErrorCard({ message }: { message: string }) {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10 text-center">
+    <main className="min-h-screen bg-paper flex items-center justify-center px-4">
+      <div className="max-w-md w-full rounded-[24px] border border-mist bg-card p-8 text-center">
         <p className="text-4xl mb-4">⚠️</p>
-        <h1 className="text-xl font-semibold mb-2">Can&apos;t link accounts</h1>
-        <p className="text-sm text-gray-400">{message}</p>
+        <h1 className="text-xl font-semibold text-ink mb-2">Can&apos;t link accounts</h1>
+        <p className="text-sm text-body">{message}</p>
       </div>
     </main>
   );
@@ -55,30 +55,30 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white/5 backdrop-blur-lg rounded-xl p-8 border border-white/10">
+    <main className="min-h-screen bg-paper flex items-center justify-center px-4">
+      <div className="max-w-md w-full rounded-[24px] border border-mist bg-card p-8">
         <div className="text-center mb-6">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600/20 border border-blue-500/40 mb-4">
-            <span className="block h-4 w-6 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400" />
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-sagemist border border-sage/40 mb-4">
+            <span className="block h-4 w-6 rounded-full bg-gradient-to-r from-sage to-glow" />
           </span>
-          <h1 className="text-xl font-semibold">
+          <h1 className="text-xl font-semibold text-ink">
             Link {client.name} to MySmartFilter?
           </h1>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-faint mt-2">
             Signed in as {session.user.email}
           </p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-300 mb-2 font-medium">
+        <div className="bg-paper border border-mist rounded-2xl p-4 mb-6">
+          <p className="text-sm text-ink mb-2 font-medium">
             {client.name} will be able to:
           </p>
-          <ul className="text-sm text-gray-400 space-y-1.5">
+          <ul className="text-sm text-body space-y-1.5">
             <li>✓ See your smart filter monitors and their status</li>
             <li>✓ Read live pressure, temperature, and battery levels</li>
             <li>✓ See filter health where your plan includes it</li>
           </ul>
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-faint mt-3">
             It can&apos;t place orders, change settings, or see payment
             details. You can unlink anytime from the {client.name} app.
           </p>
@@ -92,7 +92,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
             type="submit"
             name="decision"
             value="approve"
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all"
+            className="w-full py-3 bg-sage hover:bg-sage-deep text-white rounded-full text-sm font-semibold transition-all"
           >
             Allow
           </button>
@@ -100,7 +100,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
             type="submit"
             name="decision"
             value="deny"
-            className="w-full py-3 bg-white/10 hover:bg-white/15 text-gray-300 rounded-lg font-medium transition-all"
+            className="w-full py-3 border border-mist bg-card hover:bg-mist/60 text-ink rounded-full text-sm font-semibold transition-all"
           >
             Cancel
           </button>

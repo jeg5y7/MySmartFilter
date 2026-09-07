@@ -92,39 +92,39 @@ export async function GET(request: Request) {
           html: `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#1e293b;border-radius:12px;overflow:hidden;border:1px solid #334155;">
+<body style="margin:0;padding:0;background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eeebe4;">
     <!-- Header -->
-    <div style="background:#0f172a;padding:24px 32px;border-bottom:1px solid #334155;">
-      <p style="margin:0;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
-      <h1 style="margin:8px 0 0;color:#f1f5f9;font-size:22px;font-weight:700;">📡 Device offline</h1>
+    <div style="background:#faf8f5;padding:24px 32px;border-bottom:1px solid #eeebe4;">
+      <p style="margin:0;color:#3e8a72;font-size:12px;text-transform:uppercase;letter-spacing:1px;">MySmartFilter</p>
+      <h1 style="margin:8px 0 0;color:#1c1b18;font-size:22px;font-weight:700;">📡 Device offline</h1>
     </div>
 
     <!-- Body -->
     <div style="padding:28px 32px;">
-      <p style="color:#94a3b8;font-size:15px;margin-top:0;">
-        We haven't heard from <strong style="color:#e2e8f0;">${deviceName}</strong> in a while.
+      <p style="color:#55524a;font-size:15px;margin-top:0;">
+        We haven't heard from <strong style="color:#1c1b18;">${deviceName}</strong> in a while.
         It may be unplugged, out of range, or experiencing a connection issue.
       </p>
 
       <!-- Device info -->
-      <div style="background:#0f172a;border-radius:8px;padding:20px;margin:20px 0;">
+      <div style="background:#faf8f5;border:1px solid #eeebe4;border-radius:12px;padding:20px;margin:20px 0;">
         <table style="width:100%;border-collapse:collapse;">
           <tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Device</td>
-            <td style="color:#e2e8f0;font-size:13px;text-align:right;font-weight:600;">${deviceName}</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Device</td>
+            <td style="color:#1c1b18;font-size:13px;text-align:right;font-weight:600;">${deviceName}</td>
           </tr>
           ${device.location ? `<tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Location</td>
-            <td style="color:#e2e8f0;font-size:13px;text-align:right;">${escapeHtml(device.location)}</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Location</td>
+            <td style="color:#1c1b18;font-size:13px;text-align:right;">${escapeHtml(device.location)}</td>
           </tr>` : ""}
           <tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Last seen</td>
-            <td style="color:#fbbf24;font-size:13px;text-align:right;">${lastSeenFormatted}</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Last seen</td>
+            <td style="color:#b9652f;font-size:13px;text-align:right;">${lastSeenFormatted}</td>
           </tr>
           <tr>
-            <td style="color:#64748b;font-size:13px;padding:6px 0;">Status</td>
-            <td style="color:#f87171;font-size:13px;text-align:right;font-weight:700;">Offline</td>
+            <td style="color:#8a867c;font-size:13px;padding:6px 0;">Status</td>
+            <td style="color:#b9652f;font-size:13px;text-align:right;font-weight:700;">Offline</td>
           </tr>
         </table>
       </div>
@@ -132,22 +132,22 @@ export async function GET(request: Request) {
       <!-- CTA -->
       <div style="text-align:center;margin:28px 0;">
         <a href="https://mysmartfilter.com/devices/${device.id}"
-           style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px;">
+           style="display:inline-block;background:#3e8a72;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:9999px;font-weight:600;font-size:15px;">
           Check Your Device
         </a>
       </div>
 
-      <p style="color:#64748b;font-size:13px;margin-bottom:0;">
+      <p style="color:#8a867c;font-size:13px;margin-bottom:0;">
         If you recently powered it off on purpose, you can ignore this message.
         Once it reconnects, its status will automatically update.
       </p>
     </div>
 
     <!-- Footer -->
-    <div style="background:#0f172a;padding:20px 32px;border-top:1px solid #334155;">
-      <p style="margin:0;color:#475569;font-size:12px;text-align:center;">
+    <div style="background:#faf8f5;padding:20px 32px;border-top:1px solid #eeebe4;">
+      <p style="margin:0;color:#8a867c;font-size:12px;text-align:center;">
         You're receiving this because you have device alerts enabled.<br>
-        <a href="https://mysmartfilter.com/settings/notifications" style="color:#64748b;">Manage notification preferences</a>
+        <a href="https://mysmartfilter.com/settings/notifications" style="color:#3e8a72;">Manage notification preferences</a>
       </p>
     </div>
   </div>

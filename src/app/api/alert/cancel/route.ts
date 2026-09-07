@@ -21,13 +21,13 @@ export async function GET(request: NextRequest) {
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>${title} — MySmartFilter</title>
 </head>
-<body style="margin:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">
-  <div style="max-width:420px;margin:24px;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:36px 32px;text-align:center;">
+<body style="margin:0;background:#faf8f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  <div style="max-width:420px;margin:24px;background:#ffffff;border:1px solid #eeebe4;border-radius:16px;padding:36px 32px;text-align:center;">
     <div style="font-size:40px;margin-bottom:12px;">${ok ? "✅" : "⚠️"}</div>
-    <h1 style="color:#f1f5f9;font-size:20px;margin:0 0 10px;">${title}</h1>
-    <p style="color:#94a3b8;font-size:14px;margin:0 0 24px;">${body}</p>
+    <h1 style="color:#1c1b18;font-size:20px;margin:0 0 10px;">${title}</h1>
+    <p style="color:#55524a;font-size:14px;margin:0 0 24px;">${body}</p>
     <a href="https://mysmartfilter.com/dashboard"
-       style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:11px 26px;border-radius:8px;font-weight:600;font-size:14px;">
+       style="display:inline-block;background:#3e8a72;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:9999px;font-weight:600;font-size:14px;">
       Go to Dashboard
     </a>
   </div>
