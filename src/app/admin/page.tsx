@@ -55,7 +55,10 @@ export default async function AdminFleetPage() {
         SELECT date_trunc('day', "timestamp") AS day,
                COUNT(*)::bigint AS readings,
                COUNT(DISTINCT "deviceId")::bigint AS devices,
-               AVG("pressure") AS avg_pressure
+               -- Blower-ON readings only (>= BLOWER_ON_MIN_PA in ~/lib/energy):
+               -- averaging idle near-zeros in makes this track duty cycle
+               -- instead of filter condition.
+               AVG("pressure") FILTER (WHERE "pressure" >= 5) AS avg_pressure
         FROM "SensorReading"
         WHERE "timestamp" > NOW() - INTERVAL '30 days'
         GROUP BY 1

@@ -89,11 +89,11 @@ export function AdminFleet({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="rounded-[24px] border border-mist bg-card p-5">
           <h2 className="text-sm font-semibold text-ink mb-1">
-            Fleet average pressure drop
+            Fleet average pressure drop while running
           </h2>
           <p className="text-xs text-faint mb-4">
-            Daily average ΔP (Pa) across all reporting monitors — a rising fleet
-            average means filters are clogging.
+            Daily average ΔP (Pa) of blower-on readings across all reporting
+            monitors — a rising fleet average means filters are clogging.
           </p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
