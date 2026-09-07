@@ -45,8 +45,10 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   brand tokens, Instrument Sans/Serif, pleats logo + icons, landing,
   header, waitlist) and phase 2 app surface (PR #56 — dashboard, devices,
   device detail incl. light chart palette, store, install, setup wizard,
-  settings, auth, legal, pull-to-refresh). Phase 3 (admin + emails) in
-  flight this session.
+  settings, auth, legal, pull-to-refresh) and phase 3 admin + emails
+  (PR #57 — admin pages with clay accent, fleet charts, OAuth consent,
+  all HTML emails in the light palette; printable QR labels untouched).
+  The redesign is complete site-wide.
 - Phases 0-3, tier enforcement, smart-home bridge, admin fleet/labels/
   firmware pages, OTA pipeline, security hardening (headers, hashed API
   keys, magic-link rate limit), and the launch waitlist are all live in
