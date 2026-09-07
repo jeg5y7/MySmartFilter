@@ -40,6 +40,10 @@ export const env = createEnv({
       : z.string().optional(),
     // Base URL used for Stripe redirect URLs
     NEXTAUTH_URL: z.string().url().optional(),
+    // Google Nest sandbox integration (optional — feature hides when unset)
+    NEST_SDM_PROJECT_ID: z.string().optional(),
+    NEST_OAUTH_CLIENT_ID: z.string().optional(),
+    NEST_OAUTH_CLIENT_SECRET: z.string().optional(),
   },
 
   /**
@@ -65,6 +69,9 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEST_SDM_PROJECT_ID: process.env.NEST_SDM_PROJECT_ID,
+    NEST_OAUTH_CLIENT_ID: process.env.NEST_OAUTH_CLIENT_ID,
+    NEST_OAUTH_CLIENT_SECRET: process.env.NEST_OAUTH_CLIENT_SECRET,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },

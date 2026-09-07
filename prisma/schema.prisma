@@ -155,6 +155,7 @@ model User {
   accounts              Account[]
   devices               Device[]
   posts                 Post[]
+  nestLink              NestLink?
   provisioningSessions  ProvisioningSession[]
   sensorReadings        SensorReading[]
   sessions              Session[]
@@ -399,6 +400,37 @@ model FilterAlert {
 }
 
 // Launch waitlist — email capture from the landing page (pre-launch funnel)
+// ── Google Nest sandbox integration (SDM API) ────────────────────────────────
+// One linked Nest thermostat per user (sandbox pilot). The refresh token is
+// stored AES-256-GCM encrypted (key derived from AUTH_SECRET) — never log it.
+// Tables self-provision via ensureNestTables() (same pattern as Waitlist).
+model NestLink {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  sdmDeviceName   String    // full SDM resource name of the thermostat
+  refreshTokenEnc String
+  lastHumidityPct Float?
+  lastTempC       Float?
+  lastHvacStatus  String?   // OFF | HEATING | COOLING
+  lastSyncAt      DateTime?
+  createdAt       DateTime  @default(now())
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Humidity/state samples pulled from the linked Nest (~every 5 min while the
+// monitor is reporting). Joined against SensorReading by timestamp for the
+// coil-wetness / latent-load analysis.
+model NestSample {
+  id          String   @id @default(cuid())
+  userId      String
+  timestamp   DateTime @default(now())
+  humidityPct Float
+  tempC       Float?
+  hvacStatus  String?
+
+  @@index([userId, timestamp])
+}
+
 model Waitlist {
   id        String   @id @default(cuid())
   email     String   @unique

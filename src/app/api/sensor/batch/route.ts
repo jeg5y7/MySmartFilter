@@ -6,6 +6,7 @@ import { accrueReading, type EnergyDeviceState } from "~/lib/energy";
 import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
+import { maybePollNest } from "~/lib/nest";
 import { alertCeilingPa } from "~/lib/filter-health";
 import { escapeHtml } from "~/lib/resend";
 import { resend, EMAIL_FROM } from "~/lib/resend";
@@ -136,6 +137,10 @@ export async function POST(request: NextRequest) {
     });
 
     const newest = stamped[stamped.length - 1]!;
+
+    // Opportunistic Nest humidity poll (debounced to 5 min inside) — fire and
+    // forget so it can never slow or fail an upload.
+    void maybePollNest(device.userId);
 
     // Threshold webhook on the newest reading (alert dedupe lives downstream).
     // Ceiling = fresh-filter baseline + allowed rise.

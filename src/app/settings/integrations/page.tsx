@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "~/server/auth";
 import { IntegrationsPanel } from "~/app/_components/integrations-panel";
+import { NestCard } from "~/app/_components/nest-card";
 
 export default async function IntegrationsPage() {
   const session = await auth();
@@ -16,6 +18,12 @@ export default async function IntegrationsPage() {
           <p className="text-body">
             Manage API keys and webhooks to connect SmartFilter with external services.
           </p>
+        </div>
+        <div className="mb-6">
+          {/* useSearchParams inside needs a Suspense boundary for prerender */}
+          <Suspense fallback={null}>
+            <NestCard />
+          </Suspense>
         </div>
         <IntegrationsPanel />
       </div>

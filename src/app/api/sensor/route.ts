@@ -7,6 +7,7 @@ import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { computeFilterHealth, alertCeilingPa } from "~/lib/filter-health";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
+import { maybePollNest } from "~/lib/nest";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -143,6 +144,11 @@ export async function POST(request: NextRequest) {
         console.error("[sensor] replacement detection failed:", err);
       }
     }
+
+    // Opportunistic Nest humidity poll (Vercel Hobby crons are daily-only, so
+    // ingestion is our steady heartbeat) — debounced to every 5 min inside,
+    // fire-and-forget so it can never slow or fail a reading.
+    void maybePollNest(device.userId);
 
     // Tell the device its filter verdict so the glow light can show it
     let filterStatus: string | null = null;
