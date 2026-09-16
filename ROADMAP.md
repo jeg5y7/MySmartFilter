@@ -155,9 +155,12 @@ Software side can spec; physical work is on the founder:
   one-time, 25 users / 5 homes cap — perfect for validating the sag↔indoor-RH
   correlation on the pilot before Rev B ships its own RH chip. Commercial
   tier needs Google certification (security assessment) — NOT a launch
-  dependency; revisit only if diagnostics headline demands it. App-side
-  integration built (see docs/NEST_SANDBOX.md); founder does the $5
-  Device Access registration + OAuth client.
+  dependency; revisit only if diagnostics headline demands it.
+  **LIVE 2026-09-16:** founder completed Device Access registration +
+  OAuth client and connected the pilot Nest — humidity samples flowing
+  ~every 5 min (see docs/NEST_SANDBOX.md for the setup + gotchas).
+  Next: after ~2 weeks of humid/dry contrast, correlate within-run ΔP
+  sag vs indoor RH (add a NestSample read endpoint for analysis then).
 - **RH chip on Rev B — PROMOTED from candidate to planned:** a ~$2 humidity
   sensor measuring the actual return-air stream (better placement than any
   wall thermostat) on every unit, no third-party OAuth, no user caps. The
