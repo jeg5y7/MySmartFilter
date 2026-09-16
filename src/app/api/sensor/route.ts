@@ -8,6 +8,7 @@ import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { computeFilterHealth, alertCeilingPa } from "~/lib/filter-health";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { maybePollNest } from "~/lib/nest";
+import { maybeRecordFlowCalibration } from "~/lib/filter-curves";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -16,6 +17,10 @@ const SensorDataSchema = z.object({
   deviceId: z.string().optional(), // Optional, will be inferred from token
   // Multi-sensor support (all optional, backward-compatible)
   sensorType: z.string().optional().default("pressure_differential"),
+  // v1.11.0+ firmware: pressure is the window MEDIAN; pressureStd is the
+  // spread of the 1 Hz sub-samples (turbulence/flow index)
+  pressureStd: z.number().min(0).optional(),
+  samples: z.number().int().optional(),
   humidity: z.number().optional(),
   co2: z.number().optional(),
   voc: z.number().optional(),
@@ -71,7 +76,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { pressure, temperature, sensorType, humidity, co2, voc } = result.data;
+    const { pressure, temperature, sensorType, pressureStd, humidity, co2, voc } =
+      result.data;
 
     const now = new Date();
 
@@ -100,6 +106,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Fresh baseline captured = fresh filter of a KNOWN model (we shipped
+    // it) — invert its flow curve to record the system's airflow (Q0)
+    if (accrual.newBaselineDeltaP !== null) {
+      void maybeRecordFlowCalibration(
+        device.deviceId,
+        device.id,
+        device.userId,
+        accrual.newBaselineDeltaP
+      );
+    }
+
     // Create the sensor reading in the database
     const sensorReading = await db.sensorReading.create({
       data: {
@@ -108,6 +125,7 @@ export async function POST(request: NextRequest) {
         deviceId: device.deviceId,
         userId: device.userId,
         sensorType: sensorType ?? "pressure_differential",
+        ...(pressureStd !== undefined && { pressureStd }),
         ...(humidity !== undefined && { humidity }),
         ...(co2 !== undefined && { co2 }),
         ...(voc !== undefined && { voc }),
