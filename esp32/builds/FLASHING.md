@@ -2,14 +2,27 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.10.5.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.11.0.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
   ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
   the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.10.5.bin`** — real build for assembled units
+- **`smartfilter-usb-pilot-v1.11.0.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
-## v1.10.5 — over-range readings pegged, fault reasons (SHIP THIS ONE)
+## v1.11.0 — oversampled readings: median + spread (SHIP THIS ONE)
+
+Loss-in-weight-feeder trick, adapted: instead of one snapshot per publish,
+the monitor now sub-samples the sensor once a second (each sub-read is
+itself the sensor's internal 0.5 ms-sampled average since the previous
+read — continuous averaging mode was already on) and publishes the
+window's MEDIAN as the pressure value. A median can't be dragged by a
+single spike or a blower-transition sample, so every stored reading is a
+true window statistic. Also publishes `pressureStd` (the window's spread)
+— a free turbulence index that scales with airflow, groundwork for the
+flow-drop diagnostics. Server accepts both from this version; older
+firmware keeps working unchanged.
+
+## v1.10.5 — over-range readings pegged, fault reasons
 
 Field finding: rail rejection (v1.8.0) has a second trigger besides a
 dead sensor — a HEALTHY 125 Pa part whose blower-on dP exceeds ~136 Pa

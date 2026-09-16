@@ -149,6 +149,18 @@ export async function maybeDetectFilterReplacement(
       `ΔP ${currentPressure.toFixed(1)} Pa vs baseline ${baseline.toFixed(1)} Pa → new baseline ${newBaseline.toFixed(1)} Pa`
   );
 
+  // Fresh filter of a known model — invert its flow curve to record the
+  // system's operating airflow (Q0). Fire-and-forget.
+  {
+    const { maybeRecordFlowCalibration } = await import("~/lib/filter-curves");
+    void maybeRecordFlowCalibration(
+      device.deviceId,
+      device.id,
+      device.userId,
+      newBaseline
+    );
+  }
+
   if (device.userId) {
     void sendReplacementDetectedEmail(device.userId, escapeHtml(device.name ?? device.deviceId));
   }

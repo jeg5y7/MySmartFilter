@@ -59,6 +59,19 @@ export default async function DevicePage({ params }: DevicePageProps) {
   const preference = device.filterPreferences[0];
   const autoShip = await isAutoShipMember(session.user.id);
 
+  // Filter-as-flowmeter: latest airflow calibration from a fresh-filter
+  // install (only exists once a real manufacturer curve is on file)
+  let flowCal: { q0Cfm: number; createdAt: Date } | null = null;
+  try {
+    flowCal = await db.flowCalibration.findFirst({
+      where: { deviceId: device.deviceId },
+      orderBy: { createdAt: "desc" },
+      select: { q0Cfm: true, createdAt: true },
+    });
+  } catch {
+    // table not provisioned yet
+  }
+
   // Suggested electricity rate from the shipping state on file
   const me = await db.user.findUnique({
     where: { id: session.user.id },
@@ -169,6 +182,20 @@ export default async function DevicePage({ params }: DevicePageProps) {
                   )}
                 </div>
               </div>
+              {flowCal && (
+                <p className="mt-4 pt-3 border-t border-mist text-xs text-faint">
+                  System airflow ≈{" "}
+                  <span className="font-semibold text-ink">
+                    {Math.round(flowCal.q0Cfm)} CFM
+                  </span>{" "}
+                  — measured from the fresh filter&apos;s pressure curve on{" "}
+                  {flowCal.createdAt.toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
             </div>
 
             {/* Filter Health — energy-cost meter (Filter AutoShip feature) */}

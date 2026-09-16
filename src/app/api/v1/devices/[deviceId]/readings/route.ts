@@ -58,6 +58,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     take: limit + 1,
     select: {
       pressure: true,
+      pressureStd: true,
       temperature: true,
       timestamp: true,
     },
@@ -70,6 +71,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   return NextResponse.json({
     data: rows.map((r) => ({
       pressure: r.pressure,
+      pressureStd: r.pressureStd,
       temperature: r.temperature,
       timestamp: r.timestamp,
     })),

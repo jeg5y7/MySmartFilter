@@ -218,12 +218,64 @@ const unsigned long ACTIVE_INTERVAL_MS = 10000;  // blower on — every 10 s
 const unsigned long IDLE_INTERVAL_MS = 60000;    // blower off — every 60 s
 unsigned long readingInterval = ACTIVE_INTERVAL_MS;  // start eager
 
+// ── Oversampling (loss-in-weight-feeder style) ──────────────────────────────
+// The sensor already runs in continuous "average till read" mode, so every
+// read returns the mean of its internal 0.5 ms samples since the previous
+// read. We layer robust statistics on top: sub-sample once a second (each
+// sub-read = a clean 1 s average), and at publish time send the MEDIAN of
+// the window — immune to single-sample spikes and blower-transition
+// contamination — plus the standard deviation. The std doubles as a
+// turbulence index that tracks airflow (fluctuation power scales with
+// dynamic pressure), giving a free relative-flow signal per reading.
+const unsigned long SUBSAMPLE_MS = 1000;
+const uint8_t SAMPLE_BUF_MAX = 64;  // 60 s idle window at 1 Hz fits
+float samplePBuf[SAMPLE_BUF_MAX];
+float sampleTBuf[SAMPLE_BUF_MAX];
+uint8_t sampleN = 0;
+unsigned long lastSubsample = 0;
+
 // Sensor data structure
 struct SensorData {
   float pressure;
   float temperature;
   bool valid;
 };
+
+// Aggregated publish payload: median pressure + spread over the window
+struct AggregatedData {
+  float pressure;     // median of window sub-samples
+  float pressureStd;  // std dev of window sub-samples
+  float temperature;  // mean temperature
+  uint8_t samples;
+};
+
+static AggregatedData aggregateWindow() {
+  AggregatedData a = {0, 0, 0, sampleN};
+  if (sampleN == 0) return a;
+  // median via insertion sort on a copy (n <= 64)
+  float sorted[SAMPLE_BUF_MAX];
+  memcpy(sorted, samplePBuf, sampleN * sizeof(float));
+  for (uint8_t i = 1; i < sampleN; i++) {
+    float v = sorted[i];
+    int8_t j = i - 1;
+    while (j >= 0 && sorted[j] > v) { sorted[j + 1] = sorted[j]; j--; }
+    sorted[j + 1] = v;
+  }
+  a.pressure = (sampleN % 2)
+                   ? sorted[sampleN / 2]
+                   : 0.5f * (sorted[sampleN / 2 - 1] + sorted[sampleN / 2]);
+  float mean = 0, tMean = 0;
+  for (uint8_t i = 0; i < sampleN; i++) { mean += samplePBuf[i]; tMean += sampleTBuf[i]; }
+  mean /= sampleN; tMean /= sampleN;
+  float var = 0;
+  for (uint8_t i = 0; i < sampleN; i++) {
+    float d = samplePBuf[i] - mean;
+    var += d * d;
+  }
+  a.pressureStd = (sampleN > 1) ? sqrtf(var / (sampleN - 1)) : 0.0f;
+  a.temperature = tMean;
+  return a;
+}
 
 // ── Sensor auto-zero ─────────────────────────────────────────────────────────
 // Cheap MEMS differential sensors drift a few Pa; the blower being OFF is a
@@ -560,7 +612,7 @@ void startNormalOperation();
 bool connectToWiFi();
 void registerDevice();
 void updateDeviceStatus();
-bool sendSensorData(SensorData data);
+bool sendSensorData(AggregatedData data);
 void sendStatusHeartbeat(const char* status);
 void initializeSDP810();
 SensorData readSDP810();
@@ -664,8 +716,13 @@ void loop() {
     }
   } else if (wifiConnected) {
     presenceTick();  // duty-cycled BLE proximity bursts
-    // Normal operation - read sensor and send data
-    if (millis() - lastReading >= readingInterval) {
+
+    // Sub-sample once a second. Each read returns the sensor's internal
+    // average since the previous read (continuous averaging mode), so these
+    // are already low-noise 1 s means — the window statistics below reject
+    // whatever noise survives.
+    if (millis() - lastSubsample >= SUBSAMPLE_MS) {
+      lastSubsample = millis();
       SensorData data = readSDP810();
 
       if (!data.valid) {
@@ -694,42 +751,51 @@ void loop() {
           }
           readingInterval = 10000;  // probe often while faulted
         }
-      }
-
-      if (data.valid) {
+      } else {
         if (sensorFault) {
           Serial.println("[sensor-fault] sensor recovered");
           sensorFault = false;
           sendStatusHeartbeat("active");
         }
         consecutiveInvalidReads = 0;
-        Serial.printf("Pressure: %.2f Pa, Temperature: %.2f °C\n",
-                      data.pressure, data.temperature);
-
-        // Blower running (ΔP above the on-threshold) → sample granularly so
-        // the graph shows crisp cycle edges; idle → back off
-        readingInterval =
-            (data.pressure >= 5.0f) ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS;
-
-        if (sendSensorData(data)) {
-          Serial.printf("✓ Data sent (heap %u)\n", ESP.getFreeHeap());
-          consecutiveSendFailures = 0;
-          lastSendOk = true;
-          digitalWrite(LED_PIN, HIGH);   // onboard LED mirrors "online"
-          glowFromFilterStatus();        // glow shows the server's verdict
-        } else {
-          Serial.println("✗ Failed to send data");
-          lastSendOk = false;
-          digitalWrite(LED_PIN, LOW);
-          glowState = GLOW_ERROR;
-          if (++consecutiveSendFailures >= MAX_SEND_FAILURES) {
-            Serial.println("[watchdog] repeated send failures — rebooting to recover");
-            delay(200);
-            ESP.restart();
-          }
+        if (sampleN < SAMPLE_BUF_MAX) {
+          samplePBuf[sampleN] = data.pressure;
+          sampleTBuf[sampleN] = data.temperature;
+          sampleN++;
         }
       }
-      
+    }
+
+    // Publish the window's robust statistics on the adaptive cadence
+    if (millis() - lastReading >= readingInterval && sampleN > 0) {
+      AggregatedData agg = aggregateWindow();
+      sampleN = 0;  // fresh window for the next interval
+      Serial.printf("Pressure: %.2f Pa (median of %u, std %.2f), Temp: %.2f °C\n",
+                    agg.pressure, agg.samples, agg.pressureStd, agg.temperature);
+
+      // Blower running (ΔP above the on-threshold) → publish granularly so
+      // the graph shows crisp cycle edges; idle → back off
+      readingInterval =
+          (agg.pressure >= 5.0f) ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS;
+
+      if (sendSensorData(agg)) {
+        Serial.printf("✓ Data sent (heap %u)\n", ESP.getFreeHeap());
+        consecutiveSendFailures = 0;
+        lastSendOk = true;
+        digitalWrite(LED_PIN, HIGH);   // onboard LED mirrors "online"
+        glowFromFilterStatus();        // glow shows the server's verdict
+      } else {
+        Serial.println("✗ Failed to send data");
+        lastSendOk = false;
+        digitalWrite(LED_PIN, LOW);
+        glowState = GLOW_ERROR;
+        if (++consecutiveSendFailures >= MAX_SEND_FAILURES) {
+          Serial.println("[watchdog] repeated send failures — rebooting to recover");
+          delay(200);
+          ESP.restart();
+        }
+      }
+
       lastReading = millis();
     }
     
@@ -1121,7 +1187,7 @@ void updateDeviceStatus() {
   http.end();
 }
 
-bool sendSensorData(SensorData data) {
+bool sendSensorData(AggregatedData data) {
   if (WiFi.status() != WL_CONNECTED) return false;
   
   // Check if we have an API token
@@ -1142,8 +1208,10 @@ bool sendSensorData(SensorData data) {
   http.addHeader("Authorization", "Bearer " + String(config.apiToken));
   
   DynamicJsonDocument doc(256);
-  doc["pressure"] = data.pressure;
-  doc["temperature"] = data.temperature;
+  doc["pressure"] = data.pressure;        // median of the sample window
+  doc["temperature"] = data.temperature;  // mean of the sample window
+  doc["pressureStd"] = data.pressureStd;  // spread — turbulence/flow index
+  doc["samples"] = data.samples;
   // deviceId is now inferred from the token, no need to send it
   
   String jsonString;

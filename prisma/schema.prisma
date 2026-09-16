@@ -27,6 +27,9 @@ model SensorReading {
   userId      String
   // Multi-sensor support
   sensorType  String   @default("pressure_differential")
+  // v1.11.0+ firmware: std dev of the 1 Hz sub-samples behind this reading
+  // (median). Doubles as a turbulence index that tracks airflow.
+  pressureStd Float?
   humidity    Float?   // %RH
   co2         Float?   // ppm
   voc         Float?   // ppb
@@ -400,6 +403,22 @@ model FilterAlert {
 }
 
 // Launch waitlist — email capture from the landing page (pre-launch funnel)
+// Filter-as-flowmeter: at each fresh-filter install, the known filter's
+// manufacturer flow-vs-ΔP curve converts the dry-window baseline into the
+// system's operating airflow (Q0, CFM). Trended across filter changes this
+// is a whole-system health metric (declining Q0 = coil fouling / duct
+// problems, independent of the filter). Provisioned via instrumentation.ts.
+model FlowCalibration {
+  id              String   @id @default(cuid())
+  deviceId        String   // Device.deviceId (SF… code)
+  filterProductId String?
+  baselinePa      Float
+  q0Cfm           Float
+  createdAt       DateTime @default(now())
+
+  @@index([deviceId, createdAt])
+}
+
 // Geocoded install location per device (from the owner's shipping address,
 // rounded to 3 decimals ≈ 110 m — plenty for weather-grid lookups). Powers
 // the outdoor temp/humidity chart overlay. Self-provisions via

@@ -7,6 +7,7 @@ import { maybeTriggerEnergyAlert } from "~/lib/filter-alerts";
 import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { maybePollNest } from "~/lib/nest";
+import { maybeRecordFlowCalibration } from "~/lib/filter-curves";
 import { alertCeilingPa } from "~/lib/filter-health";
 import { escapeHtml } from "~/lib/resend";
 import { resend, EMAIL_FROM } from "~/lib/resend";
@@ -26,6 +27,7 @@ const BatchSchema = z.object({
         pressure: z.number(),
         temperature: z.number(),
         ageSeconds: z.number().min(0).max(24 * 3600),
+        pressureStd: z.number().min(0).optional(),
         humidity: z.number().optional(),
         co2: z.number().optional(),
         voc: z.number().optional(),
@@ -112,6 +114,7 @@ export async function POST(request: NextRequest) {
         deviceId: device.deviceId,
         userId: device.userId!,
         sensorType: "pressure_differential",
+        ...(r.pressureStd !== undefined && { pressureStd: r.pressureStd }),
         ...(r.humidity !== undefined && { humidity: r.humidity }),
         ...(r.co2 !== undefined && { co2: r.co2 }),
         ...(r.voc !== undefined && { voc: r.voc }),
@@ -137,6 +140,16 @@ export async function POST(request: NextRequest) {
     });
 
     const newest = stamped[stamped.length - 1]!;
+
+    // Fresh baseline captured = fresh filter of a known model — record Q0
+    if (newBaseline !== null) {
+      void maybeRecordFlowCalibration(
+        device.deviceId,
+        device.id,
+        device.userId,
+        newBaseline
+      );
+    }
 
     // Opportunistic Nest humidity poll (debounced to 5 min inside) — fire and
     // forget so it can never slow or fail an upload.
