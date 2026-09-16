@@ -142,10 +142,13 @@ Software side can spec; physical work is on the founder:
   days are the dominant confounder; naive trending false-alarms every heat
   wave). Cross-validates the PSC runtime-penalty model with measured data.
   Plan: per-cycle summary extraction server-side once pilot data exists.
-- **Weather + runtime correlation (data groundwork):** geocode each device's
-  shipping address once (US Census Geocoder, free) → nightly Open-Meteo pull
-  of daily temp / apparent temp / cloud cover / shortwave radiation per grid
-  cell → join against runtime-per-day. Unlocks weather-normalized filter
+- **Weather + runtime correlation (data groundwork):** SHIPPED first slice
+  2026-09-16 — DeviceLocation geocoding (Census oneline → Open-Meteo zip
+  fallback, self-provisioned table) + on-demand Open-Meteo hourly fetch
+  powering a toggleable outdoor temp/humidity overlay on the device charts
+  (hourly lines on live views, daily MAX on 7d/30d; Open-Meteo attribution
+  in UI). Still to come: nightly stored pulls per grid cell (apparent temp /
+  cloud cover / radiation) → join against runtime-per-day. Unlocks weather-normalized filter
   trending and the four derived diagnostics: ΔP plateau (runtime-normalized),
   runtime vs degree-days, within-run ΔP sag (coil wetness — measured at
   ~1.3 Pa on the pilot; extreme sag = icing early-warning), and pull-down
