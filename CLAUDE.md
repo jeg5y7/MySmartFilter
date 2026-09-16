@@ -71,8 +71,10 @@ current status.** Progress dashboard artifact: "MySmartFilter · Launch Control"
   SDP810-500Pa standard (auto-detected scale), SDP800 manifold + cheap
   XGZP + RH chip are Rev B candidates.
 - Web data lessons live in-product: baseline-relative alert threshold
-  (alertCeilingPa), downward re-baseline detection, 7d/30d daily
-  average-while-running bars with trend line and zoomed Y axis,
+  (alertCeilingPa), downward re-baseline detection, 7d/30d daily bars from
+  each run's DRY-WINDOW reading (minutes 2-4, before the cooling coil wets
+  and drags ΔP down 1-2 Pa — isolates filter loading from humid-day sag;
+  pilot-validated Sep 2026) with trend line and zoomed Y axis,
   range-scoped stats, local-timezone rendering (LocalTime), app-mode
   pull-to-refresh + freshness badge.
 - New prod tables self-provision through the app (FirmwareRelease

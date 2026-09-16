@@ -132,33 +132,61 @@ interface IndoorHumidity {
   points?: { ts: number; humidityPct: number }[];
 }
 
-/** One point per local day. Pressure = average of blower-ON readings only
- *  (days where the blower never ran are omitted, so the line connects real
- *  measurements instead of dipping to zero). Temperature = daily average of
- *  all readings. */
+/** Dry-coil measurement window within each blower run (seconds from run
+ *  start). Pilot data (Aug–Sep 2026) shows: minute 0–1 is blower spin-up
+ *  overshoot, and from ~minute 4 the wetting cooling coil drags ΔP down
+ *  1–2 Pa (airflow eases as condensate films the fins). Minutes 2–4 is the
+ *  flat, repeatable "filter only" window — sampling there keeps the daily
+ *  trend tracking dirt, not weather. */
+const DRY_WINDOW_START_S = 120;
+const DRY_WINDOW_END_S = 300;
+/** An on-to-on gap longer than this splits a run in two. */
+const RUN_GAP_S = 150;
+
+/** One point per local day. Pressure = average of each run's DRY-WINDOW
+ *  readings (minutes 2–4, before the coil wets) so the loading trend is
+ *  isolated from the humid-day sag; days with only short cycles fall back
+ *  to the plain blower-on average. Days where the blower never ran are
+ *  omitted, so the line connects real measurements instead of dipping to
+ *  zero. Temperature = daily average of all readings. */
 function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
   const days = new Map<
     number,
-    { on: number[]; temperature: number[]; runtimeSec: number }
+    { on: number[]; dry: number[]; temperature: number[]; runtimeSec: number }
   >();
 
   let prev: RawReading | null = null;
+  let runStartMs: number | null = null;
   for (const r of readings) {
     const d = r.timestamp;
     const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     if (!days.has(key))
-      days.set(key, { on: [], temperature: [], runtimeSec: 0 });
+      days.set(key, { on: [], dry: [], temperature: [], runtimeSec: 0 });
     const b = days.get(key)!;
+    b.temperature.push(r.temperature);
     if (r.pressure >= BLOWER_ON_MIN_PA) {
+      const prevOn = prev !== null && prev.pressure >= BLOWER_ON_MIN_PA;
+      const gapSec = prev
+        ? (r.timestamp.getTime() - prev.timestamp.getTime()) / 1000
+        : Infinity;
+      if (!prevOn || gapSec > RUN_GAP_S) {
+        runStartMs = r.timestamp.getTime();
+      }
       b.on.push(r.pressure);
+      if (runStartMs !== null) {
+        const sec = (r.timestamp.getTime() - runStartMs) / 1000;
+        if (sec >= DRY_WINDOW_START_S && sec <= DRY_WINDOW_END_S) {
+          b.dry.push(r.pressure);
+        }
+      }
       // Runtime: sum the gaps between consecutive blower-on readings.
       // Samples arrive every ~10-15 s while running; cap the credited gap so
       // a data outage doesn't count as runtime.
-      if (prev && prev.pressure >= BLOWER_ON_MIN_PA) {
-        const gapSec =
-          (r.timestamp.getTime() - prev.timestamp.getTime()) / 1000;
+      if (prevOn) {
         b.runtimeSec += Math.min(Math.max(gapSec, 0), 150);
       }
+    } else {
+      runStartMs = null;
     }
     prev = r;
   }
@@ -166,14 +194,17 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
   const points: ChartPoint[] = Array.from(days.entries())
     .sort(([a], [b]) => a - b)
     .filter(([, b]) => b.on.length > 0)
-    .map(([key, b]) => ({
-      ts: key,
-      pressure: b.on.reduce((a, c) => a + c, 0) / b.on.length,
-      temperature: cToF(
-        b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length
-      ),
-      runtimeMin: Math.round(b.runtimeSec / 60),
-    }));
+    .map(([key, b]) => {
+      const src = b.dry.length > 0 ? b.dry : b.on;
+      return {
+        ts: key,
+        pressure: src.reduce((a, c) => a + c, 0) / src.length,
+        temperature: cToF(
+          b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length
+        ),
+        runtimeMin: Math.round(b.runtimeSec / 60),
+      };
+    });
 
   // Least-squares trend across the daily averages — the slow, steady rise
   // of a loading filter is exactly what this line makes visible.
@@ -970,6 +1001,13 @@ export function DeviceReadings({
           referenceLabel2="Average while running"
           isLoading={rangeLoading}
         />
+        {rangeCfg.dailyOnAvg && (
+          <p className="text-[10px] text-whisper -mt-2">
+            Daily bars use each run&apos;s first-minutes reading — taken before
+            the cooling coil wets and briefly lowers airflow — so the trend
+            shows filter condition, not weather.
+          </p>
+        )}
 
         {/* Temperature Chart (+ optional outdoor overlay) */}
         <ChartPanel
