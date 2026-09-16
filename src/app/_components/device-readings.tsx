@@ -117,12 +117,19 @@ interface ChartPoint {
   /** Outdoor overlay (hourly nearest-hour; daily mode = that day's MAX). */
   outdoorTempF?: number;
   outdoorRh?: number;
+  /** Indoor humidity from a linked Nest (nearest sample; daily = MAX). */
+  indoorRh?: number;
 }
 
 interface OutdoorWeather {
   available: boolean;
   reason?: string;
   points?: { ts: number; tempF: number; rh: number }[];
+}
+
+interface IndoorHumidity {
+  available: boolean;
+  points?: { ts: number; humidityPct: number }[];
 }
 
 /** One point per local day. Pressure = average of blower-ON readings only
@@ -366,11 +373,19 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
 
 interface ChartPanelProps {
   title: string;
+  /** Tooltip label for the main series (defaults to title). */
+  seriesName?: string;
   unit: string;
   dataKey: "pressure" | "temperature" | "outdoorRh";
   color: string;
   /** Optional second series (e.g. outdoor temp on the temperature chart). */
-  extraLine?: { dataKey: "outdoorTempF"; name: string; color: string };
+  extraLine?: {
+    dataKey: "outdoorTempF" | "indoorRh";
+    name: string;
+    color: string;
+    /** Defaults to dashed; pass false for a solid line. */
+    dashed?: boolean;
+  };
   data: ChartPoint[];
   rangeKey: RangeKey;
   referenceLine?: number;
@@ -390,6 +405,7 @@ interface ChartPanelProps {
 
 function ChartPanel({
   title,
+  seriesName,
   unit,
   dataKey,
   color,
@@ -507,7 +523,7 @@ function ChartPanel({
             {bars ? (
               <Bar
                 dataKey={dataKey}
-                name={title}
+                name={seriesName ?? title}
                 unit={` ${unit}`}
                 fill={color}
                 fillOpacity={0.65}
@@ -519,7 +535,7 @@ function ChartPanel({
               <Line
                 type="monotone"
                 dataKey={dataKey}
-                name={title}
+                name={seriesName ?? title}
                 unit={` ${unit}`}
                 stroke={color}
                 strokeWidth={1.5}
@@ -536,7 +552,7 @@ function ChartPanel({
                 unit={` ${unit}`}
                 stroke={extraLine.color}
                 strokeWidth={1.5}
-                strokeDasharray="5 4"
+                strokeDasharray={extraLine.dashed === false ? undefined : "5 4"}
                 dot={false}
                 activeDot={{ r: 3, fill: extraLine.color, strokeWidth: 0 }}
                 connectNulls
@@ -693,34 +709,82 @@ export function DeviceReadings({
     };
   }, [deviceId, startDate, endDate, showOutdoorTemp, showOutdoorRh]);
 
-  // Join outdoor hours onto the chart points: nearest hour on live views,
-  // that day's MAX on the 7d/30d daily views.
+  // Indoor humidity from a linked Nest (empty payload when none is linked)
+  const [indoor, setIndoor] = useState<IndoorHumidity | null>(null);
+  useEffect(() => {
+    if (!showOutdoorRh) return;
+    let cancelled = false;
+    fetch(`/api/nest/samples?start=${startDate.toISOString()}&end=${endDate.toISOString()}`)
+      .then((r) => (r.ok ? (r.json() as Promise<IndoorHumidity>) : null))
+      .then((d) => {
+        if (!cancelled) setIndoor(d ?? { available: false });
+      })
+      .catch(() => {
+        if (!cancelled) setIndoor({ available: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [startDate, endDate, showOutdoorRh]);
+
+  // Join weather onto the chart points: nearest hour (outdoor) / nearest
+  // 10-min bucket (indoor Nest samples) on live views, that day's MAX on
+  // the 7d/30d daily views.
   const mergedPoints = useMemo(() => {
-    const pts = outdoor?.available ? outdoor.points ?? [] : [];
-    if (pts.length === 0 || (!showOutdoorTemp && !showOutdoorRh)) return chartPoints;
+    const outPts = outdoor?.available ? outdoor.points ?? [] : [];
+    const inPts = indoor?.available ? indoor.points ?? [] : [];
+    const wantOut = showOutdoorTemp || showOutdoorRh;
+    if ((outPts.length === 0 || !wantOut) && (inPts.length === 0 || !showOutdoorRh)) {
+      return chartPoints;
+    }
+
+    const localDayKey = (ts: number) => {
+      const d = new Date(ts);
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    };
+
     if (rangeCfg.dailyOnAvg) {
-      const dayMax = new Map<number, { tempF: number; rh: number }>();
-      for (const p of pts) {
-        const d = new Date(p.ts);
-        const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-        const cur = dayMax.get(key);
-        if (!cur) dayMax.set(key, { tempF: p.tempF, rh: p.rh });
-        else {
-          cur.tempF = Math.max(cur.tempF, p.tempF);
-          cur.rh = Math.max(cur.rh, p.rh);
-        }
-      }
+      const dayMax = new Map<number, { tempF?: number; rh?: number; inRh?: number }>();
+      const bump = (key: number, patch: Partial<{ tempF: number; rh: number; inRh: number }>) => {
+        const cur = dayMax.get(key) ?? {};
+        if (patch.tempF !== undefined)
+          cur.tempF = cur.tempF === undefined ? patch.tempF : Math.max(cur.tempF, patch.tempF);
+        if (patch.rh !== undefined)
+          cur.rh = cur.rh === undefined ? patch.rh : Math.max(cur.rh, patch.rh);
+        if (patch.inRh !== undefined)
+          cur.inRh = cur.inRh === undefined ? patch.inRh : Math.max(cur.inRh, patch.inRh);
+        dayMax.set(key, cur);
+      };
+      for (const p of outPts) bump(localDayKey(p.ts), { tempF: p.tempF, rh: p.rh });
+      for (const p of inPts) bump(localDayKey(p.ts), { inRh: p.humidityPct });
       return chartPoints.map((pt) => {
         const w = dayMax.get(pt.ts);
-        return w ? { ...pt, outdoorTempF: w.tempF, outdoorRh: w.rh } : pt;
+        if (!w) return pt;
+        return {
+          ...pt,
+          outdoorTempF: w.tempF,
+          outdoorRh: w.rh,
+          indoorRh: w.inRh,
+        };
       });
     }
-    const byHour = new Map(pts.map((p) => [p.ts, p]));
+
+    const byHour = new Map(outPts.map((p) => [p.ts, p]));
+    const byTenMin = new Map(
+      inPts.map((p) => [Math.floor(p.ts / 600000) * 600000, p.humidityPct])
+    );
     return chartPoints.map((pt) => {
       const w = byHour.get(Math.floor(pt.ts / 3600000) * 3600000);
-      return w ? { ...pt, outdoorTempF: w.tempF, outdoorRh: w.rh } : pt;
+      const bucket = Math.floor(pt.ts / 600000) * 600000;
+      const inRh = byTenMin.get(bucket) ?? byTenMin.get(bucket - 600000);
+      if (!w && inRh === undefined) return pt;
+      return {
+        ...pt,
+        ...(w && { outdoorTempF: w.tempF, outdoorRh: w.rh }),
+        ...(inRh !== undefined && { indoorRh: inRh }),
+      };
     });
-  }, [chartPoints, outdoor, rangeCfg.dailyOnAvg, showOutdoorTemp, showOutdoorRh]);
+  }, [chartPoints, outdoor, indoor, rangeCfg.dailyOnAvg, showOutdoorTemp, showOutdoorRh]);
 
   const hasOutdoorTemp = useMemo(
     () => mergedPoints.some((p) => p.outdoorTempF !== undefined),
@@ -728,6 +792,10 @@ export function DeviceReadings({
   );
   const hasOutdoorRh = useMemo(
     () => mergedPoints.some((p) => p.outdoorRh !== undefined),
+    [mergedPoints]
+  );
+  const hasIndoorRh = useMemo(
+    () => mergedPoints.some((p) => p.indoorRh !== undefined),
     [mergedPoints]
   );
 
@@ -924,13 +992,31 @@ export function DeviceReadings({
           isLoading={rangeLoading}
         />
 
-        {/* Outdoor Humidity Chart */}
-        {showOutdoorRh && hasOutdoorRh && (
+        {/* Humidity Chart — outdoor (dashed) vs indoor Nest (solid) */}
+        {showOutdoorRh && (hasOutdoorRh || hasIndoorRh) && (
           <ChartPanel
-            title={rangeCfg.dailyOnAvg ? "Outdoor Humidity (daily max)" : "Outdoor Humidity"}
+            title={
+              hasIndoorRh
+                ? rangeCfg.dailyOnAvg
+                  ? "Humidity (daily max) — indoor vs outdoor"
+                  : "Humidity — indoor vs outdoor"
+                : rangeCfg.dailyOnAvg
+                  ? "Outdoor Humidity (daily max)"
+                  : "Outdoor Humidity"
+            }
             unit="%"
             dataKey="outdoorRh"
             color="#5f8a54"
+            extraLine={
+              hasIndoorRh
+                ? {
+                    dataKey: "indoorRh",
+                    name: rangeCfg.dailyOnAvg ? "Indoor max" : "Indoor",
+                    color: "#3e8a72",
+                    dashed: false,
+                  }
+                : undefined
+            }
             data={mergedPoints}
             rangeKey={activeRange}
             autoScaleY
