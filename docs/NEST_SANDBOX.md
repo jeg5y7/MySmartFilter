@@ -73,3 +73,17 @@ consumer account, not a Workspace one, and it can't be changed later).
 - **Troubleshooting:** "Connection didn't complete" usually means the
   redirect URI in step 2.3 doesn't exactly match, or your Google account
   isn't listed as a Test user on the consent screen.
+- **"Error 403: access_denied — has not completed the Google verification
+  process":** the account you signed in with isn't on the consent screen's
+  **Test users** list. Fix: console.cloud.google.com → APIs & Services →
+  OAuth consent screen (aka Google Auth Platform → Audience) → Test users →
+  **+ Add users** → add the exact Google account the Nest lives on (family/
+  shared accounts count — add whichever one you pick on Google's account
+  chooser) → Save → retry Connect.
+- **7-day token expiry in Testing mode:** while publishing status is
+  "Testing", Google expires refresh tokens after 7 days, so the humidity
+  feed silently stops weekly. After the first successful connect, click
+  **Publish app** on the consent screen (status "In production"). Skip
+  verification — the only effect is a one-time "Google hasn't verified this
+  app" warning during connect (Advanced → Go to mysmartfilter.com), which is
+  expected for a private pilot app. Tokens then last until revoked.
