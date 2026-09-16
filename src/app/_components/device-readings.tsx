@@ -114,6 +114,15 @@ interface ChartPoint {
   runtimeMin?: number;
   /** Daily mode only: least-squares trend across the days. */
   trend?: number;
+  /** Outdoor overlay (hourly nearest-hour; daily mode = that day's MAX). */
+  outdoorTempF?: number;
+  outdoorRh?: number;
+}
+
+interface OutdoorWeather {
+  available: boolean;
+  reason?: string;
+  points?: { ts: number; tempF: number; rh: number }[];
 }
 
 /** One point per local day. Pressure = average of blower-ON readings only
@@ -358,8 +367,10 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
 interface ChartPanelProps {
   title: string;
   unit: string;
-  dataKey: "pressure" | "temperature";
+  dataKey: "pressure" | "temperature" | "outdoorRh";
   color: string;
+  /** Optional second series (e.g. outdoor temp on the temperature chart). */
+  extraLine?: { dataKey: "outdoorTempF"; name: string; color: string };
   data: ChartPoint[];
   rangeKey: RangeKey;
   referenceLine?: number;
@@ -382,6 +393,7 @@ function ChartPanel({
   unit,
   dataKey,
   color,
+  extraLine,
   data,
   rangeKey,
   referenceLine,
@@ -516,6 +528,21 @@ function ChartPanel({
                 isAnimationActive={false}
               />
             )}
+            {extraLine && (
+              <Line
+                type="monotone"
+                dataKey={extraLine.dataKey}
+                name={extraLine.name}
+                unit={` ${unit}`}
+                stroke={extraLine.color}
+                strokeWidth={1.5}
+                strokeDasharray="5 4"
+                dot={false}
+                activeDot={{ r: 3, fill: extraLine.color, strokeWidth: 0 }}
+                connectNulls
+                isAnimationActive={false}
+              />
+            )}
             {hasTrend && (
               <Line
                 type="linear"
@@ -643,6 +670,67 @@ export function DeviceReadings({
     return toChartPoints(rangeReadings, rangeCfg);
   }, [rangeReadings, rangeCfg]);
 
+  // ── Outdoor weather overlay (toggleable) ─────────────────────────────────
+  const [showOutdoorTemp, setShowOutdoorTemp] = useState(true);
+  const [showOutdoorRh, setShowOutdoorRh] = useState(true);
+  const [outdoor, setOutdoor] = useState<OutdoorWeather | null>(null);
+
+  useEffect(() => {
+    if (!showOutdoorTemp && !showOutdoorRh) return;
+    let cancelled = false;
+    fetch(
+      `/api/device/${deviceId}/weather?start=${startDate.toISOString()}&end=${endDate.toISOString()}`
+    )
+      .then((r) => (r.ok ? (r.json() as Promise<OutdoorWeather>) : null))
+      .then((d) => {
+        if (!cancelled) setOutdoor(d ?? { available: false });
+      })
+      .catch(() => {
+        if (!cancelled) setOutdoor({ available: false });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [deviceId, startDate, endDate, showOutdoorTemp, showOutdoorRh]);
+
+  // Join outdoor hours onto the chart points: nearest hour on live views,
+  // that day's MAX on the 7d/30d daily views.
+  const mergedPoints = useMemo(() => {
+    const pts = outdoor?.available ? outdoor.points ?? [] : [];
+    if (pts.length === 0 || (!showOutdoorTemp && !showOutdoorRh)) return chartPoints;
+    if (rangeCfg.dailyOnAvg) {
+      const dayMax = new Map<number, { tempF: number; rh: number }>();
+      for (const p of pts) {
+        const d = new Date(p.ts);
+        const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        const cur = dayMax.get(key);
+        if (!cur) dayMax.set(key, { tempF: p.tempF, rh: p.rh });
+        else {
+          cur.tempF = Math.max(cur.tempF, p.tempF);
+          cur.rh = Math.max(cur.rh, p.rh);
+        }
+      }
+      return chartPoints.map((pt) => {
+        const w = dayMax.get(pt.ts);
+        return w ? { ...pt, outdoorTempF: w.tempF, outdoorRh: w.rh } : pt;
+      });
+    }
+    const byHour = new Map(pts.map((p) => [p.ts, p]));
+    return chartPoints.map((pt) => {
+      const w = byHour.get(Math.floor(pt.ts / 3600000) * 3600000);
+      return w ? { ...pt, outdoorTempF: w.tempF, outdoorRh: w.rh } : pt;
+    });
+  }, [chartPoints, outdoor, rangeCfg.dailyOnAvg, showOutdoorTemp, showOutdoorRh]);
+
+  const hasOutdoorTemp = useMemo(
+    () => mergedPoints.some((p) => p.outdoorTempF !== undefined),
+    [mergedPoints]
+  );
+  const hasOutdoorRh = useMemo(
+    () => mergedPoints.some((p) => p.outdoorRh !== undefined),
+    [mergedPoints]
+  );
+
   // ── Loading state ────────────────────────────────────────────────────────
   if (recentLoading) {
     return (
@@ -765,13 +853,45 @@ export function DeviceReadings({
           </p>
         )}
 
+        {/* Outdoor weather toggles */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-faint mr-1">Outdoor:</span>
+          <button
+            onClick={() => setShowOutdoorTemp((v) => !v)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+              showOutdoorTemp
+                ? "bg-sagemist border-sage/40 text-sage-deep"
+                : "bg-card border-mist text-faint hover:bg-mist/60 hover:text-ink"
+            }`}
+          >
+            Temp
+          </button>
+          <button
+            onClick={() => setShowOutdoorRh((v) => !v)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+              showOutdoorRh
+                ? "bg-sagemist border-sage/40 text-sage-deep"
+                : "bg-card border-mist text-faint hover:bg-mist/60 hover:text-ink"
+            }`}
+          >
+            Humidity
+          </button>
+          {(showOutdoorTemp || showOutdoorRh) && outdoor && !outdoor.available && (
+            <span className="text-xs text-faint">
+              {outdoor.reason === "no-address"
+                ? "Add a shipping address to your profile to enable outdoor weather"
+                : "Outdoor weather is unavailable right now"}
+            </span>
+          )}
+        </div>
+
         {/* Pressure Chart */}
         <ChartPanel
           title="Pressure Drop Across Filter"
           unit="Pa"
           dataKey="pressure"
           color="#3e8a72"
-          data={chartPoints}
+          data={mergedPoints}
           rangeKey={activeRange}
           bars={rangeCfg.dailyOnAvg}
           referenceLine={alertCeiling}
@@ -783,17 +903,54 @@ export function DeviceReadings({
           isLoading={rangeLoading}
         />
 
-        {/* Temperature Chart */}
+        {/* Temperature Chart (+ optional outdoor overlay) */}
         <ChartPanel
           title="Temperature"
           unit="°F"
           dataKey="temperature"
           color="#b9652f"
-          data={chartPoints}
+          extraLine={
+            showOutdoorTemp && hasOutdoorTemp
+              ? {
+                  dataKey: "outdoorTempF",
+                  name: rangeCfg.dailyOnAvg ? "Outdoor max" : "Outdoor",
+                  color: "#5f8a54",
+                }
+              : undefined
+          }
+          data={mergedPoints}
           rangeKey={activeRange}
           autoScaleY
           isLoading={rangeLoading}
         />
+
+        {/* Outdoor Humidity Chart */}
+        {showOutdoorRh && hasOutdoorRh && (
+          <ChartPanel
+            title={rangeCfg.dailyOnAvg ? "Outdoor Humidity (daily max)" : "Outdoor Humidity"}
+            unit="%"
+            dataKey="outdoorRh"
+            color="#5f8a54"
+            data={mergedPoints}
+            rangeKey={activeRange}
+            autoScaleY
+            isLoading={rangeLoading}
+          />
+        )}
+
+        {(showOutdoorTemp || showOutdoorRh) && outdoor?.available && (
+          <p className="text-[10px] text-whisper">
+            Outdoor data by{" "}
+            <a
+              href="https://open-meteo.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-faint"
+            >
+              Open-Meteo.com
+            </a>
+          </p>
+        )}
       </div>
 
       {/* ── Stats Bar ──────────────────────────────────────────────────── */}

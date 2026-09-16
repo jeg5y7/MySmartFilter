@@ -400,6 +400,20 @@ model FilterAlert {
 }
 
 // Launch waitlist — email capture from the landing page (pre-launch funnel)
+// Geocoded install location per device (from the owner's shipping address,
+// rounded to 3 decimals ≈ 110 m — plenty for weather-grid lookups). Powers
+// the outdoor temp/humidity chart overlay. Self-provisions via
+// ensureDeviceLocationTable() (Waitlist pattern). Standalone on purpose:
+// no FK so existing Device queries never depend on it.
+model DeviceLocation {
+  id        String   @id @default(cuid())
+  deviceId  String   @unique // Device.deviceId (SF… code)
+  latitude  Float
+  longitude Float
+  source    String   // "census" | "zip"
+  createdAt DateTime @default(now())
+}
+
 // ── Google Nest sandbox integration (SDM API) ────────────────────────────────
 // One linked Nest thermostat per user (sandbox pilot). The refresh token is
 // stored AES-256-GCM encrypted (key derived from AUTH_SECRET) — never log it.
