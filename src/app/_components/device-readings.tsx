@@ -142,26 +142,45 @@ const DRY_WINDOW_START_S = 120;
 const DRY_WINDOW_END_S = 300;
 /** An on-to-on gap longer than this splits a run in two. */
 const RUN_GAP_S = 150;
+/** A run's dry window only counts as TRULY dry when the system rested at
+ *  least this long first — a coil still damp from the previous cycle reads
+ *  ~1 Pa low even in minutes 2–4 (measured on pilot data, Sep 2026). */
+const DRY_MIN_OFF_S = 30 * 60;
 
 /** One point per local day. Pressure = average of each run's DRY-WINDOW
- *  readings (minutes 2–4, before the coil wets) so the loading trend is
- *  isolated from the humid-day sag; days with only short cycles fall back
- *  to the plain blower-on average. Days where the blower never ran are
- *  omitted, so the line connects real measurements instead of dipping to
- *  zero. Temperature = daily average of all readings. */
+ *  readings (minutes 2–4, before the coil wets), preferring runs that
+ *  started after ≥30 min of rest (fully dry coil). Fallbacks in order:
+ *  ungated dry windows (days of back-to-back cycling), then the plain
+ *  blower-on average (days with only short cycles). Days where the blower
+ *  never ran are omitted, so the line connects real measurements instead
+ *  of dipping to zero. Temperature = daily average of all readings. */
 function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
   const days = new Map<
     number,
-    { on: number[]; dry: number[]; temperature: number[]; runtimeSec: number }
+    {
+      on: number[];
+      dry: number[];
+      dryRested: number[];
+      temperature: number[];
+      runtimeSec: number;
+    }
   >();
 
   let prev: RawReading | null = null;
   let runStartMs: number | null = null;
+  let runIsRested = false;
+  let offStartMs: number | null = null; // when the current off period began
   for (const r of readings) {
     const d = r.timestamp;
     const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     if (!days.has(key))
-      days.set(key, { on: [], dry: [], temperature: [], runtimeSec: 0 });
+      days.set(key, {
+        on: [],
+        dry: [],
+        dryRested: [],
+        temperature: [],
+        runtimeSec: 0,
+      });
     const b = days.get(key)!;
     b.temperature.push(r.temperature);
     if (r.pressure >= BLOWER_ON_MIN_PA) {
@@ -171,12 +190,24 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
         : Infinity;
       if (!prevOn || gapSec > RUN_GAP_S) {
         runStartMs = r.timestamp.getTime();
+        // Rested = a confirmed off period of ≥30 min before this run. An
+        // unknown history (range starts mid-run, or a data gap) does NOT
+        // qualify — better to under-claim dryness than over-claim it.
+        const offSec =
+          offStartMs !== null
+            ? (runStartMs - offStartMs) / 1000
+            : prevOn && gapSec > RUN_GAP_S
+              ? gapSec // data gap between on-readings — count only if huge
+              : null;
+        runIsRested = offSec !== null && offSec >= DRY_MIN_OFF_S;
       }
+      offStartMs = null;
       b.on.push(r.pressure);
       if (runStartMs !== null) {
         const sec = (r.timestamp.getTime() - runStartMs) / 1000;
         if (sec >= DRY_WINDOW_START_S && sec <= DRY_WINDOW_END_S) {
           b.dry.push(r.pressure);
+          if (runIsRested) b.dryRested.push(r.pressure);
         }
       }
       // Runtime: sum the gaps between consecutive blower-on readings.
@@ -186,6 +217,7 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
         b.runtimeSec += Math.min(Math.max(gapSec, 0), 150);
       }
     } else {
+      if (offStartMs === null) offStartMs = r.timestamp.getTime();
       runStartMs = null;
     }
     prev = r;
@@ -195,7 +227,8 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
     .sort(([a], [b]) => a - b)
     .filter(([, b]) => b.on.length > 0)
     .map(([key, b]) => {
-      const src = b.dry.length > 0 ? b.dry : b.on;
+      const src =
+        b.dryRested.length > 0 ? b.dryRested : b.dry.length > 0 ? b.dry : b.on;
       return {
         ts: key,
         pressure: src.reduce((a, c) => a + c, 0) / src.length,
@@ -1003,9 +1036,9 @@ export function DeviceReadings({
         />
         {rangeCfg.dailyOnAvg && (
           <p className="text-[10px] text-whisper -mt-2">
-            Daily bars use each run&apos;s first-minutes reading — taken before
-            the cooling coil wets and briefly lowers airflow — so the trend
-            shows filter condition, not weather.
+            Daily bars use each run&apos;s first-minutes reading — taken after
+            the system has rested and before the cooling coil wets — so the
+            trend shows filter condition, not weather.
           </p>
         )}
 
