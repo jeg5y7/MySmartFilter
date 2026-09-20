@@ -22,11 +22,19 @@ import { db } from "~/server/db";
 
 /** Registry keyed by normalized `${size}|merv${merv}` (lowercase, no spaces). */
 const CURVES: Record<string, { cfm: number; pa: number }[]> = {
-  // e.g. "20x25x1|merv11": [
-  //   { cfm: 492, pa: 22.4 },
-  //   { cfm: 984, pa: 62.3 },
-  //   { cfm: 1389, pa: 112.1 },
-  // ],
+  // Source: manufacturer's printed "Air Flow Rate (CFM) / Initial Resistance
+  // (IWC)" table on the stocked 20x25x1 MERV 11 (max rated 1389 CFM),
+  // transcribed from the founder's label photos (Sep 2026); IWC → Pa at
+  // 1 IWC = 249.089 Pa. Pilot-validated: inverting at the observed fresh
+  // baseline (118.5 Pa) gives ~1180 CFM, matching the independent
+  // first-principles estimate of the pilot system (~1150–1250 CFM).
+  "20x25x1|merv11": [
+    { cfm: 410, pa: 27.4 },
+    { cfm: 614, pa: 44.8 },
+    { cfm: 819, pa: 69.7 },
+    { cfm: 1024, pa: 97.1 },
+    { cfm: 1389, pa: 151.9 },
+  ],
 };
 
 export function curveKeyFor(product: Pick<FilterProduct, "size" | "merv">): string {
