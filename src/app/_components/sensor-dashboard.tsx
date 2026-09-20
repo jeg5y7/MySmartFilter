@@ -4,6 +4,8 @@ import { LocalTime } from "~/app/_components/local-time";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { computeFilterHealth } from "~/lib/filter-health";
+import { computeFilterPrediction, type FilterPrediction } from "~/lib/filter-prediction";
+import { FilterLifeChart } from "~/app/_components/filter-life-chart";
 
 export async function SensorDashboard() {
   const latestReadings = await api.sensor.getLatest({ limit: 20 });
@@ -14,6 +16,7 @@ export async function SensorDashboard() {
   let filterValue = "No devices";
   let filterSubtitle = "Add a monitor to begin";
   let filterIcon = "✅";
+  let prediction: FilterPrediction | null = null;
   if (session?.user?.id) {
     const devices = await db.device.findMany({
       where: { userId: session.user.id },
@@ -54,6 +57,20 @@ export async function SensorDashboard() {
         worst.lifePct !== null
           ? `${worst.lifePct}% filter life left`
           : "Tracking live";
+
+      // Prediction chart: the device closest to replacement wins the slot
+      for (const d of devices) {
+        const p = await computeFilterPrediction(d);
+        if (!p) continue;
+        if (
+          !prediction ||
+          (p.daysRemaining !== null &&
+            (prediction.daysRemaining === null ||
+              p.daysRemaining < prediction.daysRemaining))
+        ) {
+          prediction = p;
+        }
+      }
     }
   }
 
@@ -103,11 +120,21 @@ export async function SensorDashboard() {
         </div>
       )}
 
-      {/* Chart Section */}
-      {latestReadings.length > 0 && (
+      {/* Filter life prediction */}
+      {prediction && (
         <div className="rounded-[24px] border border-mist bg-card p-6">
-        <h3 className="mb-4 text-xl font-semibold text-ink">Pressure Trend</h3>
-          <SensorChart data={latestReadings} />
+          <h3 className="mb-4 text-xl font-semibold text-ink">
+            Filter Life Prediction
+          </h3>
+          <FilterLifeChart
+            history={prediction.history}
+            projection={prediction.projection}
+            ceiling={prediction.ceiling}
+            baseline={prediction.baseline}
+            daysRemaining={prediction.daysRemaining}
+            predictedDate={prediction.predictedDate?.toISOString() ?? null}
+            deviceName={prediction.deviceName}
+          />
         </div>
       )}
 
@@ -205,17 +232,3 @@ function ReadingCard({ reading }: { reading: { id: string; deviceId: string; pre
   );
 }
 
-// Chart Component (simplified for now, will enhance with Recharts)
-function SensorChart({ data }: { data: unknown[] }) {
-  return (
-    <div className="h-64 rounded-2xl border border-mist bg-paper p-4 flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-4xl mb-2">📈</div>
-        <p className="text-body">Filter life prediction chart coming soon</p>
-        <p className="text-sm text-faint mt-1">
-          {data.length} data points ready for visualization
-        </p>
-      </div>
-    </div>
-  );
-}
