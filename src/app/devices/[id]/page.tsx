@@ -11,6 +11,7 @@ import { ExportButton } from "~/app/_components/export-button";
 import { FilterHealthCard } from "~/app/_components/filter-health-card";
 import { AirflowImpactCard } from "~/app/_components/airflow-impact-card";
 import { computeAirflowImpact } from "~/lib/airflow-impact";
+import { airflowFromCurve } from "~/lib/filter-curves";
 import { LocalTime } from "~/app/_components/local-time";
 import { isAutoShipMember } from "~/lib/membership";
 import { suggestedRateForState } from "~/lib/electricity-rates";
@@ -72,6 +73,18 @@ export default async function DevicePage({ params }: DevicePageProps) {
     });
   } catch {
     // table not provisioned yet
+  }
+
+  // No stored calibration yet (hook fires on future filter changes) but the
+  // current install's baseline + curve are both known → derive Q0 on the fly
+  if (!flowCal && device.baselineDeltaP !== null && preference) {
+    const q0 = airflowFromCurve(preference.filterProduct, device.baselineDeltaP);
+    if (q0 !== null) {
+      flowCal = {
+        q0Cfm: q0,
+        createdAt: device.filterInstalledAt ?? new Date(),
+      };
+    }
   }
 
   // Airflow-impact hero: current dry-coil ΔP from the last 48 h of readings
