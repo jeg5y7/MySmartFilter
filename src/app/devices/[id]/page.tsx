@@ -9,6 +9,8 @@ import { AlertActionButtons } from "~/app/_components/alert-action-buttons";
 import { AlertHistory } from "~/app/_components/alert-history";
 import { ExportButton } from "~/app/_components/export-button";
 import { FilterHealthCard } from "~/app/_components/filter-health-card";
+import { AirflowImpactCard } from "~/app/_components/airflow-impact-card";
+import { computeAirflowImpact } from "~/lib/airflow-impact";
 import { LocalTime } from "~/app/_components/local-time";
 import { isAutoShipMember } from "~/lib/membership";
 import { suggestedRateForState } from "~/lib/electricity-rates";
@@ -72,6 +74,25 @@ export default async function DevicePage({ params }: DevicePageProps) {
     // table not provisioned yet
   }
 
+  // Airflow-impact hero: current dry-coil ΔP from the last 48 h of readings
+  // (bounded query — fine at pilot scale; revisit with downsampling at fleet
+  // scale), converted via the same constants as the PSC energy model.
+  const recentForImpact = await db.sensorReading.findMany({
+    where: {
+      deviceId: device.deviceId,
+      sensorType: "pressure_differential",
+      timestamp: { gte: new Date(Date.now() - 48 * 3600 * 1000) },
+    },
+    orderBy: { timestamp: "asc" },
+    take: 10000,
+    select: { pressure: true, timestamp: true },
+  });
+  const airflowImpact = computeAirflowImpact(
+    device,
+    recentForImpact,
+    flowCal?.q0Cfm ?? null
+  );
+
   // Suggested electricity rate from the shipping state on file
   const me = await db.user.findUnique({
     where: { id: session.user.id },
@@ -122,6 +143,12 @@ export default async function DevicePage({ params }: DevicePageProps) {
             </div>
           </div>
         </div>
+
+        {/* What the filter is doing to the system — the headline metric */}
+        <AirflowImpactCard
+          impact={airflowImpact}
+          filterInstalledAt={device.filterInstalledAt}
+        />
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Device Info */}
