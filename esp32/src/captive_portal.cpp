@@ -249,6 +249,27 @@ struct AggregatedData {
   uint8_t samples;
 };
 
+// ── Batched uploads (v1.12.0) ───────────────────────────────────────────────
+// One HTTPS request per reading was ~6 req/min while the blower ran — the
+// dominant serverless-compute cost at fleet scale. Readings are still
+// aggregated on the same cadence (identical data resolution in the cloud);
+// they just ride together in one POST /sensor/batch flush per minute. Each
+// carries ageSeconds so the server reconstructs exact timestamps — charts
+// are unchanged. A failed flush KEEPS the buffer (those readings retry on
+// the next flush), so brief network blips lose nothing.
+struct BatchedReading {
+  float pressure;
+  float pressureStd;
+  float temperature;
+  unsigned long takenAtMs;
+};
+const uint8_t BATCH_BUF_MAX = 30;              // ~5 min active / 30 min idle backlog
+const unsigned long FLUSH_INTERVAL_MS = 60000; // one request per minute
+BatchedReading batchBuf[BATCH_BUF_MAX];
+uint8_t batchN = 0;
+unsigned long lastFlushMs = 0;
+bool firstFlushDone = false;  // first reading after boot flushes immediately
+
 static AggregatedData aggregateWindow() {
   AggregatedData a = {0, 0, 0, sampleN};
   if (sampleN == 0) return a;
@@ -612,7 +633,7 @@ void startNormalOperation();
 bool connectToWiFi();
 void registerDevice();
 void updateDeviceStatus();
-bool sendSensorData(AggregatedData data);
+bool sendSensorBatch();
 void sendStatusHeartbeat(const char* status);
 void initializeSDP810();
 SensorData readSDP810();
@@ -766,26 +787,47 @@ void loop() {
       }
     }
 
-    // Publish the window's robust statistics on the adaptive cadence
+    // Aggregate the window into one reading on the adaptive cadence and
+    // buffer it — network happens at flush time, not here
     if (millis() - lastReading >= readingInterval && sampleN > 0) {
       AggregatedData agg = aggregateWindow();
       sampleN = 0;  // fresh window for the next interval
-      Serial.printf("Pressure: %.2f Pa (median of %u, std %.2f), Temp: %.2f °C\n",
-                    agg.pressure, agg.samples, agg.pressureStd, agg.temperature);
-
-      // Blower running (ΔP above the on-threshold) → publish granularly so
+      // Blower running (ΔP above the on-threshold) → aggregate granularly so
       // the graph shows crisp cycle edges; idle → back off
       readingInterval =
           (agg.pressure >= 5.0f) ? ACTIVE_INTERVAL_MS : IDLE_INTERVAL_MS;
 
-      if (sendSensorData(agg)) {
-        Serial.printf("✓ Data sent (heap %u)\n", ESP.getFreeHeap());
+      if (batchN >= BATCH_BUF_MAX) {  // overflow: drop the oldest reading
+        memmove(&batchBuf[0], &batchBuf[1],
+                (BATCH_BUF_MAX - 1) * sizeof(BatchedReading));
+        batchN = BATCH_BUF_MAX - 1;
+      }
+      batchBuf[batchN].pressure = agg.pressure;
+      batchBuf[batchN].pressureStd = agg.pressureStd;
+      batchBuf[batchN].temperature = agg.temperature;
+      batchBuf[batchN].takenAtMs = millis();
+      batchN++;
+      Serial.printf("Reading: %.2f Pa (median of %u, std %.2f), %.2f °C — buffered %u\n",
+                    agg.pressure, agg.samples, agg.pressureStd, agg.temperature, batchN);
+
+      lastReading = millis();
+    }
+
+    // Flush the batch once a minute (immediately for the first reading after
+    // boot so the dashboard sees the unit online right away)
+    if (batchN > 0 &&
+        (!firstFlushDone ||
+         (unsigned long)(millis() - lastFlushMs) >= FLUSH_INTERVAL_MS)) {
+      if (sendSensorBatch()) {
+        Serial.printf("✓ Batch of %u sent (heap %u)\n", batchN, ESP.getFreeHeap());
+        firstFlushDone = true;
+        batchN = 0;
         consecutiveSendFailures = 0;
         lastSendOk = true;
         digitalWrite(LED_PIN, HIGH);   // onboard LED mirrors "online"
         glowFromFilterStatus();        // glow shows the server's verdict
       } else {
-        Serial.println("✗ Failed to send data");
+        Serial.println("✗ Batch flush failed — readings kept for retry");
         lastSendOk = false;
         digitalWrite(LED_PIN, LOW);
         glowState = GLOW_ERROR;
@@ -795,8 +837,7 @@ void loop() {
           ESP.restart();
         }
       }
-
-      lastReading = millis();
+      lastFlushMs = millis();
     }
     
     // Always-on units rarely reboot — re-check for updates daily
@@ -1187,9 +1228,9 @@ void updateDeviceStatus() {
   http.end();
 }
 
-bool sendSensorData(AggregatedData data) {
+bool sendSensorBatch() {
   if (WiFi.status() != WL_CONNECTED) return false;
-  
+
   // Check if we have an API token
   if (strlen(config.apiToken) == 0) {
     Serial.println("No API token available. Attempting to register device...");
@@ -1199,26 +1240,32 @@ bool sendSensorData(AggregatedData data) {
       return false;
     }
   }
-  
+
   HTTPClient http;
-  String url = String(API_BASE_URL_STR) + "/sensor";
-  
+  String url = String(API_BASE_URL_STR) + "/sensor/batch";
+
   http.begin(apiClient, url);
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Bearer " + String(config.apiToken));
-  
-  DynamicJsonDocument doc(256);
-  doc["pressure"] = data.pressure;        // median of the sample window
-  doc["temperature"] = data.temperature;  // mean of the sample window
-  doc["pressureStd"] = data.pressureStd;  // spread — turbulence/flow index
-  doc["samples"] = data.samples;
-  // deviceId is now inferred from the token, no need to send it
-  
+
+  // ~90 bytes per reading; 30-reading worst case fits comfortably in 4 KB
+  DynamicJsonDocument doc(4096);
+  JsonArray arr = doc.createNestedArray("readings");
+  unsigned long nowMs = millis();
+  for (uint8_t i = 0; i < batchN; i++) {
+    JsonObject o = arr.createNestedObject();
+    o["pressure"] = batchBuf[i].pressure;        // window median
+    o["temperature"] = batchBuf[i].temperature;  // window mean
+    o["pressureStd"] = batchBuf[i].pressureStd;  // spread — turbulence index
+    // Unsigned subtraction is millis()-rollover-safe
+    o["ageSeconds"] = (nowMs - batchBuf[i].takenAtMs) / 1000;
+  }
+
   String jsonString;
   serializeJson(doc, jsonString);
-  
-  Serial.println("Sending data: " + jsonString);
-  
+
+  Serial.printf("Sending batch of %u (%u bytes)\n", batchN, jsonString.length());
+
   int httpResponseCode = http.POST(jsonString);
   bool success = (httpResponseCode == 200);
 

@@ -2,14 +2,28 @@
 
 Ready-to-flash images, each a single file written at address `0x0`:
 
-- **`smartfilter-usb-pilot-TEST-v1.11.0.bin`** — bench-test build. Needs no
+- **`smartfilter-usb-pilot-TEST-v1.12.0.bin`** — bench-test build. Needs no
   sensor: a bare dev board sends simulated blower cycles (≈38 Pa on /
-  ~0 Pa off, 15-minute cycles) to production every 30 s. Use this to prove
-  the whole pipeline the day the boards arrive.
-- **`smartfilter-usb-pilot-v1.11.0.bin`** — real build for assembled units
+  ~0 Pa off, 15-minute cycles) to production. Use this to prove the whole
+  pipeline the day the boards arrive.
+- **`smartfilter-usb-pilot-v1.12.0.bin`** — real build for assembled units
   with the SDP810 wired (I2C on pins 21/22).
 
-## v1.11.0 — oversampled readings: median + spread (SHIP THIS ONE)
+## v1.12.0 — batched uploads: 4-6x fewer requests (SHIP THIS ONE)
+
+One HTTPS request per reading (~6/min while the blower ran) was the
+dominant serverless-compute cost — the thing that blew through Vercel's
+free tier. Readings are still aggregated on the same cadence (10 s
+active / 60 s idle — identical data resolution in the cloud); they now
+buffer locally and flush together in one POST /sensor/batch per minute,
+each carrying ageSeconds so the server reconstructs exact timestamps.
+A failed flush KEEPS the buffer (up to 30 readings) and retries next
+minute, so brief network blips lose nothing; the send-failure watchdog
+still reboots after 5 consecutive failed flushes. First reading after
+boot flushes immediately so the dashboard sees the unit online right
+away. Server accepts both paths — older firmware keeps working.
+
+## v1.11.0 — oversampled readings: median + spread
 
 Loss-in-weight-feeder trick, adapted: instead of one snapshot per publish,
 the monitor now sub-samples the sensor once a second (each sub-read is

@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
     }
     const apiToken = authHeader.substring(7);
 
-    // Hourly cadence + exception pushes: 30 connects/hour is generous headroom
-    const rl = rateLimit(`sensor-batch:${apiToken}`, 30, 60 * 60 * 1000);
+    // USB firmware (v1.12+) flushes once a minute; battery firmware hourly.
+    // 120/hour leaves 2x headroom over the fastest legitimate cadence.
+    const rl = rateLimit(`sensor-batch:${apiToken}`, 120, 60 * 60 * 1000);
     if (!rl.ok) return tooManyRequests(rl);
 
     const device = await db.device.findUnique({ where: { apiToken } });
