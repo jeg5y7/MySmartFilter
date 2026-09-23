@@ -9,6 +9,7 @@ import { computeFilterHealth, alertCeilingPa } from "~/lib/filter-health";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { maybePollNest } from "~/lib/nest";
 import { maybeRecordFlowCalibration } from "~/lib/filter-curves";
+import { maybeRefineBaseline } from "~/lib/baseline-refine";
 
 // Schema for validating ESP32 sensor data
 const SensorDataSchema = z.object({
@@ -167,6 +168,10 @@ export async function POST(request: NextRequest) {
     // ingestion is our steady heartbeat) — debounced to every 5 min inside,
     // fire-and-forget so it can never slow or fail a reading.
     void maybePollNest(device.userId);
+
+    // Replace a ramp-contaminated provisional baseline with the dry-window
+    // median once the fresh filter has 48 h of history (no-op after that)
+    void maybeRefineBaseline(updatedDevice);
 
     // Tell the device its filter verdict so the glow light can show it
     let filterStatus: string | null = null;
