@@ -63,8 +63,13 @@ export async function maybeDetectFilterReplacement(
   if (currentPressure < BLOWER_ON_MIN_PA) return false; // blower off — no signal
   if (currentPressure > baseline + CLEAN_MARGIN_PA) return false; // not clean-level
 
-  // Recent blower-on history: the newest few must all be clean-level, and
-  // before them the filter must have actually been loaded.
+  // Recent blower-on history WITH timestamps: the confirming readings must
+  // come from each run's DRY WINDOW (minutes 2–4, after spin-up and before
+  // the cooling coil wets). Field incident (Sep 2026): late-run wet-coil
+  // sag reads 1–2 Pa low, and after a baseline refinement those sagged
+  // readings landed inside the clean margin — a month-old filter was
+  // declared fresh mid-afternoon. Judging only dry-window samples makes
+  // "clean level" mean what it says.
   const recent = await db.sensorReading.findMany({
     where: {
       deviceId: device.deviceId,
@@ -72,23 +77,57 @@ export async function maybeDetectFilterReplacement(
       pressure: { gte: BLOWER_ON_MIN_PA },
     },
     orderBy: { timestamp: "desc" },
-    take: 20,
-    select: { pressure: true },
+    take: 120, // ~20 min of active-cadence history, spanning run boundaries
+    select: { pressure: true, timestamp: true },
   });
 
-  // ── Path A: loaded filter dropped back to the clean baseline ─────────────
-  const cleanRun = recent.slice(0, CONSEC_CLEAN_READINGS);
+  // Reconstruct run positions (oldest→newest): a gap > 150 s between
+  // consecutive blower-on readings marks a new run.
+  const asc = [...recent].reverse();
+  interface DryReading {
+    pressure: number;
+    runIndex: number;
+  }
+  const dry: DryReading[] = [];
+  let runStartMs: number | null = null;
+  let runIndex = -1;
+  let prevMs: number | null = null;
+  for (const r of asc) {
+    const ms = r.timestamp.getTime();
+    if (prevMs === null || ms - prevMs > 150_000) {
+      runIndex++;
+      runStartMs = ms;
+    }
+    const sec = (ms - (runStartMs ?? ms)) / 1000;
+    if (sec >= 120 && sec <= 300) {
+      dry.push({ pressure: r.pressure, runIndex });
+    }
+    prevMs = ms;
+  }
+
+  // Newest dry readings first, for the confirmation windows
+  const dryDesc = [...dry].reverse();
+
   let detected = false;
   let newBaselineRun: number[] = [];
   let pathLabel = "";
 
+  // ── Path A: loaded filter dropped back to the clean baseline ─────────────
+  const cleanRun = dryDesc.slice(0, CONSEC_CLEAN_READINGS);
   if (
     cleanRun.length === CONSEC_CLEAN_READINGS &&
-    cleanRun.every((r) => r.pressure <= baseline + CLEAN_MARGIN_PA)
+    cleanRun.every((r) => r.pressure <= baseline + CLEAN_MARGIN_PA) &&
+    // A real swap's clean level shows up across separate runs, not one
+    // window of a single (possibly odd) cycle
+    new Set(cleanRun.map((r) => r.runIndex)).size >= 2
   ) {
+    const cleanIdx = new Set(cleanRun.map((r) => `${r.runIndex}`));
     const priorPeak = Math.max(
       0,
-      ...recent.slice(CONSEC_CLEAN_READINGS).map((r) => r.pressure)
+      ...dryDesc
+        .slice(CONSEC_CLEAN_READINGS)
+        .filter((r) => !cleanIdx.has(`${r.runIndex}`))
+        .map((r) => r.pressure)
     );
     const wasLoaded =
       priorPeak - baseline >= LOADED_RISE_PA ||
@@ -103,10 +142,11 @@ export async function maybeDetectFilterReplacement(
   // ── Path B: stable plateau well BELOW baseline (baseline was captured on
   //    an already-dirty filter; the fresh one reads lower) ──────────────────
   if (!detected) {
-    const dropRun = recent.slice(0, DROP_CONSEC_READINGS);
+    const dropRun = dryDesc.slice(0, DROP_CONSEC_READINGS);
     if (
       dropRun.length === DROP_CONSEC_READINGS &&
-      dropRun.every((r) => r.pressure <= baseline - DROP_MARGIN_PA)
+      dropRun.every((r) => r.pressure <= baseline - DROP_MARGIN_PA) &&
+      new Set(dropRun.map((r) => r.runIndex)).size >= 2
     ) {
       const values = dropRun.map((r) => r.pressure);
       const spread = Math.max(...values) - Math.min(...values);
@@ -132,6 +172,7 @@ export async function maybeDetectFilterReplacement(
       where: { id: device.id },
       data: {
         baselineDeltaP: newBaseline,
+        baselineRefinedAt: null, // new filter → refinement re-runs at 48 h
         filterInstalledAt: now,
         runtimeHours: 0,
         extraEnergyCostCents: 0,

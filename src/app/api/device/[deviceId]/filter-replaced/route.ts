@@ -40,6 +40,7 @@ export async function POST(
         where: { id: device.id },
         data: {
           baselineDeltaP: null,
+          baselineRefinedAt: null, // new filter → refinement re-runs at 48 h
           filterInstalledAt: now,
           runtimeHours: 0,
           extraEnergyCostCents: 0,
