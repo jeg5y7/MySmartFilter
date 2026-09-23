@@ -92,6 +92,13 @@ export function AirflowImpactCard({
           ? `Your filter is barely restricting airflow${installedLabel ? ` — effectively as fresh as when it was installed ${installedLabel}` : ""}. No wasted energy yet.`
           : `How much less air your system moves because of dirt collected${installedLabel ? ` since ${installedLabel}` : ""} — less airflow means longer run times and more energy per degree of comfort.`}
       </p>
+      {impact.cfmLost === null && (
+        <p className="mt-2 text-xs text-faint">
+          Select your exact filter model in Filter Settings below and this
+          reading also shows real CFM, calibrated from that filter&apos;s
+          published airflow curve.
+        </p>
+      )}
     </div>
   );
 }
