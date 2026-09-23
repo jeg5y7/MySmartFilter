@@ -8,6 +8,7 @@ import { maybeDetectFilterReplacement } from "~/lib/filter-replacement";
 import { rateLimit, tooManyRequests } from "~/lib/rate-limit";
 import { maybePollNest } from "~/lib/nest";
 import { maybeRecordFlowCalibration } from "~/lib/filter-curves";
+import { maybeRefineBaseline } from "~/lib/baseline-refine";
 import { alertCeilingPa } from "~/lib/filter-health";
 import { escapeHtml } from "~/lib/resend";
 import { resend, EMAIL_FROM } from "~/lib/resend";
@@ -155,6 +156,10 @@ export async function POST(request: NextRequest) {
     // Opportunistic Nest humidity poll (debounced to 5 min inside) — fire and
     // forget so it can never slow or fail an upload.
     void maybePollNest(device.userId);
+
+    // Replace a ramp-contaminated provisional baseline with the dry-window
+    // median once the fresh filter has 48 h of history (no-op after that)
+    void maybeRefineBaseline(updatedDevice);
 
     // Threshold webhook on the newest reading (alert dedupe lives downstream).
     // Ceiling = fresh-filter baseline + allowed rise.

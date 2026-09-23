@@ -71,6 +71,10 @@ model Device {
   airflowCfm           Float     @default(1000)  // rated system airflow
   electricityRateCents Float     @default(15)    // ¢ per kWh
   baselineDeltaP       Float?    // Pa across a clean filter, captured after install/replacement
+  // Set once the provisional baseline (first blower-on snapshot — can catch
+  // ramp-up and read ~10 Pa low) has been replaced by the dry-window median
+  // of the first 48 h on the fresh filter. See src/lib/baseline-refine.ts.
+  baselineRefinedAt    DateTime?
   filterInstalledAt    DateTime?
   runtimeHours         Float     @default(0)     // blower runtime since filter install
   extraEnergyCostCents Float     @default(0)     // cumulative extra energy cost vs clean filter

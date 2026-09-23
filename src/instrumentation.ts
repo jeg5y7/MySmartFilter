@@ -13,6 +13,10 @@ export async function register() {
     await db.$executeRawUnsafe(
       `ALTER TABLE "SensorReading" ADD COLUMN IF NOT EXISTS "pressureStd" DOUBLE PRECISION`
     );
+    // Baseline refinement marker (src/lib/baseline-refine.ts)
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "Device" ADD COLUMN IF NOT EXISTS "baselineRefinedAt" TIMESTAMP(3)`
+    );
     // Filter-as-flowmeter: airflow calibrations captured at each fresh-filter
     // install (see src/lib/filter-curves.ts)
     await db.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "FlowCalibration" (
