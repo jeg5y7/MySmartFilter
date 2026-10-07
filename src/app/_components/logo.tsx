@@ -11,7 +11,9 @@ export function PleatsMark({
   size?: number;
   dark?: boolean;
 }) {
-  const ink = dark ? "#FAF8F5" : "#1C1B18";
+  // Token classes so the mark follows the light/dark scheme; `dark` is for
+  // surfaces that invert relative to the page (e.g. the ink waitlist band).
+  const inkFill = dark ? "fill-paper" : "fill-ink";
   return (
     <svg
       width={(size * 22) / 26}
@@ -20,9 +22,9 @@ export function PleatsMark({
       fill="none"
       aria-hidden="true"
     >
-      <rect x="0" y="11" width="5.5" height="15" rx="2.75" fill="#3E8A72" />
-      <rect x="8.25" y="2" width="5.5" height="24" rx="2.75" fill={ink} />
-      <rect x="16.5" y="7" width="5.5" height="19" rx="2.75" fill="#3E8A72" />
+      <rect x="0" y="11" width="5.5" height="15" rx="2.75" className="fill-sage" />
+      <rect x="8.25" y="2" width="5.5" height="24" rx="2.75" className={inkFill} />
+      <rect x="16.5" y="7" width="5.5" height="19" rx="2.75" className="fill-sage" />
     </svg>
   );
 }
