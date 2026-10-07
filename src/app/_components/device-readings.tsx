@@ -108,7 +108,9 @@ interface RawReading {
 
 interface ChartPoint {
   ts: number;
-  pressure: number;
+  /** Absent on daily points for days the blower never ran — the bar gaps
+   *  while temperature/humidity continue through the quiet day. */
+  pressure?: number;
   temperature: number;
   /** Daily mode only: minutes the blower ran that day. */
   runtimeMin?: number;
@@ -225,13 +227,16 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
 
   const points: ChartPoint[] = Array.from(days.entries())
     .sort(([a], [b]) => a - b)
-    .filter(([, b]) => b.on.length > 0)
     .map(([key, b]) => {
       const src =
         b.dryRested.length > 0 ? b.dryRested : b.dry.length > 0 ? b.dry : b.on;
       return {
         ts: key,
-        pressure: src.reduce((a, c) => a + c, 0) / src.length,
+        // Quiet day (blower never ran): no pressure bar, but the day stays
+        // on the axis so temperature/humidity context doesn't vanish
+        ...(src.length > 0 && {
+          pressure: src.reduce((a, c) => a + c, 0) / src.length,
+        }),
         temperature: cToF(
           b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length
         ),
@@ -240,11 +245,15 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
     });
 
   // Least-squares trend across the daily averages — the slow, steady rise
-  // of a loading filter is exactly what this line makes visible.
-  if (points.length >= 2) {
-    const n = points.length;
-    const xs = points.map((_, i) => i);
-    const ys = points.map((pt) => pt.pressure);
+  // of a loading filter is exactly what this line makes visible. Quiet days
+  // carry no pressure, so the fit runs over measured days only.
+  const measured = points.filter(
+    (pt): pt is ChartPoint & { pressure: number } => pt.pressure !== undefined
+  );
+  if (measured.length >= 2) {
+    const n = measured.length;
+    const xs = measured.map((_, i) => i);
+    const ys = measured.map((pt) => pt.pressure);
     const xMean = xs.reduce((a, c) => a + c, 0) / n;
     const yMean = ys.reduce((a, c) => a + c, 0) / n;
     let num = 0;
@@ -255,7 +264,7 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
     }
     const slope = den === 0 ? 0 : num / den;
     const intercept = yMean - slope * xMean;
-    points.forEach((pt, i) => {
+    measured.forEach((pt, i) => {
       pt.trend = Math.max(0, intercept + slope * i);
     });
   }
