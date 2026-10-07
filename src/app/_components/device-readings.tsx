@@ -112,6 +112,10 @@ interface ChartPoint {
   /** Absent on daily points for days the blower never ran — the bar gaps
    *  while temperature/humidity continue through the quiet day. */
   pressure?: number;
+  /** Daily mode: the system never ran this day (bar gap is intentional). */
+  restDay?: boolean;
+  /** Injected by ChartPanel: baseline-level y for the rest-day marker dot. */
+  rest?: number;
   temperature: number;
   /** Daily mode only: minutes the blower ran that day. */
   runtimeMin?: number;
@@ -235,9 +239,9 @@ function dailyOnAverage(readings: RawReading[]): ChartPoint[] {
         ts: key,
         // Quiet day (blower never ran): no pressure bar, but the day stays
         // on the axis so temperature/humidity context doesn't vanish
-        ...(src.length > 0 && {
-          pressure: src.reduce((a, c) => a + c, 0) / src.length,
-        }),
+        ...(src.length > 0
+          ? { pressure: src.reduce((a, c) => a + c, 0) / src.length }
+          : { restDay: true }),
         temperature: cToF(
           b.temperature.reduce((a, c) => a + c, 0) / b.temperature.length
         ),
@@ -423,8 +427,11 @@ function CustomTooltip({ active, payload, label, rangeKey }: CustomTooltipProps)
   return (
     <div className="bg-card border border-mist rounded-xl px-3 py-2 text-xs shadow-lg">
       <p className="text-faint mb-1">{dateStr}</p>
+      {payload.some((p) => p.name === "Rest day") && (
+        <p className="text-faint">System off all day — nothing to measure</p>
+      )}
       {payload
-        .filter((p) => p.name !== "Trend")
+        .filter((p) => p.name !== "Trend" && p.name !== "Rest day")
         .map((p) => (
           <p key={p.name} style={{ color: p.color }} className="font-mono">
             {p.name}: <span className="font-bold">{p.value.toFixed(1)}</span>{" "}
@@ -526,6 +533,17 @@ function ChartPanel({
     }
   }
 
+  // Rest-day markers: quiet days get a muted dot along the chart floor so a
+  // bar gap reads as "system off", not "data missing"
+  let plotted = data;
+  if (bars && Array.isArray(yDomain) && typeof yDomain[0] === "number") {
+    const [lo, hi] = yDomain as [number, number];
+    const restY = lo + (hi - lo) * 0.03;
+    if (data.some((d) => d.restDay)) {
+      plotted = data.map((d) => (d.restDay ? { ...d, rest: restY } : d));
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-mist bg-paper p-4">
       <div className="flex items-center justify-between mb-3">
@@ -543,7 +561,7 @@ function ChartPanel({
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={160}>
-          <ChartComp data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <ChartComp data={plotted} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
             <XAxis
               dataKey="ts"
@@ -632,6 +650,16 @@ function ChartPanel({
                 dot={false}
                 activeDot={{ r: 3, fill: extraLine.color, strokeWidth: 0 }}
                 connectNulls
+                isAnimationActive={false}
+              />
+            )}
+            {bars && (
+              <Line
+                dataKey="rest"
+                name="Rest day"
+                stroke="none"
+                dot={{ r: 3, fill: theme.muted, strokeWidth: 0, fillOpacity: 0.8 }}
+                activeDot={{ r: 4, fill: theme.muted, strokeWidth: 0 }}
                 isAnimationActive={false}
               />
             )}
@@ -1051,7 +1079,8 @@ export function DeviceReadings({
           <p className="text-[10px] text-whisper -mt-2">
             Daily bars use each run&apos;s first-minutes reading — taken after
             the system has rested and before the cooling coil wets — so the
-            trend shows filter condition, not weather.
+            trend shows filter condition, not weather. Dots along the floor
+            mark days the system never ran.
           </p>
         )}
 
