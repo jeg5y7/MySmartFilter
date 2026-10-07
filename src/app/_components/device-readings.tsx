@@ -16,6 +16,7 @@ import {
 import { api } from "~/trpc/react";
 import { cToF } from "~/lib/units";
 import { BLOWER_ON_MIN_PA } from "~/lib/energy";
+import { useChartTheme } from "~/lib/chart-theme";
 
 interface DeviceReadingsProps {
   deviceId: string;
@@ -293,6 +294,7 @@ function PressureSparkline({
   readings: { pressure: number }[];
   threshold: number;
 }) {
+  const theme = useChartTheme();
   const points = [...readings].reverse().slice(-20);
   if (points.length < 2) {
     return (
@@ -338,8 +340,8 @@ function PressureSparkline({
     >
       <defs>
         <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3e8a72" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#3e8a72" stopOpacity="0.02" />
+          <stop offset="0%" stopColor={theme.sage} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={theme.sage} stopOpacity="0.02" />
         </linearGradient>
       </defs>
       <path d={areaPath} fill="url(#sparkGrad)" />
@@ -350,7 +352,7 @@ function PressureSparkline({
             y1={thresholdY}
             x2={W - padX}
             y2={thresholdY}
-            stroke="#b9652f"
+            stroke={theme.clay}
             strokeWidth="1"
             strokeDasharray="4 3"
             opacity="0.7"
@@ -358,7 +360,7 @@ function PressureSparkline({
           <text
             x={W - padX - 2}
             y={thresholdY - 3}
-            fill="#b9652f"
+            fill={theme.clay}
             fontSize="9"
             textAnchor="end"
             opacity="0.8"
@@ -370,7 +372,7 @@ function PressureSparkline({
       <polyline
         points={polyPoints}
         fill="none"
-        stroke="#3e8a72"
+        stroke={theme.sage}
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
@@ -379,7 +381,7 @@ function PressureSparkline({
         cx={toX(points.length - 1)}
         cy={toY(points[points.length - 1]!.pressure)}
         r="3"
-        fill="#3e8a72"
+        fill={theme.sage}
       />
     </svg>
   );
@@ -495,6 +497,7 @@ function ChartPanel({
   bars = false,
   isLoading,
 }: ChartPanelProps) {
+  const theme = useChartTheme();
   const cfg = RANGES[rangeKey];
   const ChartComp = bars ? ComposedChart : LineChart;
   const hasTrend = bars && data.some((d) => d.trend !== undefined);
@@ -541,21 +544,21 @@ function ChartPanel({
       ) : (
         <ResponsiveContainer width="100%" height={160}>
           <ChartComp data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
+            <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
             <XAxis
               dataKey="ts"
               type="number"
               domain={bars ? ["dataMin - 43200000", "dataMax + 43200000"] : ["dataMin", "dataMax"]}
               scale="time"
               tickFormatter={cfg.tickFormat}
-              tick={{ fill: "#8a867c", fontSize: 10 }}
+              tick={{ fill: theme.tick, fontSize: 10 }}
               tickLine={false}
-              axisLine={{ stroke: "#eeebe4" }}
+              axisLine={{ stroke: theme.axis }}
               minTickGap={40}
             />
             <YAxis
               domain={yDomain}
-              tick={{ fill: "#8a867c", fontSize: 10 }}
+              tick={{ fill: theme.tick, fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v: number) => v.toFixed(0)}
@@ -568,12 +571,12 @@ function ChartPanel({
             {referenceLine !== undefined && (
               <ReferenceLine
                 y={referenceLine}
-                stroke={referenceColor ?? "#b9652f"}
+                stroke={referenceColor ?? theme.clay}
                 strokeDasharray="4 3"
                 strokeOpacity={0.7}
                 label={{
                   value: referenceLabel ?? "",
-                  fill: referenceColor ?? "#b9652f",
+                  fill: referenceColor ?? theme.clay,
                   fontSize: 9,
                   position: "insideTopRight",
                 }}
@@ -582,12 +585,12 @@ function ChartPanel({
             {referenceLine2 !== undefined && (
               <ReferenceLine
                 y={referenceLine2}
-                stroke={referenceColor2 ?? "#3e8a72"}
+                stroke={referenceColor2 ?? theme.sage}
                 strokeDasharray="4 3"
                 strokeOpacity={0.8}
                 label={{
                   value: referenceLabel2 ?? "",
-                  fill: referenceColor2 ?? "#3e8a72",
+                  fill: referenceColor2 ?? theme.sage,
                   fontSize: 9,
                   position: "insideBottomRight",
                 }}
@@ -638,7 +641,7 @@ function ChartPanel({
                 dataKey="trend"
                 name="Trend"
                 unit={` ${unit}`}
-                stroke="#b9652f"
+                stroke={theme.clay}
                 strokeWidth={2}
                 strokeDasharray="6 4"
                 dot={false}
@@ -713,6 +716,7 @@ export function DeviceReadings({
   baselineDeltaP,
   isAutoShipMember,
 }: DeviceReadingsProps) {
+  const theme = useChartTheme();
   // Absolute alert level shown to the user: baseline + allowed rise
   const alertCeiling = (baselineDeltaP ?? 0) + pressureThreshold;
   const [activeRange, setActiveRange] = useState<RangeKey>(
@@ -1031,15 +1035,15 @@ export function DeviceReadings({
           title="Pressure Drop Across Filter"
           unit="Pa"
           dataKey="pressure"
-          color="#3e8a72"
+          color={theme.sage}
           data={mergedPoints}
           rangeKey={activeRange}
           bars={rangeCfg.dailyOnAvg}
           referenceLine={alertCeiling}
-          referenceColor="#dc2626"
+          referenceColor={theme.red}
           referenceLabel="Alert level"
           referenceLine2={avgRunning ?? undefined}
-          referenceColor2="#3e8a72"
+          referenceColor2={theme.sage}
           referenceLabel2="Average while running"
           isLoading={rangeLoading}
         />
@@ -1056,13 +1060,13 @@ export function DeviceReadings({
           title="Temperature"
           unit="°F"
           dataKey="temperature"
-          color="#b9652f"
+          color={theme.clay}
           extraLine={
             showOutdoorTemp && hasOutdoorTemp
               ? {
                   dataKey: "outdoorTempF",
                   name: rangeCfg.dailyOnAvg ? "Outdoor max" : "Outdoor",
-                  color: "#5f8a54",
+                  color: theme.leaf,
                 }
               : undefined
           }
@@ -1086,13 +1090,13 @@ export function DeviceReadings({
             }
             unit="%"
             dataKey="outdoorRh"
-            color="#5f8a54"
+            color={theme.leaf}
             extraLine={
               hasIndoorRh
                 ? {
                     dataKey: "indoorRh",
                     name: rangeCfg.dailyOnAvg ? "Indoor max" : "Indoor",
-                    color: "#3e8a72",
+                    color: theme.sage,
                     dashed: false,
                   }
                 : undefined

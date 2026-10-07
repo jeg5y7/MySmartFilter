@@ -10,6 +10,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { useChartTheme } from "~/lib/chart-theme";
 
 interface Point {
   ts: number;
@@ -44,6 +45,7 @@ export function FilterLifeChart({
   predictedDate,
   deviceName,
 }: FilterLifeChartProps) {
+  const theme = useChartTheme();
   const data: Point[] = [
     ...history.map((p) => ({ ts: p.ts, pa: p.pa })),
     ...projection.map((p) => ({ ts: p.ts, proj: p.pa })),
@@ -81,34 +83,34 @@ export function FilterLifeChart({
 
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={data} margin={{ top: 6, right: 12, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
           <XAxis
             dataKey="ts"
             type="number"
             scale="time"
             domain={["dataMin", "dataMax"]}
             tickFormatter={fmtDay}
-            tick={{ fill: "#8a867c", fontSize: 11 }}
+            tick={{ fill: theme.tick, fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "#eeebe4" }}
+            axisLine={{ stroke: theme.axis }}
             minTickGap={50}
           />
           <YAxis
             domain={[yMin, yMax]}
-            tick={{ fill: "#8a867c", fontSize: 11 }}
+            tick={{ fill: theme.tick, fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             tickFormatter={(v: number) => v.toFixed(0)}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#ffffff",
-              border: "1px solid #eeebe4",
+              backgroundColor: theme.tooltipBg,
+              border: `1px solid ${theme.tooltipBorder}`,
               borderRadius: 12,
-              color: "#1c1b18",
+              color: theme.tooltipText,
               fontSize: 12,
             }}
-            labelStyle={{ color: "#8a867c" }}
+            labelStyle={{ color: theme.muted }}
             labelFormatter={(ts: number) => fmtDay(ts)}
             formatter={(value: number, name: string) => [
               `${value.toFixed(1)} Pa`,
@@ -117,24 +119,24 @@ export function FilterLifeChart({
           />
           <ReferenceLine
             y={ceiling}
-            stroke="#dc2626"
+            stroke={theme.red}
             strokeDasharray="4 3"
             strokeOpacity={0.8}
             label={{
               value: "Replace",
-              fill: "#dc2626",
+              fill: theme.red,
               fontSize: 10,
               position: "insideTopRight",
             }}
           />
           <ReferenceLine
             y={baseline}
-            stroke="#3e8a72"
+            stroke={theme.sage}
             strokeDasharray="2 4"
             strokeOpacity={0.5}
             label={{
               value: "Fresh",
-              fill: "#3e8a72",
+              fill: theme.sage,
               fontSize: 10,
               position: "insideBottomRight",
             }}
@@ -143,9 +145,9 @@ export function FilterLifeChart({
             type="monotone"
             dataKey="pa"
             name="Filter pressure"
-            stroke="#3e8a72"
+            stroke={theme.sage}
             strokeWidth={2}
-            dot={{ r: 2, fill: "#3e8a72", strokeWidth: 0 }}
+            dot={{ r: 2, fill: theme.sage, strokeWidth: 0 }}
             connectNulls
             isAnimationActive={false}
           />
@@ -153,7 +155,7 @@ export function FilterLifeChart({
             type="linear"
             dataKey="proj"
             name="Projected"
-            stroke="#b9652f"
+            stroke={theme.clay}
             strokeWidth={2}
             strokeDasharray="6 4"
             dot={false}

@@ -13,6 +13,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { useChartTheme } from "~/lib/chart-theme";
 
 export interface FleetDevice {
   id: string;
@@ -60,6 +61,7 @@ export function AdminFleet({
   devices: FleetDevice[];
   trend: FleetTrendPoint[];
 }) {
+  const theme = useChartTheme();
   const [filter, setFilter] = useState<"all" | "online" | "offline" | "attention">("all");
 
   const shown = devices.filter((d) => {
@@ -74,12 +76,12 @@ export function AdminFleet({
     return true;
   });
 
-  const tick = { fill: "#8a867c", fontSize: 11 };
+  const tick = { fill: theme.tick, fontSize: 11 };
   const tooltipStyle = {
-    backgroundColor: "#ffffff",
-    border: "1px solid #eeebe4",
+    backgroundColor: theme.tooltipBg,
+    border: `1px solid ${theme.tooltipBorder}`,
     borderRadius: 12,
-    color: "#1c1b18",
+    color: theme.tooltipText,
     fontSize: 12,
   };
 
@@ -98,15 +100,15 @@ export function AdminFleet({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
                 <XAxis dataKey="day" tick={tick} tickFormatter={(d: string) => d.slice(5)} />
                 <YAxis tick={tick} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "#8a867c" }} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: theme.muted }} />
                 <Line
                   type="monotone"
                   dataKey="avgPressure"
                   name="Avg ΔP (Pa)"
-                  stroke="#3e8a72"
+                  stroke={theme.sage}
                   strokeWidth={2}
                   dot={false}
                   connectNulls
@@ -124,24 +126,24 @@ export function AdminFleet({
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eeebe4" />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
                 <XAxis dataKey="day" tick={tick} tickFormatter={(d: string) => d.slice(5)} />
                 <YAxis tick={tick} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: "#8a867c" }} />
+                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: theme.muted }} />
                 <Area
                   type="monotone"
                   dataKey="readings"
                   name="Readings"
-                  stroke="#3e8a72"
-                  fill="rgba(62,138,114,0.12)"
+                  stroke={theme.sage}
+                  fill={theme.sageSoft}
                   strokeWidth={2}
                 />
                 <Area
                   type="monotone"
                   dataKey="devices"
                   name="Monitors reporting"
-                  stroke="#b9652f"
-                  fill="rgba(185,101,47,0.10)"
+                  stroke={theme.clay}
+                  fill={theme.clay + "1a"}
                   strokeWidth={2}
                 />
               </AreaChart>

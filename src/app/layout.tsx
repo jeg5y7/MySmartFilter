@@ -1,6 +1,6 @@
 import "~/styles/globals.css";
 
-import { type Metadata } from "next";
+import { type Metadata, type Viewport } from "next";
 import { Instrument_Sans, Instrument_Serif } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
@@ -22,6 +22,14 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "MySmartFilter",
   },
+};
+
+export const viewport: Viewport = {
+  // Browser chrome follows the page scheme (paper / Nordic Night)
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf8f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#161513" },
+  ],
 };
 
 const instrumentSans = Instrument_Sans({

@@ -19,3 +19,39 @@
   --color-leaf: #5f8a54;
   --color-clay: #b9652f;
 }
+
+/* Let form controls, scrollbars, etc. follow the user's scheme */
+:root {
+  color-scheme: light dark;
+}
+
+/* ── Nordic Night ─────────────────────────────────────────────────────────
+   Same semantic roles, flipped values. Because every surface in the app
+   uses these tokens (bg-paper, text-ink, border-mist, …), redefining them
+   here switches the whole site with the phone's dark-mode setting. The
+   accent greens/clay brighten for contrast on dark; the stock reds used
+   for error states are re-tuned too so bg-red-50 doesn't blind. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #161513;
+    --color-card: #201f1c;
+    --color-ink: #f0eee9;
+    --color-body: #b3afa5;
+    --color-faint: #8a867c;
+    --color-whisper: #67635a;
+    --color-mist: #2e2c28;
+    --color-sagemist: #22352d;
+    --color-sage: #4fa98c;
+    --color-sage-deep: #7cc5aa;
+    --color-glow: #60c7a0;
+    --color-leaf: #83a978;
+    --color-clay: #d28a52;
+
+    --color-red-50: #362019;
+    --color-red-200: #5a2f2a;
+    --color-red-400: #e0695f;
+    --color-red-500: #dd5f54;
+    --color-red-600: #d9554a;
+    --color-red-700: #e5867d;
+  }
+}
