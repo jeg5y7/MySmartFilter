@@ -150,6 +150,12 @@ export default async function AdminFleetPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
+              href="/admin/users"
+              className="rounded-full border border-mist bg-card px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist/60"
+            >
+              👥 Users
+            </Link>
+            <Link
               href="/admin/orders"
               className="rounded-full border border-mist bg-card px-4 py-2 text-sm font-semibold text-ink transition hover:bg-mist/60"
             >
